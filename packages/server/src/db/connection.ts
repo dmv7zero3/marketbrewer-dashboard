@@ -15,7 +15,7 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // Initialize database connection
-const db = new Database(dbPath);
+const db: Database.Database = new Database(dbPath);
 
 // Enable foreign keys and WAL mode for better concurrency
 db.pragma("foreign_keys = ON");
