@@ -257,9 +257,100 @@ Look for:
 
 ### Testing Strategy:
 
-1. Do we need unit tests before Phase 2?
-2. Should we add integration tests for the worker loop?
-3. How do we test Ollama integration without a running instance?
+1. **YES - Add unit tests during Phase 2 implementation** (not before)
+   - Write tests alongside feature development
+   - Focus on utilities, schemas, business logic
+   - Target 70%+ coverage for shared and worker packages
+2. **Integration tests** - Add after core features work (E2E shell script)
+3. **Mock Ollama** - Use axios mocks for unit tests, real Ollama for integration
+
+---
+
+## Unit Testing Plan
+
+### Framework: Jest + TypeScript
+
+**Setup** (packages/shared, packages/worker, packages/server):
+
+```bash
+npm install -D jest @types/jest ts-jest @types/node
+npx ts-jest config:init
+```
+
+### What to Test (Priority Order)
+
+#### 1. **Shared Package Utilities** (`packages/shared/src/utils/`)
+
+- ✅ `toSlug()` - ASCII, Unicode, edge cases
+- ✅ `toCityStateSlug()` - Various city names
+- ✅ `generateId()` - UUID format validation
+- ✅ `calculateCompletenessScore()` - All field combinations
+- ✅ `generateUrlPath()` - With/without keyword
+
+**Example test:**
+
+```typescript
+// packages/shared/src/utils/__tests__/slug.test.ts
+import { toSlug, toCityStateSlug } from "../index";
+
+describe("toSlug", () => {
+  it("converts spaces to dashes", () => {
+    expect(toSlug("Hello World")).toBe("hello-world");
+  });
+
+  it("handles Unicode characters", () => {
+    expect(toSlug("San José")).toBe("san-jose");
+  });
+
+  it("removes special characters", () => {
+    expect(toSlug("Hello@World!")).toBe("helloworld");
+  });
+});
+```
+
+#### 2. **Shared Package Schemas** (`packages/shared/src/schemas/`)
+
+- ✅ `CreateBusinessSchema` - Valid/invalid inputs
+- ✅ `CreateGenerationJobSchema` - Page type validation
+- ✅ `ClaimPageSchema` - Worker ID validation
+- ✅ `CompletePageSchema` - Status enum validation
+
+#### 3. **Worker Ollama Client** (`packages/worker/src/ollama/`)
+
+- ✅ Mock HTTP requests with `axios-mock-adapter`
+- ✅ Test timeout handling
+- ✅ Test error responses
+- ✅ Test response parsing
+
+#### 4. **Worker Prompt Builder** (`packages/worker/src/prompt/`)
+
+- ✅ Variable substitution
+- ✅ Missing variable handling
+- ✅ Template parsing edge cases
+
+#### 5. **Server Route Logic** (Optional for V1)
+
+- Can defer route tests - covered by integration tests
+- Focus on pure business logic if extracted to services
+
+### Coverage Targets
+
+- **Shared package:** 80%+ (utilities, schemas)
+- **Worker package:** 70%+ (Ollama client, prompt builder)
+- **Server package:** 50%+ (route handlers harder to unit test)
+
+### Test Commands
+
+Add to root `package.json`:
+
+```json
+"scripts": {
+   "test": "npm test --workspaces --if-present",
+   "test:shared": "npm test --workspace=packages/shared",
+   "test:worker": "npm test --workspace=packages/worker",
+   "test:coverage": "npm test --workspaces -- --coverage"
+}
+```
 
 ---
 
@@ -270,8 +361,9 @@ Please provide:
 1. **Critical Issues Found** - List of bugs/problems that must be fixed before Phase 2
 2. **Recommendations** - Improvements to make now vs. defer to later
 3. **Phase 2 Implementation Plan** - Suggested order of tasks with time estimates
-4. **Code Snippets** - Specific fixes for any issues found
-5. **Questions to Owner** - Anything requiring Jorge's input/decision
+4. **Unit Testing Plan** - What to test, coverage targets, testing framework setup
+5. **Code Snippets** - Specific fixes for any issues found
+6. **Questions to Owner** - Anything requiring Jorge's input/decision
 
 ---
 

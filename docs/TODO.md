@@ -43,7 +43,16 @@ Short, actionable tasks tracked before implementation.
    - Keyword/service area management
    - Prompt editor with preview
 
-5. **End-to-End Testing**
+5. **Unit Testing** (Along the way)
+
+   - Set up Jest + @types/jest
+   - Test utilities (toSlug, calculateCompletenessScore, generateId)
+   - Test Zod schemas (validation edge cases)
+   - Test Ollama client (mock responses)
+   - Test prompt builder (variable substitution)
+   - Target: 70%+ coverage on shared/worker packages
+
+6. **End-to-End Testing**
    - Seed database with test data
    - Create job via dashboard
    - Worker generates content via Ollama
