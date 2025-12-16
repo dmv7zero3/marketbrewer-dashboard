@@ -13,8 +13,8 @@ Short, actionable tasks tracked before implementation.
 
 - Verify per-package `tsconfig.json` exist and are strict
 - Scaffold server, worker, and dashboard minimal files
-- Add `migrations/001_initial_schema.sql`
-- Define environment variable templates
+- Add initial schema `migrations/001_initial_schema.sql` (apply once)
+- Create `.env.example` in server/worker/dashboard
 - Prepare EC2 ops scripts (auto-shutdown, CloudWatch alarms)
 
 ## Later
@@ -22,3 +22,4 @@ Short, actionable tasks tracked before implementation.
 - Implement all API endpoints (see `ENDPOINTS.md`)
 - Build dashboard pages
 - Integrate worker claim/generate/complete
+ - Add migration runner only when schema changes are needed

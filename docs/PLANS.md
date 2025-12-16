@@ -12,7 +12,7 @@ Concise phases to reach a working MVP on a single EC2 instance.
 
 ## Phase 2: Core Features
 
-- DB migrations: create `migrations/001_initial_schema.sql` from `DATABASE.md`
+- Initial schema: create `migrations/001_initial_schema.sql` from `DATABASE.md` (apply once on fresh DB)
 - API endpoints: businesses, keywords, service-areas, prompts, jobs, workers (validation via zod)
 - Dashboard pages: Businesses list/detail, Prompts editor, Job creation/status, Worker status
 
@@ -20,7 +20,7 @@ Concise phases to reach a working MVP on a single EC2 instance.
 
 - Worker: implement claim → generate (Ollama, CPU-only by default) → complete/fail, backoff & retry (max attempts configurable)
 - Export: server builds JSON manifests under `output/{business}/`
-- EC2 ops: systemd units or PM2, auto-shutdown script, CloudWatch alarms
+- EC2 ops: systemd units (preferred) with `LimitNOFILE` ulimit, auto-shutdown script, CloudWatch alarms
 
 ## Out of Scope (for now)
 
