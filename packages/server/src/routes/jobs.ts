@@ -1,0 +1,221 @@
+/**
+ * Generation jobs routes
+ */
+
+import { Router, Request, Response, NextFunction } from 'express';
+import { dbRun, dbGet, dbAll } from '../db/connection';
+import { 
+  CreateGenerationJobSchema,
+  generateId,
+  toSlug,
+  toCityStateSlug,
+} from '@marketbrewer/shared';
+import type { 
+  GenerationJob, 
+  JobPage, 
+  JobWithCounts,
+  Business,
+  Keyword,
+  ServiceArea,
+  Questionnaire,
+} from '@marketbrewer/shared';
+import { HttpError } from '../middleware/error-handler';
+
+const router = Router();
+
+/**
+ * POST /businesses/:id/generate - Create generation job
+ */
+router.post('/:id/generate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const businessId = req.params.id;
+    
+    // Verify business exists
+    const business = dbGet<Business>('SELECT * FROM businesses WHERE id = ?', [businessId]);
+    if (!business) {
+      throw new HttpError(404, 'Business not found', 'NOT_FOUND');
+    }
+
+    // Check questionnaire completeness
+    const questionnaire = dbGet<Questionnaire>(
+      'SELECT * FROM questionnaires WHERE business_id = ?',
+      [businessId]
+    );
+
+    if (!questionnaire || questionnaire.completeness_score < 40) {
+      throw new HttpError(422, 'Questionnaire must be at least 40% complete', 'INSUFFICIENT_DATA', {
+        current_score: questionnaire?.completeness_score ?? 0,
+        required_score: 40,
+      });
+    }
+
+    const data = CreateGenerationJobSchema.parse(req.body);
+    
+    // Get keywords and service areas for the business
+    const keywords = dbAll<Keyword>(
+      'SELECT * FROM keywords WHERE business_id = ? ORDER BY priority DESC',
+      [businessId]
+    );
+
+    const serviceAreas = dbAll<ServiceArea>(
+      'SELECT * FROM service_areas WHERE business_id = ? ORDER BY priority DESC',
+      [businessId]
+    );
+
+    if (serviceAreas.length === 0) {
+      throw new HttpError(422, 'At least one service area is required', 'INSUFFICIENT_DATA');
+    }
+
+    if (data.page_type === 'keyword-location' && keywords.length === 0) {
+      throw new HttpError(422, 'At least one keyword is required for keyword-location pages', 'INSUFFICIENT_DATA');
+    }
+
+    // Generate job pages based on page type
+    const jobId = generateId();
+    const now = new Date().toISOString();
+    const jobPages: Array<{
+      id: string;
+      job_id: string;
+      business_id: string;
+      keyword_slug: string | null;
+      service_area_slug: string;
+      url_path: string;
+      status: string;
+      created_at: string;
+    }> = [];
+
+    if (data.page_type === 'keyword-location') {
+      // Create a page for each keyword × service area combination
+      for (const keyword of keywords) {
+        for (const area of serviceAreas) {
+          const serviceAreaSlug = toCityStateSlug(area.city, area.state);
+          const urlPath = `/${keyword.slug}/${serviceAreaSlug}`;
+          
+          jobPages.push({
+            id: generateId(),
+            job_id: jobId,
+            business_id: businessId,
+            keyword_slug: keyword.slug,
+            service_area_slug: serviceAreaSlug,
+            url_path: urlPath,
+            status: 'queued',
+            created_at: now,
+          });
+        }
+      }
+    } else {
+      // service-location: One page per service area
+      for (const area of serviceAreas) {
+        const serviceAreaSlug = toCityStateSlug(area.city, area.state);
+        const urlPath = `/${serviceAreaSlug}`;
+        
+        jobPages.push({
+          id: generateId(),
+          job_id: jobId,
+          business_id: businessId,
+          keyword_slug: null,
+          service_area_slug: serviceAreaSlug,
+          url_path: urlPath,
+          status: 'queued',
+          created_at: now,
+        });
+      }
+    }
+
+    const totalPages = jobPages.length;
+
+    // Insert job
+    dbRun(
+      `INSERT INTO generation_jobs (id, business_id, status, page_type, total_pages, completed_pages, failed_pages, created_at, started_at, completed_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [jobId, businessId, 'pending', data.page_type, totalPages, 0, 0, now, null, null]
+    );
+
+    // Insert job pages
+    for (const page of jobPages) {
+      dbRun(
+        `INSERT INTO job_pages (id, job_id, business_id, keyword_slug, service_area_slug, url_path, status, worker_id, attempts, claimed_at, completed_at, content, error_message, section_count, model_name, prompt_version, generation_duration_ms, word_count, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [page.id, page.job_id, page.business_id, page.keyword_slug, page.service_area_slug, page.url_path, page.status, null, 0, null, null, null, null, 3, null, null, null, null, page.created_at]
+      );
+    }
+
+    const job = dbGet<GenerationJob>('SELECT * FROM generation_jobs WHERE id = ?', [jobId]);
+
+    res.status(201).json({
+      job,
+      total_pages_created: totalPages,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /businesses/:id/jobs - List jobs for business
+ */
+router.get('/:id/jobs', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const businessId = req.params.id;
+    
+    const jobs = dbAll<GenerationJob>(
+      'SELECT * FROM generation_jobs WHERE business_id = ? ORDER BY created_at DESC',
+      [businessId]
+    );
+
+    res.json({ jobs });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /businesses/:id/jobs/:jobId - Get job status with counts
+ */
+router.get('/:id/jobs/:jobId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: businessId, jobId } = req.params;
+    
+    const job = dbGet<GenerationJob>(
+      'SELECT * FROM generation_jobs WHERE id = ? AND business_id = ?',
+      [jobId, businessId]
+    );
+
+    if (!job) {
+      throw new HttpError(404, 'Job not found', 'NOT_FOUND');
+    }
+
+    // Get page counts by status
+    const counts = dbAll<{ status: string; count: number }>(
+      `SELECT status, COUNT(*) as count FROM job_pages WHERE job_id = ? GROUP BY status`,
+      [jobId]
+    );
+
+    const statusCounts = {
+      queued: 0,
+      processing: 0,
+      completed: 0,
+      failed: 0,
+    };
+
+    for (const row of counts) {
+      if (row.status in statusCounts) {
+        statusCounts[row.status as keyof typeof statusCounts] = row.count;
+      }
+    }
+
+    const result: JobWithCounts = {
+      ...job,
+      queued_count: statusCounts.queued,
+      processing_count: statusCounts.processing,
+      completed_count: statusCounts.completed,
+      failed_count: statusCounts.failed,
+    };
+
+    res.json({ job: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;
