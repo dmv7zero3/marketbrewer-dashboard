@@ -17,6 +17,11 @@ marketbrewer-seo-platform/
 │   ├── worker/                    # Job processor
 │   └── shared/                    # Shared types/utils
 ├── output/                        # Generated JSON (gitignored)
+│   └── {business_id}/
+│       ├── manifest.json
+│       └── pages/
+├── data/                          # SQLite DB (gitignored)
+│   └── seo-platform.db
 ├── scripts/                       # CLI utilities
 ├── config/                        # Prompt templates, seeds
 ├── package.json                   # Workspace root
@@ -70,6 +75,7 @@ server/
 │   │   ├── service-areas.ts
 │   │   ├── prompts.ts
 │   │   ├── jobs.ts
+│   │   ├── job-pages.ts
 │   │   └── workers.ts
 │   ├── db/
 │   │   ├── connection.ts         # SQLite setup
@@ -119,6 +125,7 @@ shared/
 │   │   ├── job.ts
 │   │   ├── prompt.ts
 │   │   └── api.ts
+ │   ├── schemas/                 # Zod schemas mirroring types
 │   ├── utils/
 │   │   ├── logger.ts
 │   │   └── validation.ts
@@ -184,6 +191,9 @@ CLI utilities.
 scripts/
 ├── seed-db.ts                    # Seed database
 ├── export-json.ts                # Export to JSON
+├── migrate.ts                    # Run SQL migrations
+├── ec2-setup.sh                  # EC2 provisioning steps
+└── auto-shutdown.sh              # Nightly stop to control cost
 └── deploy-local.sh               # Local deployment
 ```
 

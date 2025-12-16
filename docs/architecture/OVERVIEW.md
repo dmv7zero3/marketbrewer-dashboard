@@ -62,6 +62,7 @@ Express REST API with SQLite database.
 | Job queue        | Atomic claim/release for workers |
 | Authentication   | Bearer token validation          |
 | CORS             | Configured for dashboard origin  |
+| Export           | Writes JSON under `output/{business_id}/` |
 
 ### Worker (`packages/worker/`)
 
@@ -124,13 +125,12 @@ PUT /jobs/:id/pages/:pageId/complete → Server
 ### 3. Output Export
 
 ```
-Server → Query completed pages → Build JSON manifest
-                                        │
-                                        ▼
-                              Write to ./output/{business}/
-                                        │
-                                        ▼
-                              Copy to client website repo
+Server → Query completed pages → Build manifest
+                        │
+                        ▼
+               Write to ./output/{business_id}/
+                  ├─ manifest.json
+                  └─ pages/{url_path}.json
 ```
 
 ---

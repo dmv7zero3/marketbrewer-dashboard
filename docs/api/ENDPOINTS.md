@@ -26,6 +26,18 @@ See [AUTH.md](./AUTH.md) for details.
 ---
 
 ## Businesses
+### Health Check
+
+```
+GET /health
+```
+
+Response:
+```json
+{ "status": "ok" }
+```
+
+---
 
 ### List Businesses
 
