@@ -1,0 +1,16 @@
+[Unit]
+Description=MarketBrewer SEO Platform API Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/marketbrewer-seo-platform
+Environment=API_HOST=0.0.0.0
+Environment=API_PORT=3001
+Environment=API_TOKEN=CHANGE_ME
+ExecStart=/usr/bin/npm --prefix packages/server run start
+Restart=always
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

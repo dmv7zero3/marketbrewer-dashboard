@@ -1,0 +1,17 @@
+[Unit]
+Description=MarketBrewer SEO Platform Worker
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/marketbrewer-seo-platform
+Environment=API_URL=http://localhost:3001
+Environment=API_TOKEN=CHANGE_ME
+Environment=OLLAMA_URL=http://localhost:11434
+Environment=OLLAMA_MODEL=llama3.1:8b-instruct
+ExecStart=/usr/bin/npm --prefix packages/worker run start
+Restart=always
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target
