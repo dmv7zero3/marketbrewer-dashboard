@@ -13,9 +13,12 @@
     "dev:dashboard": "npm run dev --workspace=packages/dashboard",
     "dev:server": "npm run dev --workspace=packages/server",
     "dev:worker": "npm run dev --workspace=packages/worker",
+    "build": "npm run build --workspaces",
     "build:dashboard": "npm run build --workspace=packages/dashboard",
     "build:server": "npm run build --workspace=packages/server",
-    "build": "npm run build --workspaces"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint packages/*/src",
+    "test": "npm test --workspaces --if-present"
   },
   "devDependencies": {
     "typescript": "^5.3.0"

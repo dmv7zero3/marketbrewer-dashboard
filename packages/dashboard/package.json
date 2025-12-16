@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "webpack serve --config webpack/webpack.dev.ts",
     "build": "webpack --config webpack/webpack.prod.ts",
-    "type-check": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@marketbrewer/shared": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0"
