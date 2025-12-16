@@ -22,4 +22,4 @@ Short, actionable tasks tracked before implementation.
 - Implement all API endpoints (see `ENDPOINTS.md`)
 - Build dashboard pages
 - Integrate worker claim/generate/complete
- - Add migration runner only when schema changes are needed
+- Add migration runner only when schema changes are needed

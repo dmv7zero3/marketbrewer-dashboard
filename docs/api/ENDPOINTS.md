@@ -6,10 +6,10 @@ REST API reference for MarketBrewer SEO Platform.
 
 ## Base URL
 
-| Environment | URL |
-|-------------|-----|
-| Local | `http://localhost:3001` |
-| Tailscale | `http://{hostname}.tailnet:3001` |
+| Environment | URL                              |
+| ----------- | -------------------------------- |
+| Local       | `http://localhost:3001`          |
+| Tailscale   | `http://{hostname}.tailnet:3001` |
 
 ---
 
@@ -26,6 +26,7 @@ See [AUTH.md](./AUTH.md) for details.
 ---
 
 ## Businesses
+
 ### Health Check
 
 ```
@@ -33,6 +34,7 @@ GET /health
 ```
 
 Response:
+
 ```json
 { "status": "ok" }
 ```
@@ -46,6 +48,7 @@ GET /businesses
 ```
 
 Response:
+
 ```json
 {
   "businesses": [
@@ -107,6 +110,7 @@ GET /businesses/:id/questionnaire
 ```
 
 Response:
+
 ```json
 {
   "questionnaire": {
@@ -250,6 +254,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "job": {
@@ -275,6 +280,7 @@ GET /businesses/:id/jobs/:jobId
 ```
 
 Response:
+
 ```json
 {
   "job": {
@@ -309,6 +315,7 @@ Content-Type: application/json
 ```
 
 Response (success):
+
 ```json
 {
   "page": {
@@ -322,12 +329,14 @@ Response (success):
 ```
 
 Response (no pages available):
+
 ```json
 {
   "error": "No pages available",
   "code": "NO_PAGES"
 }
 ```
+
 Status: 409
 
 ### Complete Page
@@ -391,11 +400,11 @@ All errors follow this format:
 }
 ```
 
-| Code | HTTP | Meaning |
-|------|------|---------|
-| `VALIDATION_ERROR` | 400 | Invalid input |
-| `UNAUTHORIZED` | 401 | Missing/invalid token |
-| `NOT_FOUND` | 404 | Resource not found |
-| `CONFLICT` | 409 | Resource conflict |
-| `INSUFFICIENT_DATA` | 422 | Questionnaire incomplete |
-| `INTERNAL_ERROR` | 500 | Server error |
+| Code                | HTTP | Meaning                  |
+| ------------------- | ---- | ------------------------ |
+| `VALIDATION_ERROR`  | 400  | Invalid input            |
+| `UNAUTHORIZED`      | 401  | Missing/invalid token    |
+| `NOT_FOUND`         | 404  | Resource not found       |
+| `CONFLICT`          | 409  | Resource conflict        |
+| `INSUFFICIENT_DATA` | 422  | Questionnaire incomplete |
+| `INTERNAL_ERROR`    | 500  | Server error             |

@@ -56,12 +56,12 @@ React 18 single-page application.
 
 Express REST API with SQLite database.
 
-| Responsibility   | Details                          |
-| ---------------- | -------------------------------- |
-| Data persistence | SQLite for all entities          |
-| Job queue        | Atomic claim/release for workers |
-| Authentication   | Bearer token validation          |
-| CORS             | Configured for dashboard origin  |
+| Responsibility   | Details                                   |
+| ---------------- | ----------------------------------------- |
+| Data persistence | SQLite for all entities                   |
+| Job queue        | Atomic claim/release for workers          |
+| Authentication   | Bearer token validation                   |
+| CORS             | Configured for dashboard origin           |
 | Export           | Writes JSON under `output/{business_id}/` |
 
 ### Worker (`packages/worker/`)
