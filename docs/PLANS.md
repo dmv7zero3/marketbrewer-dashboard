@@ -9,18 +9,22 @@ Concise, time-bound plan to deliver MVP on a single EC2 instance in 2–4 days.
 - Confirm SQLite handles 5k+ rows on instance type.
 - Provision EC2 with minimal security group (allow 3001 + SSH from trusted IPs).
 
-## Phase 1: Foundation (1 day)
+## ✅ Phase 1: Foundation (COMPLETED - Dec 16, 2024)
 
-- Monorepo setup: root strict `tsconfig.json`, workspace tooling.
-- Server scaffold: `src/index.ts`, `middleware/{auth,cors,error-handler}.ts`, `db/connection.ts`, `routes/index.ts`.
-- Worker scaffold: `src/index.ts`, `worker.ts`, `api-client.ts` (heartbeat stub).
-- Dashboard scaffold: `public/index.html`, `src/index.tsx`, `src/App.tsx`, Tailwind setup (`tailwind.config.js`, `postcss.config.js`, `styles/globals.css`), webpack configs; folders `pages/`, `hooks/`, `api/`.
-- Shared package: `types/` and `schemas/` (Zod) with barrel exports.
-- Env setup: `.env` per package with `API_TOKEN`, base URLs; add `.env.example` files.
+- [x] Monorepo setup: root strict `tsconfig.json`, workspace tooling.
+- [x] Server scaffold: `src/index.ts`, `middleware/{auth,cors,error-handler}.ts`, `db/connection.ts`, `routes/index.ts`.
+- [x] Worker scaffold: `src/index.ts`, `worker.ts`, `api-client.ts` (heartbeat stub).
+- [x] Dashboard scaffold: React pages, API client, Tailwind.
+- [x] Shared package: `types/` and `schemas/` (Zod) with barrel exports.
+- [x] Env setup: `.env` per package with `API_TOKEN`, base URLs; add `.env.example` files.
 
-Deliverable:
+**Status:**
 
-- All packages build, server starts on :3001 and responds `/health`.
+- ✅ All packages build successfully
+- ✅ Server starts on :3001 and responds `/health`
+- ✅ Worker can claim/complete pages (generation is placeholder)
+- ✅ Dashboard pages functional (JobCreate, JobStatus)
+- ✅ Database schema and seed scripts ready
 
 ## Phase 2: Core Features (1–1.5 days)
 
