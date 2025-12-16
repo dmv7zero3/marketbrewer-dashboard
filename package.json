@@ -1,0 +1,26 @@
+{
+  "name": "marketbrewer-seo-platform",
+  "version": "1.0.0",
+  "description": "Local-first SEO content generation platform",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/dashboard",
+    "packages/worker"
+  ],
+  "scripts": {
+    "dev:dashboard": "npm run dev --workspace=packages/dashboard",
+    "dev:server": "npm run dev --workspace=packages/server",
+    "dev:worker": "npm run dev --workspace=packages/worker",
+    "build:dashboard": "npm run build --workspace=packages/dashboard",
+    "build:server": "npm run build --workspace=packages/server",
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

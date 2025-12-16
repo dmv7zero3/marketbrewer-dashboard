@@ -1,0 +1,17 @@
+{
+  "name": "@marketbrewer/server",
+  "version": "1.0.0",
+  "description": "MarketBrewer SEO Platform API Server",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.2"
+  }
+}
