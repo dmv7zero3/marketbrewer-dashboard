@@ -7,6 +7,7 @@
 import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { initializeDatabase } from "./db/connection";
 import {
   authMiddleware,
@@ -21,9 +22,25 @@ const app = express();
 const HOST = process.env.API_HOST || "0.0.0.0";
 const PORT = parseInt(process.env.API_PORT || "3001", 10);
 
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute per IP
+  message: {
+    error: "Too many requests",
+    code: "RATE_LIMITED",
+    retryAfter: 60,
+  },
+  standardHeaders: true, // Return rate limit info in RateLimit-* headers
+  legacyHeaders: false, // Disable X-RateLimit-* headers
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === "/health" || req.path === "/api/health",
+});
+
 // Security middleware
 app.use(helmet()); // Security headers
 app.use(express.json({ limit: "1mb" })); // Request size limit to prevent DoS
+app.use(limiter); // Rate limiting
 
 // Application middleware
 app.use(corsMiddleware);

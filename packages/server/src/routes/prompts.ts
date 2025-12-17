@@ -3,12 +3,37 @@
  */
 
 import { Router, Request, Response, NextFunction } from "express";
+import { z } from "zod";
 import { dbRun, dbGet, dbAll } from "../db/connection";
 import type { PromptTemplate, Business } from "@marketbrewer/shared";
 import { HttpError } from "../middleware/error-handler";
 import { generateId } from "@marketbrewer/shared";
 
 const router = Router();
+
+/**
+ * Validation schema for creating a prompt template
+ */
+const CreatePromptSchema = z.object({
+  page_type: z.enum(["service-location", "keyword-location"]),
+  version: z.number().int().positive(),
+  template: z.string().min(10).max(50000),
+  required_variables: z.array(z.string()).optional(),
+  optional_variables: z.array(z.string()).optional(),
+  word_count_target: z.number().int().min(100).max(10000),
+  is_active: z.boolean().optional(),
+});
+
+/**
+ * Validation schema for updating a prompt template
+ */
+const UpdatePromptSchema = z.object({
+  template: z.string().min(10).max(50000).optional(),
+  required_variables: z.array(z.string()).optional(),
+  optional_variables: z.array(z.string()).optional(),
+  word_count_target: z.number().int().min(100).max(10000).optional(),
+  is_active: z.boolean().optional(),
+});
 
 /**
  * GET /businesses/:id/prompts - List prompt templates for a business
@@ -67,6 +92,19 @@ router.post(
         throw new HttpError(404, "Business not found", "NOT_FOUND");
       }
 
+      // Validate request body with Zod
+      const validationResult = CreatePromptSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(", ");
+        throw new HttpError(
+          400,
+          `Validation error: ${errors}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
       const {
         page_type,
         version,
@@ -75,59 +113,7 @@ router.post(
         optional_variables,
         word_count_target,
         is_active,
-      } = req.body as {
-        page_type: "service-location" | "keyword-location";
-        version: number;
-        template: string;
-        required_variables?: string[];
-        optional_variables?: string[];
-        word_count_target: number;
-        is_active?: boolean;
-      };
-
-      // Validate required fields
-      if (
-        !page_type ||
-        !["service-location", "keyword-location"].includes(page_type)
-      ) {
-        throw new HttpError(
-          400,
-          "Invalid page_type. Must be 'service-location' or 'keyword-location'",
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (version === undefined || typeof version !== "number" || version < 1) {
-        throw new HttpError(
-          400,
-          "Version is required and must be a positive number",
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (
-        !template ||
-        typeof template !== "string" ||
-        template.trim().length === 0
-      ) {
-        throw new HttpError(
-          400,
-          "Template content is required",
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (
-        word_count_target === undefined ||
-        typeof word_count_target !== "number" ||
-        word_count_target < 1
-      ) {
-        throw new HttpError(
-          400,
-          "word_count_target is required and must be a positive number",
-          "VALIDATION_ERROR"
-        );
-      }
+      } = validationResult.data;
 
       // Check for duplicate page_type + version combination
       const existing = dbGet<PromptTemplate>(
@@ -198,59 +184,31 @@ router.put(
         throw new HttpError(404, "Prompt template not found", "NOT_FOUND");
       }
 
+      // Validate request body with Zod
+      const validationResult = UpdatePromptSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(", ");
+        throw new HttpError(
+          400,
+          `Validation error: ${errors}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
       const {
-        page_type,
-        version,
         template,
         required_variables,
         optional_variables,
         word_count_target,
         is_active,
-      } = req.body as {
-        page_type?: "service-location" | "keyword-location";
-        version?: number;
-        template?: string;
-        required_variables?: string[];
-        optional_variables?: string[];
-        word_count_target?: number;
-        is_active?: boolean;
-      };
+      } = validationResult.data;
 
       const updates: string[] = [];
       const values: unknown[] = [];
 
-      if (page_type !== undefined) {
-        if (!["service-location", "keyword-location"].includes(page_type)) {
-          throw new HttpError(
-            400,
-            "Invalid page_type. Must be 'service-location' or 'keyword-location'",
-            "VALIDATION_ERROR"
-          );
-        }
-        updates.push("page_type = ?");
-        values.push(page_type);
-      }
-
-      if (version !== undefined) {
-        if (typeof version !== "number" || version < 1) {
-          throw new HttpError(
-            400,
-            "Version must be a positive number",
-            "VALIDATION_ERROR"
-          );
-        }
-        updates.push("version = ?");
-        values.push(version);
-      }
-
       if (template !== undefined) {
-        if (typeof template !== "string" || template.trim().length === 0) {
-          throw new HttpError(
-            400,
-            "Template content cannot be empty",
-            "VALIDATION_ERROR"
-          );
-        }
         updates.push("template = ?");
         values.push(template);
       }
@@ -270,13 +228,6 @@ router.put(
       }
 
       if (word_count_target !== undefined) {
-        if (typeof word_count_target !== "number" || word_count_target < 1) {
-          throw new HttpError(
-            400,
-            "word_count_target must be a positive number",
-            "VALIDATION_ERROR"
-          );
-        }
         updates.push("word_count_target = ?");
         values.push(word_count_target);
       }
@@ -291,23 +242,8 @@ router.put(
         return;
       }
 
-      // Check for duplicate page_type + version combination if either is being updated
-      if (page_type !== undefined || version !== undefined) {
-        const newPageType = page_type ?? existing.page_type;
-        const newVersion = version ?? existing.version;
-
-        const duplicate = dbGet<PromptTemplate>(
-          "SELECT * FROM prompt_templates WHERE business_id = ? AND page_type = ? AND version = ? AND id != ?",
-          [businessId, newPageType, newVersion, promptId]
-        );
-        if (duplicate) {
-          throw new HttpError(
-            409,
-            `A template for ${newPageType} version ${newVersion} already exists`,
-            "DUPLICATE_ERROR"
-          );
-        }
-      }
+      // Note: page_type and version are not updatable in this schema
+      // Only template content, variables, word count, and active status can be updated
 
       values.push(promptId);
       dbRun(

@@ -28,9 +28,15 @@ const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = getAllowedOrigins();
 
-    // Allow requests with no origin (e.g., mobile apps, curl)
+    // In development, allow requests with no origin (e.g., curl, Postman)
+    // In production, require origin for security
     if (!origin) {
-      return callback(null, true);
+      if (process.env.NODE_ENV === "development") {
+        return callback(null, true);
+      } else {
+        console.warn("CORS blocked: No origin header in production");
+        return callback(new Error("Origin required in production"), false);
+      }
     }
 
     // Check if origin matches allowed list

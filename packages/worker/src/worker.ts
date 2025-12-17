@@ -26,6 +26,7 @@ export class Worker {
   private ollamaClient: OllamaClient;
   private isRunning: boolean = false;
   private currentPage: JobPage | null = null;
+  private currentBackoffMs: number = 1000; // Start with 1 second
 
   constructor(
     apiClient: ApiClient,
@@ -87,9 +88,17 @@ export class Worker {
     );
 
     if (!page) {
-      console.log("No pages available to claim");
+      // No work available - apply exponential backoff
+      this.currentBackoffMs = Math.min(this.currentBackoffMs * 2, 30000); // Max 30 seconds
+      console.log(
+        `No pages available - backing off ${this.currentBackoffMs}ms`
+      );
+      await this.sleep(this.currentBackoffMs);
       return;
     }
+
+    // Reset backoff on successful claim
+    this.currentBackoffMs = 1000;
 
     this.currentPage = page;
     console.log(`📄 Claimed page: ${page.url_path}`);
