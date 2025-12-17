@@ -71,9 +71,15 @@ Review this checklist to ensure **zero gaps** before:
    - [ ] Can we build staging and production versions with different URLs?
 
 3. **Worker Environment:**
+
    - [ ] Does worker know how to find the API server URL?
    - [ ] Does worker auth token match server token?
    - [ ] Is Ollama endpoint configurable (localhost:11434)?
+
+4. **Disk Capacity Guardrails:**
+   - [ ] Keep ≤80% disk used (≥20GB free on 50GB volume)
+   - [ ] CloudWatch alarm configured for >80% disk usage
+   - [ ] Other projects on EBS do not exceed shared allocation
 
 **Checklist:**
 
@@ -169,6 +175,10 @@ npm run verify:all
 ls -la /data/seo-platform.db
 sqlite3 /data/seo-platform.db ".tables"
 # Should show: businesses, generation_jobs, job_pages, prompt_templates, service_areas
+
+ # Disk capacity check (keep ≤80% used)
+ df -h /data
+ # Ensure Used% ≤ 80% (≥ 20GB free on 50GB volume)
 ```
 
 ---

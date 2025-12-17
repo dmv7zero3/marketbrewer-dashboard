@@ -9,6 +9,7 @@
 ## Executive Summary
 
 **MarketBrewer staging operates on t3.large for ~$5-13/month with aggressive cost minimization:**
+
 - ✅ Auto-stop enabled (8h/day usage only)
 - ✅ No backups (redeploy on failure; 5-minute recovery)
 - ✅ Minimal CloudWatch (essential alarms only)
@@ -23,22 +24,22 @@
 
 ### Staging Setup
 
-| Component                      | Cost/Month | Notes                          |
-| ------------------------------ | ---------- | ------------------------------ |
-| EC2 t3.large (auto-stop, 8h/d) | $8         | Stop at 6pm, start at 6am      |
-| EBS Storage (50GB)             | $5         | Root volume only               |
-| CloudWatch (minimal)           | $0.10      | CPU + disk alarms only         |
-| Log retention (7 days)         | $0.50      | Auto-delete old logs           |
-| **Total (Staging)**            | **$13.60** | ✅ Ultra-minimal               |
+| Component                      | Cost/Month | Notes                     |
+| ------------------------------ | ---------- | ------------------------- |
+| EC2 t3.large (auto-stop, 8h/d) | $8         | Stop at 6pm, start at 6am |
+| EBS Storage (50GB)             | $5         | Root volume only          |
+| CloudWatch (minimal)           | $0.10      | CPU + disk alarms only    |
+| Log retention (7 days)         | $0.50      | Auto-delete old logs      |
+| **Total (Staging)**            | **$13.60** | ✅ Ultra-minimal          |
 
 ### With Manual Shutdown (Non-Business Hours)
 
-| Component                      | Cost/Month | Notes                          |
-| ------------------------------ | ---------- | ------------------------------ |
-| EC2 t3.large (manual, ~0h/d)   | $0         | Stop when not actively testing |
-| EBS Storage (50GB)             | $5         | Still charged when stopped     |
-| CloudWatch (minimal)           | $0.10      | Always on                      |
-| **Total (Minimal)**            | **$5.10**  | ✅ Absolute minimum            |
+| Component                    | Cost/Month | Notes                          |
+| ---------------------------- | ---------- | ------------------------------ |
+| EC2 t3.large (manual, ~0h/d) | $0         | Stop when not actively testing |
+| EBS Storage (50GB)           | $5         | Still charged when stopped     |
+| CloudWatch (minimal)         | $0.10      | Always on                      |
+| **Total (Minimal)**          | **$5.10**  | ✅ Absolute minimum            |
 
 ---
 
@@ -47,12 +48,14 @@
 ### 🟢 HIGH-IMPACT (Already Implemented)
 
 #### 1. Auto-Stop Schedule
+
 - **Mechanism:** CloudFormation scheduled action
 - **When:** Stop at 6 PM, start at 6 AM (or manual)
 - **Savings:** $60 → $20/month compute (67% reduction)
 - **Status:** ✅ In CloudFormation template
 
 #### 2. Zero Backups
+
 - **Approach:** No S3 backups, no EBS snapshots
 - **Recovery:** Redeploy CloudFormation (5 min, free)
 - **Risk:** Data loss acceptable for v1.0
@@ -60,12 +63,14 @@
 - **Status:** ✅ Updated in PRE-EC2-LAUNCH-CHECKLIST
 
 #### 3. Minimal CloudWatch
+
 - **Keep:** CPU, disk, disk-full alarms only
 - **Remove:** Custom metrics, dashboards, SNS for non-critical alerts
 - **Savings:** $1-2/month
 - **Status:** ✅ Updated CloudFormation
 
 #### 4. Short Log Retention
+
 - **Set:** 7 days for staging (not 30+)
 - **Mechanism:** CloudWatch log group retention policy
 - **Savings:** $0.50-1/month
@@ -76,6 +81,7 @@
 ### 🟡 MEDIUM-IMPACT (Evaluate Later)
 
 #### 5. Spot Instances for Staging
+
 - **Cost:** t3.large Spot ~$2.40/month (vs $8 On-Demand)
 - **Risk:** Interruptions acceptable for staging
 - **Savings:** $5.60/month
@@ -83,12 +89,14 @@
 - **Recommendation:** **Deploy On-Demand first; switch to Spot if costs become issue**
 
 #### 6. Smaller Instance Type?
+
 - **Question:** Can we use t3.medium (1 vCPU, 4GB)?
 - **Bottleneck:** Ollama llama3.2 needs ~4GB minimum
 - **Verdict:** t3.large is right-size; don't downgrade
 - **Savings:** None (would trade reliability)
 
 #### 7. EBS Optimization
+
 - **Current:** 50GB root volume (reasonable)
 - **Future:** If database grows > 40GB, implement data cleanup
 - **Savings:** Minimal ($2.50 per 50GB)
@@ -98,16 +106,19 @@
 ### 🔵 LOW-IMPACT (Defer to Later)
 
 #### 8. CloudWatch Logs Export to S3
+
 - **Cost:** $0.50 per export + S3 storage
 - **Benefit:** Long-term audit trail
 - **Recommendation:** Defer to v1.1 (if required)
 
 #### 9. Reserved Instances
+
 - **Cost:** Commit to 1-year for 30% discount
 - **Upfront:** $140 for 1-year commitment
 - **Recommendation:** Defer to v2.0 (after proving MVP works)
 
 #### 10. Consolidate to Multi-Region
+
 - **Cost:** Multiple instances across regions
 - **Benefit:** Redundancy, faster access
 - **Recommendation:** Defer to v2.0
@@ -135,14 +146,17 @@
 ### If Costs Exceed $20/Month
 
 1. **Check CloudWatch:** Review metric publishing
+
    - Disable custom metrics if not needed
    - Increase log retention cleanup
 
 2. **Check EBS:** Verify disk not growing
+
    - Clear old logs manually
    - Verify database not accumulating data
 
 3. **Consider Spot:** Switch staging to Spot instances
+
    - Risk: Interruptions (acceptable for staging)
    - Savings: ~$5.60/month
 
@@ -178,6 +192,7 @@
 ### Option A: Manual Control (Recommended for v1.0)
 
 **Start instance when needed:**
+
 ```bash
 # Via AWS Console: EC2 → select instance → Instance State → Start
 # Via AWS CLI:
@@ -185,6 +200,7 @@ aws ec2 start-instances --instance-ids i-XXXXXXXX --region us-east-1
 ```
 
 **Stop instance when done:**
+
 ```bash
 # Via AWS Console: EC2 → select instance → Instance State → Stop
 # Via AWS CLI:
@@ -206,7 +222,7 @@ aws ec2 stop-instances --instance-ids i-XXXXXXXX --region us-east-1
 StopSchedule:
   Type: AWS::Events::Rule
   Properties:
-    ScheduleExpression: "cron(0 22 * * ? *)"  # 10 PM UTC = 5 PM EST
+    ScheduleExpression: "cron(0 22 * * ? *)" # 10 PM UTC = 5 PM EST
     State: ENABLED
     Targets:
       - Arn: !Sub "arn:aws:ssm:${AWS::Region}::automation-assume-role/SSMAutomationRole"
@@ -215,7 +231,7 @@ StopSchedule:
 StartSchedule:
   Type: AWS::Events::Rule
   Properties:
-    ScheduleExpression: "cron(0 10 * * ? *)"  # 10 AM UTC = 5 AM EST
+    ScheduleExpression: "cron(0 10 * * ? *)" # 10 AM UTC = 5 AM EST
     State: ENABLED
 ```
 
@@ -237,12 +253,12 @@ StartSchedule:
 
 ## Estimated Monthly Costs (Final Recommendation)
 
-| Scenario              | Compute | Storage | CloudWatch | **Total** |
-| -------------------- | ------- | ------- | ---------- | --------- |
-| Manual control (0h)   | $0      | $5      | $0.10      | **$5.10** |
-| Auto-stop (8h/day)    | $8      | $5      | $0.10      | **$13.10**|
-| Always-on (24h)       | $20     | $5      | $0.10      | **$25.10**|
-| Spot + auto-stop      | $2.40   | $5      | $0.10      | **$7.50** |
+| Scenario            | Compute | Storage | CloudWatch | **Total**  |
+| ------------------- | ------- | ------- | ---------- | ---------- |
+| Manual control (0h) | $0      | $5      | $0.10      | **$5.10**  |
+| Auto-stop (8h/day)  | $8      | $5      | $0.10      | **$13.10** |
+| Always-on (24h)     | $20     | $5      | $0.10      | **$25.10** |
+| Spot + auto-stop    | $2.40   | $5      | $0.10      | **$7.50**  |
 
 **Recommendation for v1.0:** Manual control or auto-stop (your choice)
 **Annual Savings:** ~$150-300/year vs. always-on setup
@@ -252,11 +268,13 @@ StartSchedule:
 ## Questions for Implementation
 
 1. **How often will staging be used?**
+
    - Daily: Use auto-stop (8h/day) → $13/month
    - Weekly: Use manual stop → $5/month
    - As-needed: Use manual control → $5/month
 
 2. **Is instance failure acceptable?**
+
    - Yes: Skip backups, redeploy on failure → save $5-10/month
    - No: Add S3 backups in v1.1 → add $5/month
 
@@ -280,10 +298,12 @@ StartSchedule:
 ## Next Steps (Post-MVP)
 
 ### v1.1 (Month 2)
+
 - Add CloudWatch Logs export (if audit trail needed)
 - Implement automated cleanup (if disk grows)
 
 ### v2.0 (Future)
+
 - Multi-AZ redundancy (high availability)
 - Multi-region deployment
 - Reserved Instance commitments (if MVP successful)
@@ -294,14 +314,13 @@ StartSchedule:
 ## Summary
 
 **Bottom line:** MarketBrewer v1.0 staging costs $5-13/month using aggressive cost minimization:
+
 - Zero backups (redeploy on failure)
 - Auto-stop or manual control
 - Minimal CloudWatch
 - Single instance, no redundancy
 
 **This is acceptable for MVP; add redundancy and backups in v2.0 if revenue justifies it.**
-
-
 
 ---
 
