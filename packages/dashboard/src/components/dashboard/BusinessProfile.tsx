@@ -538,7 +538,10 @@ export const BusinessProfile: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Phone
+                      Phone{" "}
+                      <span className="text-gray-400 font-normal">
+                        optional
+                      </span>
                     </label>
                     <input
                       className={`border rounded px-3 py-2 w-full ${
@@ -563,7 +566,10 @@ export const BusinessProfile: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Email
+                      Email{" "}
+                      <span className="text-gray-400 font-normal">
+                        optional
+                      </span>
                     </label>
                     <input
                       className={`border rounded px-3 py-2 w-full ${
