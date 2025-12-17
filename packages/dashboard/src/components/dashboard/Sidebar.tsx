@@ -16,8 +16,8 @@ const menuItems: MenuItem[] = [
   { title: "Prompts", path: "/dashboard/prompts" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
   { title: "Service Areas", path: "/dashboard/service-areas" },
-  { title: "URL Generation", path: "/dashboard/url-generation" },
-  { title: "Generate Pages", path: "/dashboard/page-content-generation" },
+
+  { title: "Generate Content", path: "/dashboard/page-content-generation" },
 ];
 
 export const Sidebar: React.FC = () => {

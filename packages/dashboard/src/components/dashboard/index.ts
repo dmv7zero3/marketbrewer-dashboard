@@ -10,7 +10,6 @@ export { StickyFooter } from "./StickyFooter";
 export { PromptsManagement } from "./PromptsManagement";
 export { KeywordsManagement } from "./KeywordsManagement";
 export { ServiceAreas } from "./ServiceAreas";
-export { URLGeneration } from "./URLGeneration";
 export { PageContentGeneration } from "./PageContentGeneration";
 export { LocalSEOPhotos } from "./LocalSEOPhotos";
 export { Billing } from "./Billing";

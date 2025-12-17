@@ -129,7 +129,7 @@ export const JobCreate: React.FC = () => {
             </div>
             {completenessScore < 40 && (
               <p className="text-sm text-red-600 mt-2">
-                Minimum 40% required to generate pages
+                Minimum 40% required to generate content
               </p>
             )}
           </div>

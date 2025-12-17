@@ -15,7 +15,6 @@ import {
   PromptsManagement,
   KeywordsManagement,
   ServiceAreas,
-  URLGeneration,
   PageContentGeneration,
   Sidebar,
 } from "./components/dashboard";
@@ -81,10 +80,7 @@ const App: React.FC = () => (
               element={<KeywordsManagement />}
             />
             <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
-            <Route
-              path="/dashboard/url-generation"
-              element={<URLGeneration />}
-            />
+
             <Route
               path="/dashboard/page-content-generation"
               element={<PageContentGeneration />}

@@ -52,7 +52,7 @@ export const Dashboard: React.FC = () => {
               {error && <p className="text-red-600">{error}</p>}
               {!jobsLoading && jobs.length === 0 && (
                 <p className="text-gray-600">
-                  No jobs yet. Create one in Generate Pages.
+                  No jobs yet. Create one in Generate Content.
                 </p>
               )}
               <ul className="space-y-2">
