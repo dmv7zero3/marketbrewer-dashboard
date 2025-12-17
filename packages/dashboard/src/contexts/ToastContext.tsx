@@ -14,7 +14,7 @@ import React, {
 export interface Toast {
   id: string;
   message: string;
-  type: "success" | "error" | "info";
+  type: "success" | "error" | "info" | "warning";
   duration?: number; // ms; 0 = no auto-dismiss
 }
 
@@ -82,6 +82,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
                 ? "bg-green-600"
                 : t.type === "error"
                 ? "bg-red-600"
+                : t.type === "warning"
+                ? "bg-yellow-600"
                 : "bg-blue-600"
             }`}
           >

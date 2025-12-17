@@ -3,6 +3,7 @@ import { DashboardLayout } from "./DashboardLayout";
 import { QuestionnaireForm } from "./QuestionnaireForm";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
+import { safeDeepMerge } from "../../lib/safe-deep-merge";
 import {
   getBusiness,
   updateBusiness,
@@ -66,44 +67,16 @@ export const BusinessProfile: React.FC = () => {
         if (!mounted) return;
         setBusiness(business);
 
-        // Parse questionnaire data with fallback to empty structure and deep merge to ensure required sections exist
+        // Parse questionnaire data with fallback to empty structure and safe deep merge
         let parsedData: QuestionnaireDataStructure = createEmptyQuestionnaire();
         try {
           const rawData = questionnaire.data as unknown;
           if (rawData && typeof rawData === "object") {
-            const raw = rawData as Partial<QuestionnaireDataStructure>;
-            // Deep-merge each section to avoid undefined access in the form
-            parsedData = {
-              identity: {
-                ...parsedData.identity,
-                ...(raw.identity ?? {}),
-              },
-              location: {
-                ...parsedData.location,
-                ...(raw.location ?? {}),
-              },
-              services: {
-                ...parsedData.services,
-                ...(raw.services ?? {}),
-                offerings:
-                  raw.services?.offerings ?? parsedData.services.offerings,
-              },
-              audience: {
-                ...parsedData.audience,
-                ...(raw.audience ?? {}),
-                languages:
-                  raw.audience?.languages ?? parsedData.audience.languages,
-              },
-              brand: {
-                ...parsedData.brand,
-                ...(raw.brand ?? {}),
-                requiredPhrases:
-                  raw.brand?.requiredPhrases ??
-                  parsedData.brand.requiredPhrases,
-                forbiddenWords:
-                  raw.brand?.forbiddenWords ?? parsedData.brand.forbiddenWords,
-              },
-            };
+            // Use safe deep merge to prevent null/undefined issues
+            parsedData = safeDeepMerge(
+              parsedData,
+              rawData as Partial<QuestionnaireDataStructure>
+            );
           }
         } catch (e) {
           console.error("Failed to parse questionnaire data:", e);
@@ -224,6 +197,14 @@ export const BusinessProfile: React.FC = () => {
       JSON.stringify(newData) !== JSON.stringify(originalQuestionnaireData);
     setHasUnsavedChanges(hasChanges);
   };
+
+  // Fix: Track hasUnsavedChanges explicitly when questionnaireData changes
+  useEffect(() => {
+    const hasChanges =
+      JSON.stringify(questionnaireData) !==
+      JSON.stringify(originalQuestionnaireData);
+    setHasUnsavedChanges(hasChanges);
+  }, [questionnaireData, originalQuestionnaireData]);
 
   const handleCancelQuestionnaire = () => {
     setQuestionnaireData(originalQuestionnaireData);

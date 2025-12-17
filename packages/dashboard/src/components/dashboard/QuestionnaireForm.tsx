@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "../../contexts/ToastContext";
 import {
   QuestionnaireDataStructure,
@@ -8,8 +8,9 @@ import {
   ServiceOffering,
   isSectionComplete,
   calculateCompleteness,
+  toCityStateSlug,
 } from "@marketbrewer/shared";
-import { createServiceArea } from "../../api/service-areas";
+import { createServiceArea, listServiceAreas } from "../../api/service-areas";
 
 interface QuestionnaireFormProps {
   data: QuestionnaireDataStructure;
@@ -58,6 +59,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   const [bulkServiceAreasText, setBulkServiceAreasText] = useState<string>("");
   const [bulkAreasLoading, setBulkAreasLoading] = useState<boolean>(false);
   const [bulkKeywordsText, setBulkKeywordsText] = useState<string>("");
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Calculate completeness whenever data changes
   useEffect(() => {
@@ -113,6 +115,20 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   useEffect(() => {
     validateCurrentSection();
   }, [activeTab]);
+
+  // Fix: Warn user if they try to leave during bulk operation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (bulkAreasLoading) {
+        e.preventDefault();
+        e.returnValue =
+          "Bulk operation in progress. Are you sure you want to leave?";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [bulkAreasLoading]);
 
   const handleTabChange = (tab: TabName) => {
     setActiveTab(tab);
@@ -178,7 +194,12 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
           .filter(Boolean);
         const [keyword, intentRaw, priorityRaw] = parts;
         const search_intent = intentRaw || undefined;
-        const priority = priorityRaw ? Number(priorityRaw) : undefined;
+        // Fix: Check for NaN explicitly
+        const priority = priorityRaw
+          ? !Number.isNaN(Number(priorityRaw))
+            ? Number(priorityRaw)
+            : undefined
+          : undefined;
         return { keyword, search_intent, priority };
       })
       .filter((k) => k.keyword);
@@ -214,7 +235,12 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
           .filter(Boolean);
         if (parts.length < 2) return null;
         const [city, state, county, priorityRaw] = parts;
-        const priority = priorityRaw ? Number(priorityRaw) : undefined;
+        // Fix: Check for NaN explicitly
+        const priority = priorityRaw
+          ? !Number.isNaN(Number(priorityRaw))
+            ? Number(priorityRaw)
+            : undefined
+          : undefined;
         return { city, state, county: county || undefined, priority };
       })
       .filter(Boolean) as Array<{
@@ -257,26 +283,77 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
     }
     try {
       setBulkAreasLoading(true);
-      for (const area of parsed) {
-        await createServiceArea(businessId, {
-          city: area.city,
-          state: area.state,
-          county: area.county ?? null,
-          priority: area.priority,
-        });
+      abortControllerRef.current = new AbortController();
+
+      // Fix: Fetch existing service areas to prevent duplicates
+      const { service_areas: existing } = await listServiceAreas(businessId);
+      const existingSlugs = new Set(existing.map((a) => a.slug));
+
+      const newAreas = parsed.filter((area) => {
+        const slug = toCityStateSlug(area.city, area.state);
+        return !existingSlugs.has(slug);
+      });
+
+      const duplicates = parsed.length - newAreas.length;
+      if (duplicates > 0) {
+        addToast(`Skipping ${duplicates} duplicate area(s)`, "warning", 3000);
       }
-      addToast(
-        `Added ${parsed.length} service areas from paste`,
-        "success",
-        3000
-      );
-      setBulkServiceAreasText("");
+
+      // Fix: Track partial success/failure separately
+      const results: {
+        success: typeof parsed;
+        failed: typeof parsed;
+      } = {
+        success: [],
+        failed: [],
+      };
+
+      for (const area of newAreas) {
+        if (abortControllerRef.current?.signal.aborted) break;
+        try {
+          await createServiceArea(businessId, {
+            city: area.city,
+            state: area.state,
+            county: area.county ?? null,
+            priority: area.priority,
+          });
+          results.success.push(area);
+        } catch (e) {
+          results.failed.push(area);
+        }
+      }
+
+      if (results.success.length > 0) {
+        addToast(
+          `Added ${results.success.length} service area(s).${
+            results.failed.length > 0 ? ` ${results.failed.length} failed.` : ""
+          }`,
+          results.failed.length > 0 ? "warning" : "success",
+          4000
+        );
+      } else if (results.failed.length > 0) {
+        addToast("All service areas failed to add.", "error", 5000);
+      }
+
+      // Keep only failed lines for retry
+      if (results.failed.length > 0) {
+        setBulkServiceAreasText(
+          results.failed
+            .map((a) =>
+              [a.city, a.state, a.county, a.priority].filter(Boolean).join(", ")
+            )
+            .join("\n")
+        );
+      } else {
+        setBulkServiceAreasText("");
+      }
     } catch (e) {
       const msg =
         e instanceof Error ? e.message : "Failed to add service areas";
       addToast(msg, "error", 5000);
     } finally {
       setBulkAreasLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -534,11 +611,9 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                       ...data.services.offerings,
                       { name: "", description: "", isPrimary: false },
                     ];
-                    updateArrayField(
-                      "services",
-                      "offerings",
-                      newOfferings as any
-                    );
+                    updateData("services", {
+                      offerings: newOfferings,
+                    });
                   }}
                   className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
                 >
@@ -560,11 +635,9 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                           onChange={(e) => {
                             const newOfferings = [...data.services.offerings];
                             newOfferings[idx].name = e.target.value;
-                            updateArrayField(
-                              "services",
-                              "offerings",
-                              newOfferings as any
-                            );
+                            updateData("services", {
+                              offerings: newOfferings,
+                            });
                           }}
                           className="flex-1 border rounded px-2 py-1 text-sm"
                           placeholder="Service name"
@@ -576,11 +649,9 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                             onChange={(e) => {
                               const newOfferings = [...data.services.offerings];
                               newOfferings[idx].isPrimary = e.target.checked;
-                              updateArrayField(
-                                "services",
-                                "offerings",
-                                newOfferings as any
-                              );
+                              updateData("services", {
+                                offerings: newOfferings,
+                              });
                             }}
                           />
                           Primary
@@ -606,11 +677,9 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                         onChange={(e) => {
                           const newOfferings = [...data.services.offerings];
                           newOfferings[idx].description = e.target.value;
-                          updateArrayField(
-                            "services",
-                            "offerings",
-                            newOfferings as any
-                          );
+                          updateData("services", {
+                            offerings: newOfferings,
+                          });
                         }}
                         className="w-full border rounded px-2 py-1 text-sm"
                         placeholder="Brief description of this service"
