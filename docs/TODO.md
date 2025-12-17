@@ -41,15 +41,17 @@ Short, actionable tasks tracked before implementation.
 
 **Immediate (P0):**
 
-1. **Dashboard Webpack Config**
+1. **Dashboard Dev Stability**
 
-   - Fix broken webpack build
-   - Verify dev server works on :3000
-   - Test job creation flow
+   - Verify dev server works on :3002
+   - Confirm CORS/auth is clean (no 401/CORS)
+   - Test job creation flow end-to-end
 
 2. **Batch Generation**
 
-   - Run worker on full 1,300 page job
+   - Run worker on 50-page dry run (Nash & Smashed)
+   - Validate content quality; adjust prompts if needed
+   - Then run worker on full 1,300 page job
    - Monitor for failures/timeouts
    - Verify completion
 
