@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "../../contexts/ToastContext";
 import {
   QuestionnaireDataStructure,
   SectionCompleteness,
@@ -8,6 +9,7 @@ import {
   isSectionComplete,
   calculateCompleteness,
 } from "@marketbrewer/shared";
+import { createServiceArea } from "../../api/service-areas";
 
 interface QuestionnaireFormProps {
   data: QuestionnaireDataStructure;
@@ -17,6 +19,7 @@ interface QuestionnaireFormProps {
   isSaving?: boolean;
   isLoading?: boolean;
   hasUnsavedChanges?: boolean;
+  businessId?: string; // needed for bulk service-area add
 }
 
 type TabName = "identity" | "location" | "services" | "audience" | "brand";
@@ -39,7 +42,9 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   isSaving = false,
   isLoading = false,
   hasUnsavedChanges = false,
+  businessId,
 }) => {
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabName>("identity");
   const [completeness, setCompleteness] = useState<SectionCompleteness>({
     identity: false,
@@ -49,6 +54,10 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
     brand: false,
   });
   const [warnings, setWarnings] = useState<Record<string, string[]>>({});
+  const [bulkServicesText, setBulkServicesText] = useState<string>("");
+  const [bulkServiceAreasText, setBulkServiceAreasText] = useState<string>("");
+  const [bulkAreasLoading, setBulkAreasLoading] = useState<boolean>(false);
+  const [bulkKeywordsText, setBulkKeywordsText] = useState<string>("");
 
   // Calculate completeness whenever data changes
   useEffect(() => {
@@ -136,6 +145,139 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       },
     };
     onDataChange(newData);
+  };
+
+  const parseBulkServices = (text: string): ServiceOffering[] => {
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        // Expected format: Name | Description | primary
+        const parts = line.split("|").map((p) => p.trim());
+        const [name, description = "", primary = ""] = parts;
+        return {
+          name,
+          description,
+          isPrimary: /^y(es)?|true|primary$/i.test(primary),
+        } as ServiceOffering;
+      })
+      .filter((s) => s.name);
+  };
+
+  const parseBulkKeywords = (text: string) => {
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        // Expected: keyword[, intent][, priority]
+        const parts = line
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+        const [keyword, intentRaw, priorityRaw] = parts;
+        const search_intent = intentRaw || undefined;
+        const priority = priorityRaw ? Number(priorityRaw) : undefined;
+        return { keyword, search_intent, priority };
+      })
+      .filter((k) => k.keyword);
+  };
+
+  const handleBulkServicesAdd = () => {
+    const parsed = parseBulkServices(bulkServicesText);
+    if (parsed.length === 0) {
+      addToast(
+        "No valid service lines found. Use 'Name | Description | primary' format.",
+        "error",
+        4000
+      );
+      return;
+    }
+    updateData("services", {
+      offerings: [...data.services.offerings, ...parsed],
+    });
+    setBulkServicesText("");
+    addToast(`Added ${parsed.length} services from paste`, "success", 3000);
+  };
+
+  const parseBulkServiceAreas = (text: string) => {
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        // Expected: City, State[, County][, Priority]
+        const parts = line
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+        if (parts.length < 2) return null;
+        const [city, state, county, priorityRaw] = parts;
+        const priority = priorityRaw ? Number(priorityRaw) : undefined;
+        return { city, state, county: county || undefined, priority };
+      })
+      .filter(Boolean) as Array<{
+      city: string;
+      state: string;
+      county?: string;
+      priority?: number;
+    }>;
+  };
+
+  const handleBulkKeywordsCopy = () => {
+    const parsed = parseBulkKeywords(bulkKeywordsText);
+    if (parsed.length === 0) {
+      addToast(
+        "No valid keyword lines found. Use 'keyword, intent, priority' format.",
+        "error",
+        4000
+      );
+      return;
+    }
+    addToast(
+      `Parsed ${parsed.length} keywords. Copy/paste into the Keywords page.`,
+      "success",
+      3000
+    );
+  };
+  const handleBulkServiceAreasAdd = async () => {
+    if (!businessId) {
+      addToast("Select a business before adding service areas.", "error", 4000);
+      return;
+    }
+    const parsed = parseBulkServiceAreas(bulkServiceAreasText);
+    if (parsed.length === 0) {
+      addToast(
+        "No valid service area lines found. Use 'City, State[, County][, Priority]' format.",
+        "error",
+        4000
+      );
+      return;
+    }
+    try {
+      setBulkAreasLoading(true);
+      for (const area of parsed) {
+        await createServiceArea(businessId, {
+          city: area.city,
+          state: area.state,
+          county: area.county ?? null,
+          priority: area.priority,
+        });
+      }
+      addToast(
+        `Added ${parsed.length} service areas from paste`,
+        "success",
+        3000
+      );
+      setBulkServiceAreasText("");
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "Failed to add service areas";
+      addToast(msg, "error", 5000);
+    } finally {
+      setBulkAreasLoading(false);
+    }
   };
 
   const overallCompleteness = calculateCompleteness(completeness);
@@ -339,6 +481,38 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 Helps tailor content to service delivery model
               </p>
             </div>
+
+            {businessId && (
+              <div className="space-y-2 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium">
+                    Bulk Add Service Areas
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    Format: City, State[, County][, Priority]
+                  </span>
+                </div>
+                <textarea
+                  value={bulkServiceAreasText}
+                  onChange={(e) => setBulkServiceAreasText(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  rows={4}
+                  placeholder={
+                    "Nashville, TN, Davidson, 1\nFranklin, TN, Williamson, 2"
+                  }
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleBulkServiceAreasAdd}
+                    disabled={bulkAreasLoading}
+                    className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+                  >
+                    {bulkAreasLoading ? "Adding..." : "Add Service Areas"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -454,6 +628,36 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                   ⚠ Add at least one service offering
                 </p>
               )}
+
+              {/* Bulk add services */}
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium">
+                    Bulk Add Services
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    Format: Name | Description | primary
+                  </span>
+                </div>
+                <textarea
+                  value={bulkServicesText}
+                  onChange={(e) => setBulkServicesText(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  rows={4}
+                  placeholder={
+                    "Fried Chicken | Crispy signature chicken | primary\nCatering | On-site and delivery |"
+                  }
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleBulkServicesAdd}
+                    className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+                  >
+                    Add Services
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -556,6 +760,40 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
             <p className="text-sm text-gray-600">
               Define your brand voice and communication style
             </p>
+
+            {/* Bulk keyword helper (paste-only, no API call) */}
+            <div className="space-y-2 bg-gray-50 border rounded p-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium">
+                  Paste Keywords (helper)
+                </label>
+                <span className="text-xs text-gray-500">
+                  Format: keyword, intent, priority
+                </span>
+              </div>
+              <textarea
+                value={bulkKeywordsText}
+                onChange={(e) => setBulkKeywordsText(e.target.value)}
+                className="w-full border rounded px-3 py-2 text-sm"
+                rows={4}
+                placeholder={
+                  "fried chicken near me, local, 1\nnashville hot chicken, transactional, 2"
+                }
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleBulkKeywordsCopy}
+                  className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+                >
+                  Parse & Acknowledge
+                </button>
+              </div>
+              <p className="text-xs text-gray-600">
+                This helper only parses and confirms your lines. Copy the same
+                lines into the SEO Keywords page to bulk add.
+              </p>
+            </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">

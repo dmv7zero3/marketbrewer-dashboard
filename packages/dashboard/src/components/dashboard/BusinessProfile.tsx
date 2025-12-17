@@ -66,12 +66,44 @@ export const BusinessProfile: React.FC = () => {
         if (!mounted) return;
         setBusiness(business);
 
-        // Parse questionnaire data with fallback to empty structure
+        // Parse questionnaire data with fallback to empty structure and deep merge to ensure required sections exist
         let parsedData: QuestionnaireDataStructure = createEmptyQuestionnaire();
         try {
           const rawData = questionnaire.data as unknown;
           if (rawData && typeof rawData === "object") {
-            parsedData = rawData as QuestionnaireDataStructure;
+            const raw = rawData as Partial<QuestionnaireDataStructure>;
+            // Deep-merge each section to avoid undefined access in the form
+            parsedData = {
+              identity: {
+                ...parsedData.identity,
+                ...(raw.identity ?? {}),
+              },
+              location: {
+                ...parsedData.location,
+                ...(raw.location ?? {}),
+              },
+              services: {
+                ...parsedData.services,
+                ...(raw.services ?? {}),
+                offerings:
+                  raw.services?.offerings ?? parsedData.services.offerings,
+              },
+              audience: {
+                ...parsedData.audience,
+                ...(raw.audience ?? {}),
+                languages:
+                  raw.audience?.languages ?? parsedData.audience.languages,
+              },
+              brand: {
+                ...parsedData.brand,
+                ...(raw.brand ?? {}),
+                requiredPhrases:
+                  raw.brand?.requiredPhrases ??
+                  parsedData.brand.requiredPhrases,
+                forbiddenWords:
+                  raw.brand?.forbiddenWords ?? parsedData.brand.forbiddenWords,
+              },
+            };
           }
         } catch (e) {
           console.error("Failed to parse questionnaire data:", e);
@@ -371,6 +403,7 @@ export const BusinessProfile: React.FC = () => {
                 isSaving={savingQ}
                 isLoading={loading}
                 hasUnsavedChanges={hasUnsavedChanges}
+                businessId={selectedBusiness ?? undefined}
               />
             </div>
           </div>
