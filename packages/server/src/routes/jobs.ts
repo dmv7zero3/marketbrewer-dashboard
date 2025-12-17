@@ -162,9 +162,21 @@ router.post(
       );
 
       // Batch insert job pages (10x faster for large jobs)
+      // Using named parameters for maintainability (P0 fix)
       const insertStmt = db.prepare(
-        `INSERT INTO job_pages (id, job_id, business_id, keyword_slug, service_area_slug, url_path, status, worker_id, attempts, claimed_at, completed_at, content, error_message, section_count, model_name, prompt_version, generation_duration_ms, word_count, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO job_pages (
+          id, job_id, business_id, keyword_slug, service_area_slug, 
+          url_path, status, worker_id, attempts, claimed_at, 
+          completed_at, content, error_message, section_count, 
+          model_name, prompt_version, generation_duration_ms, 
+          word_count, created_at
+        ) VALUES (
+          @id, @job_id, @business_id, @keyword_slug, @service_area_slug,
+          @url_path, @status, @worker_id, @attempts, @claimed_at,
+          @completed_at, @content, @error_message, @section_count,
+          @model_name, @prompt_version, @generation_duration_ms,
+          @word_count, @created_at
+        )`
       );
 
       const batchInsert = db.transaction(
@@ -181,27 +193,27 @@ router.post(
           }>
         ) => {
           for (const page of pages) {
-            insertStmt.run(
-              page.id,
-              page.job_id,
-              page.business_id,
-              page.keyword_slug,
-              page.service_area_slug,
-              page.url_path,
-              page.status,
-              null,
-              0,
-              null,
-              null,
-              null,
-              null,
-              3,
-              null,
-              null,
-              null,
-              null,
-              page.created_at
-            );
+            insertStmt.run({
+              id: page.id,
+              job_id: page.job_id,
+              business_id: page.business_id,
+              keyword_slug: page.keyword_slug,
+              service_area_slug: page.service_area_slug,
+              url_path: page.url_path,
+              status: "queued",
+              worker_id: null,
+              attempts: 0,
+              claimed_at: null,
+              completed_at: null,
+              content: null,
+              error_message: null,
+              section_count: 3,
+              model_name: null,
+              prompt_version: null,
+              generation_duration_ms: null,
+              word_count: null,
+              created_at: page.created_at,
+            });
           }
         }
       );
