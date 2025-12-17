@@ -427,12 +427,12 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-300 overflow-x-auto">
+      <div className="flex gap-1 border-b border-gray-300 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 -mb-px">
         {TABS.map(({ name, label }) => (
           <button
             key={name}
             onClick={() => handleTabChange(name)}
-            className={`px-4 py-2 font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 font-medium whitespace-nowrap transition-colors snap-start min-w-[100px] flex-shrink-0 ${
               activeTab === name
                 ? "border-b-2 border-blue-600 text-blue-600"
                 : "text-gray-600 hover:text-gray-900"
@@ -448,6 +448,11 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
             </div>
           </button>
         ))}
+      </div>
+
+      {/* Scroll hint on mobile */}
+      <div className="md:hidden text-xs text-gray-400 text-center mt-2 mb-4">
+        ← Swipe for more sections →
       </div>
 
       {/* Tab content */}
