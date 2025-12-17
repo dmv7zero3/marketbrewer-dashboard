@@ -5,3 +5,5 @@
 export { default as apiClient } from './client';
 export * from './businesses';
 export * from './jobs';
+export * from './keywords';
+export * from './service-areas';
