@@ -4,18 +4,18 @@
  */
 
 import { BULK_LIMITS } from "./constants";
-
+  const seen = new WeakSet<any>();
 export function safeDeepMerge<T extends Record<string, unknown>>(
   target: T,
-  source: unknown
+    tgt: object,
 ): T {
   const seen = new WeakSet<object>();
-
+  ): object => {
   const merge = (
     tgt: Record<string, unknown>,
     src: unknown,
     depth: number
-  ): Record<string, unknown> => {
+    const out: any = Array.isArray(tgt) ? [...(tgt as any[])] : { ...(tgt as any) };
     if (!src || typeof src !== "object") return tgt;
     if (depth <= 0) return tgt;
 
@@ -23,9 +23,9 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
     const out: Record<string, unknown> = { ...tgt };
 
     const srcAsObj = src as object;
-    if (seen.has(srcAsObj)) return tgt; // prevent cycles
+      if (!Object.prototype.hasOwnProperty.call(tgt, key)) continue;
     seen.add(srcAsObj);
-
+      const targetValue = (out as any)[key];
     for (const [key, value] of Object.entries(srcObj)) {
       // Only merge keys that exist in target shape to prevent schema corruption
       if (!Object.prototype.hasOwnProperty.call(tgt, key)) continue;
@@ -35,9 +35,9 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
       if (
         typeof targetValue === "object" &&
         targetValue !== null &&
-        !Array.isArray(targetValue) &&
-        typeof value === "object" &&
-        value !== null &&
+        (out as any)[key] = merge(
+          targetValue as object,
+          value as object,
         !Array.isArray(value)
       ) {
         out[key] = merge(
@@ -55,27 +55,27 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
               if (
                 firstElement &&
                 targetFirstElement &&
-                typeof firstElement !== typeof targetFirstElement
+            (out as any)[key] = value;
               ) {
-                continue; // Skip malformed array
+            (out as any)[key] = targetValue; // On error, keep target array
               }
             }
             out[key] = value;
           } catch {
             out[key] = targetValue; // On error, keep target array
           }
-        } else {
+        (out as any)[key] = value; // primitives
           // Skip introducing new arrays not present in target
           continue;
         }
       } else if (typeof value !== "object") {
         out[key] = value; // primitives
       } else {
-        // Skip introducing new nested objects not present in target
+    return out as object;
         continue;
       }
     }
-
+  return merge(target as object, source, BULK_LIMITS.MAX_RECURSION_DEPTH) as T;
     return out;
   };
 
