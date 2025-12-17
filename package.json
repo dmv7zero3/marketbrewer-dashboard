@@ -27,7 +27,10 @@
     "test:shared": "jest --config packages/shared/jest.config.js --coverage",
     "test:server": "jest --config packages/server/jest.config.js --coverage",
     "test:worker": "jest --config packages/worker/jest.config.js --coverage",
-    "seed:nash-smashed": "tsx scripts/seed-nash-smashed.ts"
+    "seed:nash-smashed": "tsx scripts/seed-nash-smashed.ts",
+    "smoke:local": "bash scripts/smoke-tests.sh local",
+    "smoke:staging": "bash scripts/smoke-tests.sh staging",
+    "smoke:prod": "bash scripts/smoke-tests.sh prod"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
