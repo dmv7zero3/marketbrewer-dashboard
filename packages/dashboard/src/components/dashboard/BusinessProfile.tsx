@@ -4,6 +4,7 @@ import { QuestionnaireForm } from "./QuestionnaireForm";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
 import { safeDeepMerge } from "../../lib/safe-deep-merge";
+import { deepEqual } from "../../lib/deep-equal";
 import {
   getBusiness,
   updateBusiness,
@@ -192,17 +193,14 @@ export const BusinessProfile: React.FC = () => {
     newData: QuestionnaireDataStructure
   ) => {
     setQuestionnaireData(newData);
-    // Check if data differs from original
-    const hasChanges =
-      JSON.stringify(newData) !== JSON.stringify(originalQuestionnaireData);
+    // Check if data differs from original using deep equality (more efficient than JSON.stringify)
+    const hasChanges = !deepEqual(newData, originalQuestionnaireData);
     setHasUnsavedChanges(hasChanges);
   };
 
-  // Fix: Track hasUnsavedChanges explicitly when questionnaireData changes
+  // Fix: Track hasUnsavedChanges explicitly when questionnaireData changes using deep equality
   useEffect(() => {
-    const hasChanges =
-      JSON.stringify(questionnaireData) !==
-      JSON.stringify(originalQuestionnaireData);
+    const hasChanges = !deepEqual(questionnaireData, originalQuestionnaireData);
     setHasUnsavedChanges(hasChanges);
   }, [questionnaireData, originalQuestionnaireData]);
 

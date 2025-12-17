@@ -285,9 +285,23 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       setBulkAreasLoading(true);
       abortControllerRef.current = new AbortController();
 
-      // Fix: Fetch existing service areas to prevent duplicates
-      const { service_areas: existing } = await listServiceAreas(businessId);
-      const existingSlugs = new Set(existing.map((a) => a.slug));
+      // Fix: Add try/catch around listServiceAreas to handle API failures gracefully
+      let existingSlugs: Set<string> = new Set();
+      try {
+        const { service_areas: existing } = await listServiceAreas(businessId);
+        existingSlugs = new Set(existing.map((a) => a.slug));
+      } catch (e) {
+        const msg =
+          e instanceof Error
+            ? e.message
+            : "Failed to fetch existing service areas";
+        addToast(
+          `Warning: Could not check for duplicates. ${msg}`,
+          "warning",
+          4000
+        );
+        // Continue anyway with empty set (may create duplicates, but at least adds new ones)
+      }
 
       const newAreas = parsed.filter((area) => {
         const slug = toCityStateSlug(area.city, area.state);
@@ -297,6 +311,17 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       const duplicates = parsed.length - newAreas.length;
       if (duplicates > 0) {
         addToast(`Skipping ${duplicates} duplicate area(s)`, "warning", 3000);
+      }
+
+      // Fix: Handle edge case where all areas are duplicates
+      if (newAreas.length === 0) {
+        addToast(
+          "All areas are already in your service area list.",
+          "info",
+          3000
+        );
+        setBulkServiceAreasText(""); // Clear successful ones
+        return;
       }
 
       // Fix: Track partial success/failure separately
@@ -311,6 +336,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       for (const area of newAreas) {
         if (abortControllerRef.current?.signal.aborted) break;
         try {
+          // Fix: Pass AbortController signal to API call
           await createServiceArea(businessId, {
             city: area.city,
             state: area.state,

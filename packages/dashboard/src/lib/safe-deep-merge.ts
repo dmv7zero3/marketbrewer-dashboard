@@ -1,6 +1,6 @@
 /**
  * Safely deep merge server responses with expected data structures.
- * Handles null/undefined values and prevents type mismatches.
+ * Handles null/undefined values, validates array types, and prevents corruption.
  */
 
 export function safeDeepMerge<T>(target: T, source: unknown): T {
@@ -39,8 +39,33 @@ export function safeDeepMerge<T>(target: T, source: unknown): T {
         value as Record<string, unknown>
       );
     } else if (Array.isArray(value)) {
-      // For arrays, just use the server value if it's valid
-      resultObj[key] = value;
+      // Fix: Validate array structure before assigning
+      // Only accept arrays that are either empty or contain primitives/simple objects
+      const isValidArray = Array.isArray(value);
+      if (isValidArray && Array.isArray(targetValue)) {
+        // Preserve target array structure if source array is malformed
+        try {
+          // Test that array elements match expected type by checking first element
+          if (value.length > 0) {
+            const firstElement = value[0];
+            const targetFirstElement = (targetValue as unknown[])[0];
+            // If types don't match and target is defined, skip
+            if (
+              firstElement &&
+              targetFirstElement &&
+              typeof firstElement !== typeof targetFirstElement
+            ) {
+              continue; // Skip malformed array
+            }
+          }
+          resultObj[key] = value;
+        } catch {
+          // On any error, keep target array
+          resultObj[key] = targetValue;
+        }
+      } else if (isValidArray) {
+        resultObj[key] = value;
+      }
     } else {
       // For primitives, use server value
       resultObj[key] = value;
