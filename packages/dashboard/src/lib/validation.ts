@@ -37,7 +37,8 @@ export const validateKeyword = (keyword: string): string | null => {
 export const validateCity = (city: string): string | null => {
   const trimmed = city.trim();
   if (!trimmed) return "City is required";
-  if (!/^[a-zA-Z\s'-]+$/.test(trimmed))
+  // Support international characters using Unicode property escapes (\p{L} = any letter)
+  if (!/^[\p{L}\s'-]+$/u.test(trimmed))
     return "City must contain only letters, spaces, hyphens, and apostrophes";
   return null;
 };

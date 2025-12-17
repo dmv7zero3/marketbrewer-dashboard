@@ -9,6 +9,7 @@ import {
   updateServiceArea,
 } from "../../api/service-areas";
 import { validateCity, validateState } from "../../lib/validation";
+import { toCityStateSlug } from "@marketbrewer/shared";
 import type { ServiceArea } from "@marketbrewer/shared";
 
 export const ServiceAreas: React.FC = () => {
@@ -23,6 +24,8 @@ export const ServiceAreas: React.FC = () => {
     city: string | null;
     state: string | null;
   }>({ city: null, state: null });
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let mounted = true;
@@ -64,13 +67,9 @@ export const ServiceAreas: React.FC = () => {
       return;
     }
 
-    // Check for duplicates
-    const normalizedCity = city.trim().toLowerCase();
-    const normalizedState = state.trim().toUpperCase();
-    const exists = areas.some(
-      (a) =>
-        a.city.toLowerCase() === normalizedCity && a.state === normalizedState
-    );
+    // Check for duplicates using the same slug generation as the backend
+    const newSlug = toCityStateSlug(city.trim(), state.trim().toUpperCase());
+    const exists = areas.some((a) => a.slug === newSlug);
     if (exists) {
       addToast("This service area already exists", "error", 5000);
       return;
@@ -93,7 +92,8 @@ export const ServiceAreas: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!selectedBusiness) return;
+    if (!selectedBusiness || deletingIds.has(id)) return;
+    setDeletingIds((prev) => new Set(prev).add(id));
     try {
       await deleteServiceArea(selectedBusiness, id);
       setAreas((prev) => prev.filter((a) => a.id !== id));
@@ -102,11 +102,18 @@ export const ServiceAreas: React.FC = () => {
       const msg =
         e instanceof Error ? e.message : "Failed to delete service area";
       addToast(msg, "error", 5000);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
   const handleUpdatePriority = async (id: string, priority: number) => {
-    if (!selectedBusiness) return;
+    if (!selectedBusiness || updatingIds.has(id)) return;
+    setUpdatingIds((prev) => new Set(prev).add(id));
     try {
       const { service_area } = await updateServiceArea(selectedBusiness, id, {
         priority,
@@ -117,6 +124,12 @@ export const ServiceAreas: React.FC = () => {
       const msg =
         e instanceof Error ? e.message : "Failed to update service area";
       addToast(msg, "error", 5000);
+    } finally {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -200,10 +213,11 @@ export const ServiceAreas: React.FC = () => {
                         }
                       />
                       <button
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
                         onClick={() => handleDelete(a.id)}
+                        disabled={deletingIds.has(a.id)}
                       >
-                        Delete
+                        {deletingIds.has(a.id) ? "Deleting..." : "Delete"}
                       </button>
                     </div>
                   </li>

@@ -19,6 +19,8 @@ export const KeywordsManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let mounted = true;
@@ -79,7 +81,8 @@ export const KeywordsManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!selectedBusiness) return;
+    if (!selectedBusiness || deletingIds.has(id)) return;
+    setDeletingIds((prev) => new Set(prev).add(id));
     try {
       await deleteKeyword(selectedBusiness, id);
       setKeywords((prev) => prev.filter((k) => k.id !== id));
@@ -87,11 +90,18 @@ export const KeywordsManagement: React.FC = () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to delete keyword";
       addToast(msg, "error", 5000);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
   const handleUpdatePriority = async (id: string, priority: number) => {
-    if (!selectedBusiness) return;
+    if (!selectedBusiness || updatingIds.has(id)) return;
+    setUpdatingIds((prev) => new Set(prev).add(id));
     try {
       const { keyword } = await updateKeyword(selectedBusiness, id, {
         priority,
@@ -101,6 +111,12 @@ export const KeywordsManagement: React.FC = () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to update keyword";
       addToast(msg, "error", 5000);
+    } finally {
+      setUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -160,10 +176,11 @@ export const KeywordsManagement: React.FC = () => {
                         }
                       />
                       <button
-                        className="text-red-600"
+                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
                         onClick={() => handleDelete(k.id)}
+                        disabled={deletingIds.has(k.id)}
                       >
-                        Delete
+                        {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
                       </button>
                     </div>
                   </li>

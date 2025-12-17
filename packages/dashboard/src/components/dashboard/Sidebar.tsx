@@ -21,8 +21,15 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="w-64 border-r bg-white h-[calc(100vh-64px)] sticky top-16">
       <div className="p-4 space-y-3 border-b">
-        <div className="text-sm font-semibold">Business</div>
+        <label
+          htmlFor="business-selector"
+          className="block text-sm font-semibold"
+        >
+          Business
+        </label>
         <select
+          id="business-selector"
+          aria-label="Select business"
           className="w-full border rounded px-2 py-1"
           value={selectedBusiness ?? ""}
           onChange={(e) => setSelectedBusiness(e.target.value || null)}
@@ -37,7 +44,7 @@ export const Sidebar: React.FC = () => {
         </select>
       </div>
 
-      <nav className="p-2 space-y-1">
+      <nav className="p-2 space-y-1" aria-label="Dashboard navigation">
         {menuItems.map((item) => {
           const active = pathname === item.path;
           return (
@@ -49,6 +56,7 @@ export const Sidebar: React.FC = () => {
                   ? "bg-blue-100 text-blue-700"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
+              aria-current={active ? "page" : undefined}
             >
               {item.title}
             </Link>

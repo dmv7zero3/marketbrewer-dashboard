@@ -2,7 +2,14 @@
  * Toast context and hook for notifications
  */
 
-import React, { createContext, useContext, useCallback, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useCallback,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 
 export interface Toast {
   id: string;
@@ -23,6 +30,25 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Clean up all timeouts on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach((timeout) => clearTimeout(timeout));
+      timeoutRefs.current.clear();
+    };
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    // Clear any pending timeout for this toast
+    const timeout = timeoutRefs.current.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      timeoutRefs.current.delete(id);
+    }
+  }, []);
 
   const addToast = useCallback(
     (message: string, type: Toast["type"] = "info", duration = 3000) => {
@@ -31,23 +57,26 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
       setToasts((prev) => [...prev, toast]);
 
       if (duration > 0) {
-        setTimeout(() => removeToast(id), duration);
+        const timeoutId = setTimeout(() => removeToast(id), duration);
+        timeoutRefs.current.set(id, timeoutId);
       }
     },
-    []
+    [removeToast]
   );
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
-      <div className="fixed z-50 space-y-2 bottom-4 right-4">
+      <div
+        className="fixed z-50 space-y-2 bottom-4 right-4"
+        role="region"
+        aria-label="Notifications"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
+            role="alert"
+            aria-live="polite"
             className={`rounded px-4 py-2 text-white ${
               t.type === "success"
                 ? "bg-green-600"

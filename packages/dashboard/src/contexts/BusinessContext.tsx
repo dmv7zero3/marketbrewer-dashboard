@@ -37,11 +37,15 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
         const { businesses } = await getBusinesses();
         if (!mounted) return;
         setBusinesses(businesses);
-        // Restore selection if valid
+        // Restore selection if valid; clear localStorage if saved business no longer exists
         const initial =
           businesses.find((b) => b.id === saved)?.id ||
           businesses[0]?.id ||
           null;
+        // Clean up stale localStorage entry if saved business was deleted
+        if (!initial || !businesses.find((b) => b.id === saved)) {
+          localStorage.removeItem("selectedBusiness");
+        }
         setSelectedBusiness(initial ?? null);
       } catch (e) {
         const msg =
