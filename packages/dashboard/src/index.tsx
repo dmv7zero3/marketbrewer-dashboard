@@ -16,7 +16,6 @@ import {
   PromptsManagement,
   KeywordsManagement,
   ServiceAreas,
-  ServiceAreasInstructions,
   URLGeneration,
   PageContentGeneration,
   LocalSEOPhotos,
@@ -48,10 +47,6 @@ const App: React.FC = () => (
               element={<KeywordsManagement />}
             />
             <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
-            <Route
-              path="/dashboard/service-areas/instructions"
-              element={<ServiceAreasInstructions />}
-            />
             <Route
               path="/dashboard/url-generation"
               element={<URLGeneration />}

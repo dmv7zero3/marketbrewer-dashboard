@@ -13,13 +13,7 @@ const menuItems: MenuItem[] = [
   { title: "Business Profile", path: "/dashboard/business-profile" },
   { title: "Prompts", path: "/dashboard/prompts" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
-  {
-    title: "Service Areas",
-    path: "/dashboard/service-areas",
-    children: [
-      { title: "Instructions", path: "/dashboard/service-areas/instructions" },
-    ],
-  },
+  { title: "Service Areas", path: "/dashboard/service-areas" },
   { title: "Websites", path: "/dashboard/websites" },
   { title: "URL Generation", path: "/dashboard/url-generation" },
   { title: "Generate Pages", path: "/dashboard/page-content-generation" },
@@ -58,7 +52,8 @@ export const Sidebar: React.FC = () => {
 
       <nav className="p-2 space-y-1" aria-label="Dashboard navigation">
         {menuItems.map((item) => {
-          const active = pathname === item.path || pathname.startsWith(item.path + "/");
+          const active =
+            pathname === item.path || pathname.startsWith(item.path + "/");
           return (
             <div key={item.path}>
               <Link
@@ -74,7 +69,10 @@ export const Sidebar: React.FC = () => {
               </Link>
               {/* Submenu */}
               {active && item.children && (
-                <div className="ml-4 mt-1 space-y-1" aria-label={`${item.title} submenu`}>
+                <div
+                  className="ml-4 mt-1 space-y-1"
+                  aria-label={`${item.title} submenu`}
+                >
                   {item.children.map((child) => {
                     const childActive = pathname === child.path;
                     return (
