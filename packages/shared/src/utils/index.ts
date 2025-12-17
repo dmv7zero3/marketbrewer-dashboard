@@ -4,14 +4,18 @@
 
 /**
  * Convert a string to a URL-friendly slug
+ * Transliterates diacritics for SEO-friendly URLs (San José → san-jose)
+ * Matches real-world search behavior where users type without accents
  */
 export function toSlug(str: string): string {
   return str
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .normalize("NFD") // Decompose combined characters (é → e + ́)
+    .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
+    .replace(/[^\w\s-]/g, "") // Remove non-alphanumeric except spaces and hyphens
+    .replace(/[\s_-]+/g, "-") // Replace spaces/underscores with single hyphen
+    .replace(/^-+|-+$/g, ""); // Trim hyphens from start/end
 }
 
 /**

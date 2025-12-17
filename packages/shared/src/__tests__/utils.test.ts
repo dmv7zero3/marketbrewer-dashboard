@@ -50,6 +50,22 @@ describe("toSlug", () => {
   it("handles mixed case", () => {
     expect(toSlug("CamelCaseString")).toBe("camelcasestring");
   });
+
+  it("transliterates accented characters (San José → san-jose)", () => {
+    expect(toSlug("San José")).toBe("san-jose");
+  });
+
+  it("handles real-world city names with diacritics", () => {
+    expect(toSlug("Montréal")).toBe("montreal");
+    expect(toSlug("São Paulo")).toBe("sao-paulo");
+    expect(toSlug("Zürich")).toBe("zurich");
+    expect(toSlug("Bogotá")).toBe("bogota");
+  });
+
+  it("preserves SEO-friendly format for multi-word cities", () => {
+    expect(toSlug("San José, CA")).toBe("san-jose-ca");
+    expect(toSlug("Coeur d'Alene")).toBe("coeur-dalene");
+  });
 });
 
 describe("toCityStateSlug", () => {
@@ -72,6 +88,11 @@ describe("toCityStateSlug", () => {
 
   it("handles city with apostrophe", () => {
     expect(toCityStateSlug("O'Fallon", "MO")).toBe("ofallon-mo");
+  });
+
+  it("transliterates accented city names for SEO", () => {
+    expect(toCityStateSlug("San José", "CA")).toBe("san-jose-ca");
+    expect(toCityStateSlug("Montréal", "QC")).toBe("montreal-qc");
   });
 });
 
