@@ -19,10 +19,11 @@
 ```bash
 # AWS Console or CLI: Create EC2 instance
 # - AMI: Ubuntu 22.04 LTS
-# - Instance Type: t3.medium (2 vCPU, 4GB RAM)
+# - Instance Type: t3.large (2 vCPU, 8GB RAM) ← RECOMMENDED for faster page generation
 # - Storage: 50GB gp3
 # - Security Group: Open ports 22 (SSH), 3001 (API), 11434 (Ollama internal)
 # - Key Pair: Create & save locally as marketbrewer-key.pem
+# - IMPORTANT: Stop instance when not in use (see COST-OPTIMIZATION.md)
 ```
 
 **From AWS CLI:**
@@ -30,11 +31,32 @@
 ```bash
 aws ec2 run-instances \
   --image-id ami-0c55b159cbfafe1f0 \
-  --instance-type t3.medium \
+  --instance-type t3.large \
   --key-name marketbrewer-key \
   --region us-east-1 \
-  --security-groups marketbrewer-sg
+  --security-groups marketbrewer-sg \
+  --block-device-mappings 'DeviceName=/dev/sda1,Ebs={VolumeSize=50,VolumeType=gp3}'
 ```
+
+**Instance Specs:**
+- **Instance Type:** t3.large (2 vCPU, 8GB RAM) **← RECOMMENDED**
+  - Why t3.large: Parallel job processing, 50% faster page generation (15-30s vs 30-60s)
+  - Cost: ~$60/month running 24/7, **~$20/month if stopped when not in use**
+  - Why NOT GPU: v1.0 uses CPU-only llama3.2 (perfectly adequate, saves cost)
+- **Storage:** 50GB EBS (gp3) = ~$2.50/month
+
+**⚠️ CRITICAL Cost Control:**
+```bash
+# Stop instance at END of workday
+aws ec2 stop-instances --instance-ids i-xxxxxxxxx
+
+# Start instance at beginning of workday
+aws ec2 start-instances --instance-ids i-xxxxxxxxx
+
+# Cost: $20/month (8h/day) + $2.50 storage = $22.50/month ✅
+# (Well under your $35/month budget!)
+```
+See [COST-OPTIMIZATION.md](COST-OPTIMIZATION.md) for auto-stop script and monitoring.
 
 ### Step 2: Configure Server (10 minutes)
 
@@ -362,20 +384,43 @@ ls -la /var/lib/marketbrewer/backups/
 
 ---
 
-## Cost Optimization
+## Cost Optimization (Critical for Budget Control)
 
-### Instance Type
+**IMPORTANT: See [COST-OPTIMIZATION.md](COST-OPTIMIZATION.md) for detailed strategies**
 
-**t3.medium (recommended):**
+### Instance Type: t3.large (Recommended)
 
-- $0.0416/hour (~$30/month)
-- Sufficient for 10-50 concurrent users
-- Scales to t3.large if needed
+**Why t3.large:**
+- 2 vCPU, 8GB RAM (vs t3.medium 2 vCPU, 4GB)
+- 50% faster page generation (15-30s vs 30-60s)
+- Parallel job processing
+- Performance required for production
 
-**Cost Breakdown:**
+**Cost Breakdown (t3.large):**
 
-- EC2: ~$30/month
-- Storage (50GB): ~$5/month
+- EC2 running 8h/day: ~$20/month
+- Storage (50GB): ~$2.50/month
+- **Total: $22.50/month** ✅ (under $35 budget)
+
+### Cost Controls (Mandatory)
+
+1. **Stop instance when not in use:**
+   ```bash
+   aws ec2 stop-instances --instance-ids i-xxxxxxxxx
+   ```
+   Running 24/7 = $60/month ❌  
+   Running 8h/day = $20/month ✅
+
+2. **Auto-stop on idle** (recommended):
+   See [COST-OPTIMIZATION.md](COST-OPTIMIZATION.md) for script
+
+3. **CloudWatch billing alert** at $30/month:
+   ```bash
+   aws cloudwatch put-metric-alarm --threshold 30
+   ```
+
+4. **Monthly budget review:**
+   AWS Console → Billing → Cost Explorer
 - **Total: ~$35/month**
 
 ### Cost Controls
