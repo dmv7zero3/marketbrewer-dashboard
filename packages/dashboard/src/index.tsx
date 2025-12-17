@@ -12,7 +12,6 @@ import { ToastProvider } from "./contexts/ToastContext";
 import {
   Dashboard,
   BusinessProfile,
-  WebsiteManagement,
   PromptsManagement,
   KeywordsManagement,
   ServiceAreas,
@@ -40,7 +39,6 @@ const App: React.FC = () => (
               path="/dashboard/business-profile"
               element={<BusinessProfile />}
             />
-            <Route path="/dashboard/websites" element={<WebsiteManagement />} />
             <Route path="/dashboard/prompts" element={<PromptsManagement />} />
             <Route
               path="/dashboard/keywords"

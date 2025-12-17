@@ -14,7 +14,6 @@ const menuItems: MenuItem[] = [
   { title: "Prompts", path: "/dashboard/prompts" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
   { title: "Service Areas", path: "/dashboard/service-areas" },
-  { title: "Websites", path: "/dashboard/websites" },
   { title: "URL Generation", path: "/dashboard/url-generation" },
   { title: "Generate Pages", path: "/dashboard/page-content-generation" },
 ];
