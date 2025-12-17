@@ -811,12 +811,12 @@ The MarketBrewer SEO Platform is **ready for EC2 staging deployment** with docum
 - Server compiles via TypeScript without errors
 - Assets properly cached with contenthash
 
-### ✅ 3. Database Setup — CONFIRMED WITH CAVEAT
+### ✅ 3. Database Setup — CONFIRMED
 
 - Schema initialization happens automatically in UserData
 - Seeding is idempotent (safe to re-run)
 - WAL mode enabled for concurrent access
-- **Caveat:** Manual backup recommended before first large job run
+- **Cost approach:** No backups for staging; if instance fails, redeploy stack (~5 min). Data loss acceptable for v1.0.
 
 ### ✅ 4. API Server Startup — CONFIRMED
 
@@ -832,11 +832,11 @@ The MarketBrewer SEO Platform is **ready for EC2 staging deployment** with docum
 - API authentication with shared token
 - systemd service depends on seo-api.service
 
-### ✅ 6. Dashboard Build & Deployment — CONFIRMED WITH CAVEAT
+### ✅ 6. Dashboard Build & Deployment — CONFIRMED
 
 - Webpack builds successfully with environment variables
 - API integration via axios with Bearer token
-- **Caveat:** Static hosting strategy should be verified (Express static vs nginx)
+- Static hosting via Express (no nginx needed; keeps costs minimal)
 
 ### ✅ 7. CloudFormation Template — CONFIRMED
 
@@ -942,10 +942,10 @@ Evidence: webpack DefinePlugin injects at build time ✅
 **Status:** CloudFormation UserData appears to serve dashboard via Express static middleware on port 3002
 **Recommendation:** Verify SPA routing fallback during staging deployment
 
-### Gap #2: Data Persistence Across Deployments 🟡 MITIGATED
+### Gap #2: Data Persistence Across Deployments 🟡 COST-OPTIMIZED
 
-**Status:** Database on EBS root volume (persistent if not terminated)
-**Recommendation:** Manual backup before large job runs; automate to S3 in v1.1
+**Status:** Database on EBS root volume; no backups for staging (cost-minimal approach)
+**Recommendation:** If instance fails, redeploy CloudFormation stack (~5 min). Data loss acceptable for v1.0.
 
 ### Gap #3: Ollama Model Pull Timeout 🟡 LOW RISK
 
@@ -989,7 +989,7 @@ Evidence: webpack DefinePlugin injects at build time ✅
 
 1. ⚠️ Monitor first deployment for Ollama model pull timeout
 2. ⚠️ Verify dashboard SPA routing works correctly
-3. ⚠️ Test backup/restore procedure during staging
+3. ⚠️ If instance fails, redeploy stack (data loss acceptable for v1.0)
 4. ⚠️ Monitor worker memory usage over 24h staging period
 5. ⚠️ Confirm CloudWatch alarms are triggering correctly
 

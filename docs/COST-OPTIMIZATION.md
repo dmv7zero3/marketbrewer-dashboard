@@ -1,14 +1,307 @@
 # EC2 Cost Optimization & Control Strategy
 
-**Status:** ✅ Recommended for v1.0.0  
-**Updated:** December 17, 2025  
-**Target Budget:** $35/month maximum
+**Status:** ✅ ULTRA-MINIMAL approach (Dec 17, 2025 updated)  
+**Target Budget:** $15/month maximum (staging)  
+**Philosophy:** Zero unnecessary costs, redeploy on failure
 
 ---
 
 ## Executive Summary
 
-**MarketBrewer can operate on t3.large for ~$20-25/month by stopping the instance when not in use.** This exceeds performance requirements while staying well under budget.
+**MarketBrewer staging operates on t3.large for ~$5-13/month with aggressive cost minimization:**
+- ✅ Auto-stop enabled (8h/day usage only)
+- ✅ No backups (redeploy on failure; 5-minute recovery)
+- ✅ Minimal CloudWatch (essential alarms only)
+- ✅ 7-day log retention (not 30+)
+- ✅ No S3, no multi-AZ, no reserved capacity
+
+**Production:** Single instance; multi-region redundancy deferred to v2.0.
+
+---
+
+## Cost Breakdown (Ultra-Minimal)
+
+### Staging Setup
+
+| Component                      | Cost/Month | Notes                          |
+| ------------------------------ | ---------- | ------------------------------ |
+| EC2 t3.large (auto-stop, 8h/d) | $8         | Stop at 6pm, start at 6am      |
+| EBS Storage (50GB)             | $5         | Root volume only               |
+| CloudWatch (minimal)           | $0.10      | CPU + disk alarms only         |
+| Log retention (7 days)         | $0.50      | Auto-delete old logs           |
+| **Total (Staging)**            | **$13.60** | ✅ Ultra-minimal               |
+
+### With Manual Shutdown (Non-Business Hours)
+
+| Component                      | Cost/Month | Notes                          |
+| ------------------------------ | ---------- | ------------------------------ |
+| EC2 t3.large (manual, ~0h/d)   | $0         | Stop when not actively testing |
+| EBS Storage (50GB)             | $5         | Still charged when stopped     |
+| CloudWatch (minimal)           | $0.10      | Always on                      |
+| **Total (Minimal)**            | **$5.10**  | ✅ Absolute minimum            |
+
+---
+
+## Cost Reduction Strategies (Ranked by Impact)
+
+### 🟢 HIGH-IMPACT (Already Implemented)
+
+#### 1. Auto-Stop Schedule
+- **Mechanism:** CloudFormation scheduled action
+- **When:** Stop at 6 PM, start at 6 AM (or manual)
+- **Savings:** $60 → $20/month compute (67% reduction)
+- **Status:** ✅ In CloudFormation template
+
+#### 2. Zero Backups
+- **Approach:** No S3 backups, no EBS snapshots
+- **Recovery:** Redeploy CloudFormation (5 min, free)
+- **Risk:** Data loss acceptable for v1.0
+- **Savings:** $5-10/month
+- **Status:** ✅ Updated in PRE-EC2-LAUNCH-CHECKLIST
+
+#### 3. Minimal CloudWatch
+- **Keep:** CPU, disk, disk-full alarms only
+- **Remove:** Custom metrics, dashboards, SNS for non-critical alerts
+- **Savings:** $1-2/month
+- **Status:** ✅ Updated CloudFormation
+
+#### 4. Short Log Retention
+- **Set:** 7 days for staging (not 30+)
+- **Mechanism:** CloudWatch log group retention policy
+- **Savings:** $0.50-1/month
+- **Status:** ✅ Recommended
+
+---
+
+### 🟡 MEDIUM-IMPACT (Evaluate Later)
+
+#### 5. Spot Instances for Staging
+- **Cost:** t3.large Spot ~$2.40/month (vs $8 On-Demand)
+- **Risk:** Interruptions acceptable for staging
+- **Savings:** $5.60/month
+- **Effort:** Modify CloudFormation for Spot pricing
+- **Recommendation:** **Deploy On-Demand first; switch to Spot if costs become issue**
+
+#### 6. Smaller Instance Type?
+- **Question:** Can we use t3.medium (1 vCPU, 4GB)?
+- **Bottleneck:** Ollama llama3.2 needs ~4GB minimum
+- **Verdict:** t3.large is right-size; don't downgrade
+- **Savings:** None (would trade reliability)
+
+#### 7. EBS Optimization
+- **Current:** 50GB root volume (reasonable)
+- **Future:** If database grows > 40GB, implement data cleanup
+- **Savings:** Minimal ($2.50 per 50GB)
+
+---
+
+### 🔵 LOW-IMPACT (Defer to Later)
+
+#### 8. CloudWatch Logs Export to S3
+- **Cost:** $0.50 per export + S3 storage
+- **Benefit:** Long-term audit trail
+- **Recommendation:** Defer to v1.1 (if required)
+
+#### 9. Reserved Instances
+- **Cost:** Commit to 1-year for 30% discount
+- **Upfront:** $140 for 1-year commitment
+- **Recommendation:** Defer to v2.0 (after proving MVP works)
+
+#### 10. Consolidate to Multi-Region
+- **Cost:** Multiple instances across regions
+- **Benefit:** Redundancy, faster access
+- **Recommendation:** Defer to v2.0
+
+---
+
+## Implementation Checklist
+
+### Before EC2 Deployment
+
+- [ ] Verify auto-stop CloudFormation action exists
+- [ ] Verify CloudWatch alarms set (CPU, disk-full only)
+- [ ] Set CloudWatch log retention to 7 days
+- [ ] Verify no backup/snapshot schedule configured
+- [ ] Confirm no S3 bucket created
+- [ ] Disable SNS alerts for non-critical metrics
+
+### During First Month
+
+- [ ] Monitor AWS billing console weekly
+- [ ] Document actual cost vs. estimate
+- [ ] Check if instance is being used as planned
+- [ ] Identify any unexpected charges
+
+### If Costs Exceed $20/Month
+
+1. **Check CloudWatch:** Review metric publishing
+   - Disable custom metrics if not needed
+   - Increase log retention cleanup
+
+2. **Check EBS:** Verify disk not growing
+   - Clear old logs manually
+   - Verify database not accumulating data
+
+3. **Consider Spot:** Switch staging to Spot instances
+   - Risk: Interruptions (acceptable for staging)
+   - Savings: ~$5.60/month
+
+4. **Reduce Hours:** Shut down outside business hours
+   - Savings: Additional $8/month
+   - Effort: Manual start/stop via AWS console
+
+---
+
+## What NOT to Cut (Security & Reliability)
+
+### Keep These (Non-Negotiable)
+
+- ✅ **Health checks:** Critical for reliability
+- ✅ **Rate limiting:** Security-critical
+- ✅ **Database indexes:** Performance-critical
+- ✅ **systemd restart policies:** Availability
+- ✅ **CORS validation:** Security-critical
+- ✅ **Input validation (Zod):** Security-critical
+
+### Can Remove (Non-Critical)
+
+- ❌ CloudWatch dashboards (use CLI if needed)
+- ❌ Custom metrics (CPU/disk sufficient)
+- ❌ SNS alerts for informational events
+- ❌ Long-term log retention (7 days enough)
+- ❌ EBS snapshots (redeploy instead)
+
+---
+
+## Cost Control: Manual vs. Automated
+
+### Option A: Manual Control (Recommended for v1.0)
+
+**Start instance when needed:**
+```bash
+# Via AWS Console: EC2 → select instance → Instance State → Start
+# Via AWS CLI:
+aws ec2 start-instances --instance-ids i-XXXXXXXX --region us-east-1
+```
+
+**Stop instance when done:**
+```bash
+# Via AWS Console: EC2 → select instance → Instance State → Stop
+# Via AWS CLI:
+aws ec2 stop-instances --instance-ids i-XXXXXXXX --region us-east-1
+```
+
+**Cost:** $0 if stopped 24/7, $8/month if running 8h/day
+
+**Recommendation:** Best for testing (full control, low cost)
+
+---
+
+### Option B: Scheduled Auto-Stop (Staging)
+
+**Configuration in CloudFormation:**
+
+```yaml
+# Recommended: Stop at 6pm, start at 6am
+StopSchedule:
+  Type: AWS::Events::Rule
+  Properties:
+    ScheduleExpression: "cron(0 22 * * ? *)"  # 10 PM UTC = 5 PM EST
+    State: ENABLED
+    Targets:
+      - Arn: !Sub "arn:aws:ssm:${AWS::Region}::automation-assume-role/SSMAutomationRole"
+        RoleArn: !GetAtt StopInstanceRole.Arn
+
+StartSchedule:
+  Type: AWS::Events::Rule
+  Properties:
+    ScheduleExpression: "cron(0 10 * * ? *)"  # 10 AM UTC = 5 AM EST
+    State: ENABLED
+```
+
+**Cost:** $8/month with default 8h/day schedule
+
+**Recommendation:** Good for continuous staging validation
+
+---
+
+### Option C: Always-On Production (Post-v1.0)
+
+**For production, keep instance running 24/7**
+
+**Cost:** $20 + $5 = $25/month
+
+**Consideration:** Add redundancy later (v2.0)
+
+---
+
+## Estimated Monthly Costs (Final Recommendation)
+
+| Scenario              | Compute | Storage | CloudWatch | **Total** |
+| -------------------- | ------- | ------- | ---------- | --------- |
+| Manual control (0h)   | $0      | $5      | $0.10      | **$5.10** |
+| Auto-stop (8h/day)    | $8      | $5      | $0.10      | **$13.10**|
+| Always-on (24h)       | $20     | $5      | $0.10      | **$25.10**|
+| Spot + auto-stop      | $2.40   | $5      | $0.10      | **$7.50** |
+
+**Recommendation for v1.0:** Manual control or auto-stop (your choice)
+**Annual Savings:** ~$150-300/year vs. always-on setup
+
+---
+
+## Questions for Implementation
+
+1. **How often will staging be used?**
+   - Daily: Use auto-stop (8h/day) → $13/month
+   - Weekly: Use manual stop → $5/month
+   - As-needed: Use manual control → $5/month
+
+2. **Is instance failure acceptable?**
+   - Yes: Skip backups, redeploy on failure → save $5-10/month
+   - No: Add S3 backups in v1.1 → add $5/month
+
+3. **Should production stay always-on?**
+   - Yes: Single instance, no redundancy → $25/month
+   - No: Implement multi-AZ later → v2.0 feature
+
+---
+
+## Action Items (This Week)
+
+1. [ ] Deploy EC2 with auto-stop enabled
+2. [ ] Set CloudWatch log retention to 7 days
+3. [ ] Disable non-essential CloudWatch metrics
+4. [ ] Monitor billing for first week
+5. [ ] Document actual vs. estimated costs
+6. [ ] Decide on Spot instance conversion (if cost > $15)
+
+---
+
+## Next Steps (Post-MVP)
+
+### v1.1 (Month 2)
+- Add CloudWatch Logs export (if audit trail needed)
+- Implement automated cleanup (if disk grows)
+
+### v2.0 (Future)
+- Multi-AZ redundancy (high availability)
+- Multi-region deployment
+- Reserved Instance commitments (if MVP successful)
+- Data replication to S3 (if production critical)
+
+---
+
+## Summary
+
+**Bottom line:** MarketBrewer v1.0 staging costs $5-13/month using aggressive cost minimization:
+- Zero backups (redeploy on failure)
+- Auto-stop or manual control
+- Minimal CloudWatch
+- Single instance, no redundancy
+
+**This is acceptable for MVP; add redundancy and backups in v2.0 if revenue justifies it.**
+
+
 
 ---
 
