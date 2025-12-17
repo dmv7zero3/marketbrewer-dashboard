@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
+import { useToast } from "../../contexts/ToastContext";
 import { createJob } from "../../api/jobs";
 import type { PageType, GenerationJob } from "@marketbrewer/shared";
 import { Link } from "react-router-dom";
 
 export const PageContentGeneration: React.FC = () => {
   const { selectedBusiness } = useBusiness();
+  const { addToast } = useToast();
   const [pageType, setPageType] = useState<PageType>("keyword-location");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,9 +23,11 @@ export const PageContentGeneration: React.FC = () => {
       const res = await createJob(selectedBusiness, pageType);
       setJob(res.job);
       setTotalCreated(res.total_pages_created);
+      addToast(`Generation job created successfully (ID: ${res.job.id})`, "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to create job";
       setError(msg);
+      addToast(msg, "error", 5000);
     } finally {
       setCreating(false);
     }
@@ -53,7 +57,7 @@ export const PageContentGeneration: React.FC = () => {
             </div>
 
             <button
-              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-700"
               onClick={handleCreate}
               disabled={creating}
             >

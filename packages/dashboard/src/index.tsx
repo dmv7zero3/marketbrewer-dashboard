@@ -6,6 +6,7 @@ import { JobStatus } from "./pages/JobStatus";
 import { JobsList } from "./pages/JobsList";
 import { Navbar } from "./components/ui/Navbar";
 import { Footer } from "./components/ui/Footer";
+import { ToastProvider } from "./contexts/ToastContext";
 import {
   Dashboard,
   BusinessProfile,
@@ -21,30 +22,38 @@ import {
 import "./styles/index.css";
 
 const App: React.FC = () => (
-  <BrowserRouter>
-    <Navbar />
-    <Routes>
-      <Route path="/" element={<JobCreate />} />
-      <Route path="/jobs/:businessId/:jobId" element={<JobStatus />} />
-      <Route path="/jobs" element={<JobsList />} />
-      <Route path="/jobs/:businessId" element={<JobsList />} />
-      {/* Dashboard routes */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/dashboard/business-profile" element={<BusinessProfile />} />
-      <Route path="/dashboard/websites" element={<WebsiteManagement />} />
-      <Route path="/dashboard/prompts" element={<PromptsManagement />} />
-      <Route path="/dashboard/keywords" element={<KeywordsManagement />} />
-      <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
-      <Route path="/dashboard/url-generation" element={<URLGeneration />} />
-      <Route
-        path="/dashboard/page-content-generation"
-        element={<PageContentGeneration />}
-      />
-      <Route path="/dashboard/local-seo-photos" element={<LocalSEOPhotos />} />
-      <Route path="/dashboard/billing" element={<Billing />} />
-    </Routes>
-    <Footer />
-  </BrowserRouter>
+  <ToastProvider>
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<JobCreate />} />
+        <Route path="/jobs/:businessId/:jobId" element={<JobStatus />} />
+        <Route path="/jobs" element={<JobsList />} />
+        <Route path="/jobs/:businessId" element={<JobsList />} />
+        {/* Dashboard routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard/business-profile"
+          element={<BusinessProfile />}
+        />
+        <Route path="/dashboard/websites" element={<WebsiteManagement />} />
+        <Route path="/dashboard/prompts" element={<PromptsManagement />} />
+        <Route path="/dashboard/keywords" element={<KeywordsManagement />} />
+        <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
+        <Route path="/dashboard/url-generation" element={<URLGeneration />} />
+        <Route
+          path="/dashboard/page-content-generation"
+          element={<PageContentGeneration />}
+        />
+        <Route
+          path="/dashboard/local-seo-photos"
+          element={<LocalSEOPhotos />}
+        />
+        <Route path="/dashboard/billing" element={<Billing />} />
+      </Routes>
+      <Footer />
+    </BrowserRouter>
+  </ToastProvider>
 );
 
 const container = document.getElementById("root");

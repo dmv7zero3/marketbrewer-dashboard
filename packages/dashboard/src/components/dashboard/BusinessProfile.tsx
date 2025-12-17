@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
+import { useToast } from "../../contexts/ToastContext";
 import {
   getBusiness,
   updateBusiness,
   getQuestionnaire,
   updateQuestionnaire,
 } from "../../api/businesses";
+import {
+  validateBusinessName,
+  validateIndustry,
+  validateURL,
+  validatePhone,
+  validateEmail,
+} from "../../lib/validation";
 import type { Business, Questionnaire } from "@marketbrewer/shared";
 
 export const BusinessProfile: React.FC = () => {
   const { selectedBusiness } = useBusiness();
+  const { addToast } = useToast();
   const [business, setBusiness] = useState<Business | null>(null);
   const [questionnaire, setQuestionnaire] = useState<
     (Questionnaire & { data: Record<string, unknown> }) | null
@@ -20,6 +29,15 @@ export const BusinessProfile: React.FC = () => {
   const [savingQ, setSavingQ] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [qText, setQText] = useState<string>("{}");
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string | null>
+  >({
+    name: null,
+    industry: null,
+    website: null,
+    phone: null,
+    email: null,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -46,6 +64,13 @@ export const BusinessProfile: React.FC = () => {
     setBusiness(null);
     setQuestionnaire(null);
     setQText("{}");
+    setValidationErrors({
+      name: null,
+      industry: null,
+      website: null,
+      phone: null,
+      email: null,
+    });
     load();
     return () => {
       mounted = false;
@@ -55,10 +80,36 @@ export const BusinessProfile: React.FC = () => {
   const handleBizChange = (field: keyof Business, value: string) => {
     if (!business) return;
     setBusiness({ ...business, [field]: value });
+    // Clear validation error for this field as user corrects it
+    setValidationErrors((prev) => ({
+      ...prev,
+      [field]: null,
+    }));
+  };
+
+  const validateBusinessForm = (): boolean => {
+    const errors: Record<string, string | null> = {
+      name: validateBusinessName(business?.name ?? ""),
+      industry: validateIndustry(business?.industry ?? ""),
+      website: validateURL(business?.website ?? ""),
+      phone: validatePhone(business?.phone ?? ""),
+      email: validateEmail(business?.email ?? ""),
+    };
+
+    const hasErrors = Object.values(errors).some((err) => err !== null);
+    if (hasErrors) {
+      setValidationErrors(errors);
+      const errorMessages = Object.values(errors).filter((e) => e !== null);
+      addToast(errorMessages.join("; "), "error", 5000);
+    }
+    return !hasErrors;
   };
 
   const handleSaveBusiness = async () => {
     if (!selectedBusiness || !business) return;
+
+    if (!validateBusinessForm()) return;
+
     try {
       setSavingBiz(true);
       setError(null);
@@ -74,9 +125,11 @@ export const BusinessProfile: React.FC = () => {
         payload
       );
       setBusiness(updated);
+      addToast("Business profile saved successfully", "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to save business";
       setError(msg);
+      addToast(msg, "error", 5000);
     } finally {
       setSavingBiz(false);
     }
@@ -91,7 +144,7 @@ export const BusinessProfile: React.FC = () => {
       try {
         dataObj = JSON.parse(qText || "{}");
       } catch (parseErr) {
-        setError("Questionnaire JSON is invalid");
+        addToast("Questionnaire JSON is invalid", "error", 5000);
         setSavingQ(false);
         return;
       }
@@ -101,10 +154,12 @@ export const BusinessProfile: React.FC = () => {
       );
       setQuestionnaire(updated);
       setQText(JSON.stringify(updated.data ?? {}, null, 2));
+      addToast("Questionnaire saved successfully", "success");
     } catch (e) {
       const msg =
         e instanceof Error ? e.message : "Failed to save questionnaire";
       setError(msg);
+      addToast(msg, "error", 5000);
     } finally {
       setSavingQ(false);
     }
@@ -127,38 +182,67 @@ export const BusinessProfile: React.FC = () => {
             {/* Business details */}
             <div className="space-y-3">
               <h2 className="text-xl font-semibold">Details</h2>
-              <label className="block text-sm">Name</label>
+              <label className="block text-sm font-medium">Name</label>
               <input
-                className="border rounded px-2 py-1 w-full"
+                className={`border rounded px-2 py-1 w-full ${
+                  validationErrors.name ? "border-red-500" : ""
+                }`}
                 value={business?.name ?? ""}
                 onChange={(e) => handleBizChange("name", e.target.value)}
               />
-              <label className="block text-sm">Industry</label>
+              {validationErrors.name && (
+                <p className="text-red-600 text-xs">{validationErrors.name}</p>
+              )}
+              <label className="block text-sm font-medium">Industry</label>
               <input
-                className="border rounded px-2 py-1 w-full"
+                className={`border rounded px-2 py-1 w-full ${
+                  validationErrors.industry ? "border-red-500" : ""
+                }`}
                 value={business?.industry ?? ""}
                 onChange={(e) => handleBizChange("industry", e.target.value)}
               />
-              <label className="block text-sm">Website</label>
+              {validationErrors.industry && (
+                <p className="text-red-600 text-xs">
+                  {validationErrors.industry}
+                </p>
+              )}
+              <label className="block text-sm font-medium">Website</label>
               <input
-                className="border rounded px-2 py-1 w-full"
+                className={`border rounded px-2 py-1 w-full ${
+                  validationErrors.website ? "border-red-500" : ""
+                }`}
                 value={business?.website ?? ""}
                 onChange={(e) => handleBizChange("website", e.target.value)}
               />
-              <label className="block text-sm">Phone</label>
+              {validationErrors.website && (
+                <p className="text-red-600 text-xs">
+                  {validationErrors.website}
+                </p>
+              )}
+              <label className="block text-sm font-medium">Phone</label>
               <input
-                className="border rounded px-2 py-1 w-full"
+                className={`border rounded px-2 py-1 w-full ${
+                  validationErrors.phone ? "border-red-500" : ""
+                }`}
                 value={business?.phone ?? ""}
                 onChange={(e) => handleBizChange("phone", e.target.value)}
               />
-              <label className="block text-sm">Email</label>
+              {validationErrors.phone && (
+                <p className="text-red-600 text-xs">{validationErrors.phone}</p>
+              )}
+              <label className="block text-sm font-medium">Email</label>
               <input
-                className="border rounded px-2 py-1 w-full"
+                className={`border rounded px-2 py-1 w-full ${
+                  validationErrors.email ? "border-red-500" : ""
+                }`}
                 value={business?.email ?? ""}
                 onChange={(e) => handleBizChange("email", e.target.value)}
               />
+              {validationErrors.email && (
+                <p className="text-red-600 text-xs">{validationErrors.email}</p>
+              )}
               <button
-                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-700"
                 onClick={handleSaveBusiness}
                 disabled={savingBiz}
               >
@@ -182,7 +266,7 @@ export const BusinessProfile: React.FC = () => {
                 onChange={(e) => setQText(e.target.value)}
               />
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-700"
                 onClick={handleSaveQuestionnaire}
                 disabled={savingQ}
               >
