@@ -3,9 +3,10 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useCallback,
   useState,
 } from "react";
-import { getBusinesses } from "../api/businesses";
+import { createBusiness, getBusinesses } from "../api/businesses";
 import type { Business } from "@marketbrewer/shared";
 
 interface BusinessContextValue {
@@ -14,6 +15,14 @@ interface BusinessContextValue {
   setSelectedBusiness: (id: string | null) => void;
   loading: boolean;
   error: string | null;
+  addBusiness: (data: {
+    name: string;
+    industry: string;
+    website?: string;
+    phone?: string;
+    email?: string;
+  }) => Promise<Business>;
+  refreshBusinesses: () => Promise<void>;
 }
 
 const BusinessContext = createContext<BusinessContextValue | undefined>(
@@ -69,6 +78,30 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const addBusiness = useCallback(
+    async (data: {
+      name: string;
+      industry: string;
+      website?: string;
+      phone?: string;
+      email?: string;
+    }): Promise<Business> => {
+      const { business } = await createBusiness(data);
+      setBusinesses((prev) => [...prev, business]);
+      return business;
+    },
+    []
+  );
+
+  const refreshBusinesses = useCallback(async (): Promise<void> => {
+    try {
+      const { businesses } = await getBusinesses();
+      setBusinesses(businesses);
+    } catch (e) {
+      console.error("Failed to refresh businesses", e);
+    }
+  }, []);
+
   const value = useMemo<BusinessContextValue>(
     () => ({
       businesses,
@@ -76,8 +109,17 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
       setSelectedBusiness: setSelection,
       loading,
       error,
+      addBusiness,
+      refreshBusinesses,
     }),
-    [businesses, selectedBusiness, loading, error]
+    [
+      businesses,
+      selectedBusiness,
+      loading,
+      error,
+      addBusiness,
+      refreshBusinesses,
+    ]
   );
 
   return (

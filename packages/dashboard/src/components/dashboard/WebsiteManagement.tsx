@@ -1,3 +1,7 @@
+/**
+ * Website Management Component
+ * @deprecated Phase 2 feature — pending completion
+ */
 import React from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";

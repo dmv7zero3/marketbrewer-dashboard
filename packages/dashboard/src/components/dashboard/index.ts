@@ -3,6 +3,7 @@ export { Sidebar } from "./Sidebar";
 export { Dashboard } from "./Dashboard";
 export { BusinessProfile } from "./BusinessProfile";
 export { QuestionnaireForm } from "./QuestionnaireForm";
+export { AddBusinessModal } from "./AddBusinessModal";
 export { PromptsManagement } from "./PromptsManagement";
 export { KeywordsManagement } from "./KeywordsManagement";
 export { ServiceAreas } from "./ServiceAreas";

@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { JobCreate } from "./pages/JobCreate";
 import { JobStatus } from "./pages/JobStatus";
 import { JobsList } from "./pages/JobsList";
@@ -17,8 +17,6 @@ import {
   ServiceAreas,
   URLGeneration,
   PageContentGeneration,
-  LocalSEOPhotos,
-  Billing,
 } from "./components/dashboard";
 import "./styles/index.css";
 
@@ -29,7 +27,8 @@ const App: React.FC = () => (
         <BrowserRouter>
           <Navbar />
           <Routes>
-            <Route path="/" element={<JobCreate />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/jobs/new" element={<JobCreate />} />
             <Route path="/jobs/:businessId/:jobId" element={<JobStatus />} />
             <Route path="/jobs" element={<JobsList />} />
             <Route path="/jobs/:businessId" element={<JobsList />} />
@@ -53,11 +52,7 @@ const App: React.FC = () => (
               path="/dashboard/page-content-generation"
               element={<PageContentGeneration />}
             />
-            <Route
-              path="/dashboard/local-seo-photos"
-              element={<LocalSEOPhotos />}
-            />
-            <Route path="/dashboard/billing" element={<Billing />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
           <Footer />
         </BrowserRouter>

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useBusiness } from "../../contexts/BusinessContext";
+import { AddBusinessModal } from "./AddBusinessModal";
 
 type MenuItem = {
   title: string;
@@ -10,6 +11,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { title: "Overview", path: "/dashboard" },
+  { title: "Jobs", path: "/jobs" },
   { title: "Business Profile", path: "/dashboard/business-profile" },
   { title: "Prompts", path: "/dashboard/prompts" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
@@ -22,6 +24,7 @@ export const Sidebar: React.FC = () => {
   const { businesses, selectedBusiness, setSelectedBusiness, loading } =
     useBusiness();
   const { pathname } = useLocation();
+  const [showAddModal, setShowAddModal] = useState(false);
 
   return (
     <aside className="w-64 border-r bg-white h-[calc(100vh-64px)] sticky top-16">
@@ -37,7 +40,13 @@ export const Sidebar: React.FC = () => {
           aria-label="Select business"
           className="w-full border rounded px-2 py-1"
           value={selectedBusiness ?? ""}
-          onChange={(e) => setSelectedBusiness(e.target.value || null)}
+          onChange={(e) => {
+            if (e.target.value === "__ADD__") {
+              setShowAddModal(true);
+              return;
+            }
+            setSelectedBusiness(e.target.value || null);
+          }}
           disabled={loading}
         >
           <option value="">Select a business</option>
@@ -46,6 +55,7 @@ export const Sidebar: React.FC = () => {
               {b.name}
             </option>
           ))}
+          <option value="__ADD__">➕ Add Business</option>
         </select>
       </div>
 
@@ -66,7 +76,7 @@ export const Sidebar: React.FC = () => {
               >
                 {item.title}
               </Link>
-              {/* Submenu */}
+              {/* Submenu support reserved for Phase 2 */}
               {active && item.children && (
                 <div
                   className="ml-4 mt-1 space-y-1"
@@ -95,6 +105,11 @@ export const Sidebar: React.FC = () => {
           );
         })}
       </nav>
+
+      <AddBusinessModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+      />
     </aside>
   );
 };
