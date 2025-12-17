@@ -7,6 +7,7 @@ export { WebsiteManagement } from "./WebsiteManagement";
 export { PromptsManagement } from "./PromptsManagement";
 export { KeywordsManagement } from "./KeywordsManagement";
 export { ServiceAreas } from "./ServiceAreas";
+export { ServiceAreasInstructions } from "./ServiceAreasInstructions";
 export { URLGeneration } from "./URLGeneration";
 export { PageContentGeneration } from "./PageContentGeneration";
 export { LocalSEOPhotos } from "./LocalSEOPhotos";

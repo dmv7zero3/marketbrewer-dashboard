@@ -4,47 +4,35 @@
  */
 
 import { BULK_LIMITS } from "./constants";
-  const seen = new WeakSet<any>();
-export function safeDeepMerge<T extends Record<string, unknown>>(
-  target: T,
-    tgt: object,
-): T {
+
+export function safeDeepMerge<T extends object>(target: T, source: unknown): T {
   const seen = new WeakSet<object>();
-  ): object => {
-  const merge = (
-    tgt: Record<string, unknown>,
-    src: unknown,
-    depth: number
-    const out: any = Array.isArray(tgt) ? [...(tgt as any[])] : { ...(tgt as any) };
+
+  const merge = (tgt: any, src: any, depth: number): any => {
     if (!src || typeof src !== "object") return tgt;
     if (depth <= 0) return tgt;
 
-    const srcObj = src as Record<string, unknown>;
-    const out: Record<string, unknown> = { ...tgt };
+    if (seen.has(src)) return tgt; // prevent cycles
+    seen.add(src);
 
-    const srcAsObj = src as object;
-      if (!Object.prototype.hasOwnProperty.call(tgt, key)) continue;
-    seen.add(srcAsObj);
-      const targetValue = (out as any)[key];
-    for (const [key, value] of Object.entries(srcObj)) {
+    const out: any = Array.isArray(tgt) ? [...tgt] : { ...tgt };
+    const entries = Object.entries(src as Record<string, unknown>);
+    for (const [key, value] of entries) {
       // Only merge keys that exist in target shape to prevent schema corruption
       if (!Object.prototype.hasOwnProperty.call(tgt, key)) continue;
       if (value === null || value === undefined) continue;
+
       const targetValue = out[key];
 
       if (
         typeof targetValue === "object" &&
         targetValue !== null &&
-        (out as any)[key] = merge(
-          targetValue as object,
-          value as object,
+        !Array.isArray(targetValue) &&
+        typeof value === "object" &&
+        value !== null &&
         !Array.isArray(value)
       ) {
-        out[key] = merge(
-          targetValue as Record<string, unknown>,
-          value as Record<string, unknown>,
-          depth - 1
-        );
+        out[key] = merge(targetValue, value, depth - 1);
       } else if (Array.isArray(value)) {
         // Validate array structure before assigning
         if (Array.isArray(targetValue)) {
@@ -53,36 +41,31 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
               const firstElement = value[0];
               const targetFirstElement = (targetValue as unknown[])[0];
               if (
-                firstElement &&
-                targetFirstElement &&
-            (out as any)[key] = value;
+                firstElement != null &&
+                targetFirstElement != null &&
+                typeof firstElement !== typeof targetFirstElement
               ) {
-            (out as any)[key] = targetValue; // On error, keep target array
+                continue; // Skip malformed array
               }
             }
             out[key] = value;
           } catch {
-            out[key] = targetValue; // On error, keep target array
+            out[key] = targetValue; // On any error, keep target array
           }
-        (out as any)[key] = value; // primitives
+        } else {
           // Skip introducing new arrays not present in target
           continue;
         }
       } else if (typeof value !== "object") {
         out[key] = value; // primitives
       } else {
-    return out as object;
+        // Skip introducing new nested objects not present in target
         continue;
       }
     }
-  return merge(target as object, source, BULK_LIMITS.MAX_RECURSION_DEPTH) as T;
     return out;
   };
 
   if (typeof target !== "object" || target === null) return target;
-  return merge(
-    target as Record<string, unknown>,
-    source,
-    BULK_LIMITS.MAX_RECURSION_DEPTH
-  ) as T;
+  return merge(target, source, BULK_LIMITS.MAX_RECURSION_DEPTH) as T;
 }

@@ -48,6 +48,10 @@ const App: React.FC = () => (
             />
             <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
             <Route
+              path="/dashboard/service-areas/instructions"
+              element={<ServiceAreasInstructions />}
+            />
+            <Route
               path="/dashboard/url-generation"
               element={<URLGeneration />}
             />
