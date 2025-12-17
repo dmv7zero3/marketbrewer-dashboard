@@ -1,9 +1,16 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { QuestionnaireForm } from "./QuestionnaireForm";
 import { ValidationSummary } from "./ValidationSummary";
-import { CompletenessRing } from "./CompletenessRing";
 import { StickyFooter } from "./StickyFooter";
+import { BusinessDetailsForm } from "./BusinessDetailsForm";
+import { ProfileStatus } from "./ProfileStatus";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
 import { safeDeepMerge } from "../../lib/safe-deep-merge";
@@ -158,8 +165,6 @@ export const BusinessProfile: React.FC = () => {
       mounted = false;
     };
   }, [selectedBusiness]);
-
-  // note: business field changes and validation are handled inline in inputs below
 
   const handleSaveQuestionnaire = async () => {
     if (!selectedBusiness) return;
@@ -436,162 +441,27 @@ export const BusinessProfile: React.FC = () => {
               )}
             </div>
 
-            {/* Main Grid: Business Details + Questionnaire + Completeness */}
+            {/* Main Grid: Status + Business Details + Questionnaire */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Completeness Dashboard */}
-              <div className="lg:col-span-1 flex flex-col items-center border rounded-lg p-6 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold mb-6">Profile Status</h2>
-                <CompletenessRing score={completenessScore} size="md" />
-                <div className="mt-6 text-center">
-                  <p className="text-xs text-gray-600 mb-2">
-                    {completenessScore < 40
-                      ? "Complete more sections to enable generation"
-                      : "Your profile is ready for content generation"}
-                  </p>
-                </div>
+              {/* Profile Status */}
+              <div className="lg:col-span-1">
+                <ProfileStatus
+                  completenessScore={completenessScore}
+                  isLoading={loading}
+                />
               </div>
 
               {/* Business Details Section */}
               <div className="lg:col-span-1 border rounded-lg p-6 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold mb-4">Core Details</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Business Name *
-                    </label>
-                    <input
-                      className={`border rounded px-3 py-2 w-full ${
-                        validationErrors.name ? "border-red-500" : ""
-                      }`}
-                      value={business?.name ?? ""}
-                      onChange={(e) =>
-                        setBusiness(
-                          business
-                            ? { ...business, name: e.target.value }
-                            : null
-                        )
-                      }
-                      onBlur={() => {
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          name: null,
-                        }));
-                      }}
-                      placeholder="Your business name"
-                    />
-                    {validationErrors.name && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {validationErrors.name}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Industry *
-                    </label>
-                    <input
-                      className={`border rounded px-3 py-2 w-full ${
-                        validationErrors.industry ? "border-red-500" : ""
-                      }`}
-                      value={business?.industry ?? ""}
-                      onChange={(e) =>
-                        setBusiness(
-                          business
-                            ? { ...business, industry: e.target.value }
-                            : null
-                        )
-                      }
-                      placeholder="e.g., Restaurant, Plumbing"
-                    />
-                    {validationErrors.industry && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {validationErrors.industry}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Website
-                    </label>
-                    <input
-                      className={`border rounded px-3 py-2 w-full ${
-                        validationErrors.website ? "border-red-500" : ""
-                      }`}
-                      value={business?.website ?? ""}
-                      onChange={(e) =>
-                        setBusiness(
-                          business
-                            ? { ...business, website: e.target.value }
-                            : null
-                        )
-                      }
-                      placeholder="https://example.com"
-                    />
-                    {validationErrors.website && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {validationErrors.website}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Phone{" "}
-                      <span className="text-gray-400 font-normal">
-                        optional
-                      </span>
-                    </label>
-                    <input
-                      className={`border rounded px-3 py-2 w-full ${
-                        validationErrors.phone ? "border-red-500" : ""
-                      }`}
-                      value={business?.phone ?? ""}
-                      onChange={(e) =>
-                        setBusiness(
-                          business
-                            ? { ...business, phone: e.target.value }
-                            : null
-                        )
-                      }
-                      placeholder="(555) 123-4567"
-                    />
-                    {validationErrors.phone && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {validationErrors.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Email{" "}
-                      <span className="text-gray-400 font-normal">
-                        optional
-                      </span>
-                    </label>
-                    <input
-                      className={`border rounded px-3 py-2 w-full ${
-                        validationErrors.email ? "border-red-500" : ""
-                      }`}
-                      value={business?.email ?? ""}
-                      onChange={(e) =>
-                        setBusiness(
-                          business
-                            ? { ...business, email: e.target.value }
-                            : null
-                        )
-                      }
-                      placeholder="contact@example.com"
-                    />
-                    {validationErrors.email && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {validationErrors.email}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Core Details
+                </h2>
+                <BusinessDetailsForm
+                  business={business}
+                  validationErrors={validationErrors}
+                  onChange={setBusiness}
+                  disabled={isSavingAny}
+                />
               </div>
 
               {/* Questionnaire Section */}

@@ -2,6 +2,8 @@ export { DashboardLayout } from "./DashboardLayout";
 export { Sidebar } from "./Sidebar";
 export { Dashboard } from "./Dashboard";
 export { BusinessProfile } from "./BusinessProfile";
+export { BusinessDetailsForm } from "./BusinessDetailsForm";
+export { ProfileStatus } from "./ProfileStatus";
 export { QuestionnaireForm } from "./QuestionnaireForm";
 export { AddBusinessModal } from "./AddBusinessModal";
 export { ValidationSummary } from "./ValidationSummary";

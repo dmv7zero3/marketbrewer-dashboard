@@ -3,7 +3,7 @@
  */
 
 export const validateEmail = (email: string): string | null => {
-  if (!email.trim()) return "Email is required";
+  if (!email.trim()) return null; // Email is optional
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!re.test(email)) return "Invalid email format";
   return null;
