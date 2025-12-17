@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="45" failures="0" errors="0" time="1.291">
+  <testsuite name="authMiddleware" errors="0" failures="0" skipped="0" timestamp="2025-12-17T02:08:22" time="0.755" tests="6">
+    <testcase classname="authMiddleware skips auth on health endpoints" name="authMiddleware skips auth on health endpoints" time="0.036">
+    </testcase>
+    <testcase classname="authMiddleware returns 500 when API_TOKEN is missing" name="authMiddleware returns 500 when API_TOKEN is missing" time="0.003">
+    </testcase>
+    <testcase classname="authMiddleware rejects missing Authorization header" name="authMiddleware rejects missing Authorization header" time="0.001">
+    </testcase>
+    <testcase classname="authMiddleware rejects bad format" name="authMiddleware rejects bad format" time="0.002">
+    </testcase>
+    <testcase classname="authMiddleware rejects wrong token" name="authMiddleware rejects wrong token" time="0.002">
+    </testcase>
+    <testcase classname="authMiddleware calls next and sets token on success" name="authMiddleware calls next and sets token on success" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="OllamaClient" errors="0" failures="0" skipped="0" timestamp="2025-12-17T02:08:22" time="0.23" tests="5">
+    <testcase classname="OllamaClient sends generate request and returns response text" name="OllamaClient sends generate request and returns response text" time="0.001">
+    </testcase>
+    <testcase classname="OllamaClient returns true when health check succeeds" name="OllamaClient returns true when health check succeeds" time="0.001">
+    </testcase>
+    <testcase classname="OllamaClient returns false when health check fails" name="OllamaClient returns false when health check fails" time="0.001">
+    </testcase>
+    <testcase classname="OllamaClient returns model name from env or default" name="OllamaClient returns model name from env or default" time="0">
+    </testcase>
+    <testcase classname="OllamaClient lists models on success and returns empty on failure" name="OllamaClient lists models on success and returns empty on failure" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="toSlug" errors="0" failures="0" skipped="0" timestamp="2025-12-17T02:08:23" time="0.195" tests="34">
+    <testcase classname="toSlug converts simple string to lowercase slug" name="toSlug converts simple string to lowercase slug" time="0.001">
+    </testcase>
+    <testcase classname="toSlug handles multiple spaces" name="toSlug handles multiple spaces" time="0.001">
+    </testcase>
+    <testcase classname="toSlug removes special characters" name="toSlug removes special characters" time="0">
+    </testcase>
+    <testcase classname="toSlug handles leading/trailing spaces" name="toSlug handles leading/trailing spaces" time="0.001">
+    </testcase>
+    <testcase classname="toSlug handles leading/trailing hyphens" name="toSlug handles leading/trailing hyphens" time="0">
+    </testcase>
+    <testcase classname="toSlug converts underscores to hyphens" name="toSlug converts underscores to hyphens" time="0.001">
+    </testcase>
+    <testcase classname="toSlug handles empty string" name="toSlug handles empty string" time="0">
+    </testcase>
+    <testcase classname="toSlug handles string with only spaces" name="toSlug handles string with only spaces" time="0">
+    </testcase>
+    <testcase classname="toSlug handles numbers" name="toSlug handles numbers" time="0.004">
+    </testcase>
+    <testcase classname="toSlug handles mixed case" name="toSlug handles mixed case" time="0">
+    </testcase>
+    <testcase classname="toCityStateSlug creates city-state slug" name="toCityStateSlug creates city-state slug" time="0">
+    </testcase>
+    <testcase classname="toCityStateSlug handles city with spaces" name="toCityStateSlug handles city with spaces" time="0">
+    </testcase>
+    <testcase classname="toCityStateSlug normalizes state to lowercase" name="toCityStateSlug normalizes state to lowercase" time="0">
+    </testcase>
+    <testcase classname="toCityStateSlug handles special characters in city name" name="toCityStateSlug handles special characters in city name" time="0">
+    </testcase>
+    <testcase classname="toCityStateSlug handles city with apostrophe" name="toCityStateSlug handles city with apostrophe" time="0">
+    </testcase>
+    <testcase classname="generateUrlPath creates path with keyword and service area" name="generateUrlPath creates path with keyword and service area" time="0">
+    </testcase>
+    <testcase classname="generateUrlPath creates path with only service area when keyword is null" name="generateUrlPath creates path with only service area when keyword is null" time="0.001">
+    </testcase>
+    <testcase classname="generateUrlPath handles empty keyword as falsy" name="generateUrlPath handles empty keyword as falsy" time="0">
+    </testcase>
+    <testcase classname="generateId generates a valid UUID v4 format" name="generateId generates a valid UUID v4 format" time="0.001">
+    </testcase>
+    <testcase classname="generateId generates unique IDs" name="generateId generates unique IDs" time="0.014">
+    </testcase>
+    <testcase classname="generateId has correct length" name="generateId has correct length" time="0.001">
+    </testcase>
+    <testcase classname="generateId has version 4 indicator" name="generateId has version 4 indicator" time="0">
+    </testcase>
+    <testcase classname="generateId has valid variant bits" name="generateId has valid variant bits" time="0.001">
+    </testcase>
+    <testcase classname="calculateCompletenessScore returns 0 for empty object" name="calculateCompletenessScore returns 0 for empty object" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore returns 60 for all required fields filled" name="calculateCompletenessScore returns 60 for all required fields filled" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore returns 100 for all fields filled" name="calculateCompletenessScore returns 100 for all fields filled" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore ignores empty string values" name="calculateCompletenessScore ignores empty string values" time="0.001">
+    </testcase>
+    <testcase classname="calculateCompletenessScore ignores null values" name="calculateCompletenessScore ignores null values" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore ignores undefined values" name="calculateCompletenessScore ignores undefined values" time="0.001">
+    </testcase>
+    <testcase classname="calculateCompletenessScore calculates partial score correctly" name="calculateCompletenessScore calculates partial score correctly" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore caps at 100" name="calculateCompletenessScore caps at 100" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore handles array values" name="calculateCompletenessScore handles array values" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore handles number values" name="calculateCompletenessScore handles number values" time="0">
+    </testcase>
+    <testcase classname="calculateCompletenessScore handles zero as valid value" name="calculateCompletenessScore handles zero as valid value" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>
