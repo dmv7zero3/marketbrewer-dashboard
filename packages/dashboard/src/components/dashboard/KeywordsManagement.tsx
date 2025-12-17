@@ -10,7 +10,7 @@ import {
 } from "../../api/keywords";
 import { validateKeyword } from "../../lib/validation";
 import { toSlug } from "@marketbrewer/shared";
-import type { Keyword, SearchIntent } from "@marketbrewer/shared";
+import type { Keyword } from "@marketbrewer/shared";
 
 type TabName = "manage" | "bulk-add" | "instructions";
 

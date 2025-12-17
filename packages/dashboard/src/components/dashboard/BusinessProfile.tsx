@@ -23,7 +23,6 @@ import {
 } from "../../lib/validation";
 import type {
   Business,
-  Questionnaire,
   QuestionnaireDataStructure,
 } from "@marketbrewer/shared";
 import { createEmptyQuestionnaire } from "@marketbrewer/shared";
@@ -160,33 +159,7 @@ export const BusinessProfile: React.FC = () => {
     };
   }, [selectedBusiness]);
 
-  const handleBizChange = (field: keyof Business, value: string) => {
-    if (!business) return;
-    setBusiness({ ...business, [field]: value });
-    // Clear validation error for this field as user corrects it
-    setValidationErrors((prev) => ({
-      ...prev,
-      [field]: null,
-    }));
-  };
-
-  const validateBusinessForm = (): boolean => {
-    const errors: Record<string, string | null> = {
-      name: validateBusinessName(business?.name ?? ""),
-      industry: validateIndustry(business?.industry ?? ""),
-      website: validateURL(business?.website ?? ""),
-      phone: validatePhone(business?.phone ?? ""),
-      email: validateEmail(business?.email ?? ""),
-    };
-
-    const hasErrors = Object.values(errors).some((err) => err !== null);
-    if (hasErrors) {
-      setValidationErrors(errors);
-      const errorMessages = Object.values(errors).filter((e) => e !== null);
-      addToast(errorMessages.join("; "), "error", 5000);
-    }
-    return !hasErrors;
-  };
+  // note: business field changes and validation are handled inline in inputs below
 
   const handleSaveQuestionnaire = async () => {
     if (!selectedBusiness) return;

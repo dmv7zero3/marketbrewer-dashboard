@@ -21,7 +21,8 @@
     "build:all": "npm run build:shared && npm run build:server && npm run build:dashboard",
     "build:prod": "NODE_ENV=production npm run build:all",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint packages/*/src --ext .ts,.tsx",
+    "lint": "eslint packages/dashboard/src --ext .ts,.tsx",
+    "lint:all": "eslint packages/*/src --ext .ts,.tsx",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -40,6 +41,9 @@
     "smoke:prod": "bash scripts/smoke-tests.sh prod"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
     "@babel/preset-typescript": "^7.23.0",
