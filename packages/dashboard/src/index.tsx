@@ -16,6 +16,7 @@ import {
   PromptsManagement,
   KeywordsManagement,
   ServiceAreas,
+  ServiceAreasInstructions,
   URLGeneration,
   PageContentGeneration,
   LocalSEOPhotos,
