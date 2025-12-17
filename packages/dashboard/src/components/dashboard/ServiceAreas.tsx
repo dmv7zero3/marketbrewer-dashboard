@@ -201,17 +201,6 @@ export const ServiceAreas: React.FC = () => {
                       <p className="text-gray-600 text-sm">Slug: {a.slug}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        className="border rounded px-2 py-1 w-20"
-                        value={a.priority}
-                        onChange={(e) =>
-                          handleUpdatePriority(
-                            a.id,
-                            parseInt(e.target.value || "0", 10)
-                          )
-                        }
-                      />
                       <button
                         className="text-red-600 hover:text-red-800 disabled:opacity-50"
                         onClick={() => handleDelete(a.id)}
