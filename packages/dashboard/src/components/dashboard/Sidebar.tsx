@@ -10,14 +10,12 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
-  { title: "Overview", path: "/dashboard" },
-  { title: "Jobs", path: "/jobs" },
   { title: "Business Profile", path: "/dashboard/business-profile" },
-  { title: "Prompts", path: "/dashboard/prompts" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
   { title: "Service Areas", path: "/dashboard/service-areas" },
-
+  { title: "Prompts", path: "/dashboard/prompts" },
   { title: "Generate Content", path: "/dashboard/page-content-generation" },
+  { title: "Jobs", path: "/jobs" },
 ];
 
 export const Sidebar: React.FC = () => {

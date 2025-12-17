@@ -69,7 +69,10 @@ const App: React.FC = () => (
               }
             />
             {/* Dashboard routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/jobs" replace />}
+            />
             <Route
               path="/dashboard/business-profile"
               element={<BusinessProfile />}
@@ -85,7 +88,7 @@ const App: React.FC = () => (
               path="/dashboard/page-content-generation"
               element={<PageContentGeneration />}
             />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
           <Footer />
         </BrowserRouter>
