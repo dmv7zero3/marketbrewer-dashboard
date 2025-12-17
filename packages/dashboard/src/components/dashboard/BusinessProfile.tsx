@@ -441,27 +441,24 @@ export const BusinessProfile: React.FC = () => {
               )}
             </div>
 
-            {/* Main Grid: Status + Business Details + Questionnaire */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Profile Status */}
-              <div className="lg:col-span-1">
+            {/* Main Grid: Left column (Status + Core Details) + Right column (Questionnaire) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 space-y-8">
                 <ProfileStatus completenessScore={completenessScore} />
+
+                <div className="border rounded-lg p-6 bg-white shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Core Details
+                  </h2>
+                  <BusinessDetailsForm
+                    business={business}
+                    validationErrors={validationErrors}
+                    onChange={setBusiness}
+                    disabled={isSavingAny}
+                  />
+                </div>
               </div>
 
-              {/* Business Details Section */}
-              <div className="lg:col-span-1 border rounded-lg p-6 bg-white shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Core Details
-                </h2>
-                <BusinessDetailsForm
-                  business={business}
-                  validationErrors={validationErrors}
-                  onChange={setBusiness}
-                  disabled={isSavingAny}
-                />
-              </div>
-
-              {/* Questionnaire Section */}
               <div className="lg:col-span-2 border rounded-lg p-6 bg-white shadow-sm">
                 <QuestionnaireForm
                   data={questionnaireData}
