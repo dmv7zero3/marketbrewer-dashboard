@@ -14,10 +14,12 @@ export interface ServiceAreaResponse {
 }
 
 export async function listServiceAreas(
-  businessId: string
+  businessId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<ServiceAreasListResponse> {
   const res = await apiClient.get<ServiceAreasListResponse>(
-    `/api/businesses/${businessId}/service-areas`
+    `/api/businesses/${businessId}/service-areas`,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -29,11 +31,13 @@ export async function createServiceArea(
     state: string;
     county?: string | null;
     priority?: number;
-  }
+  },
+  options?: { signal?: AbortSignal }
 ): Promise<ServiceAreaResponse> {
   const res = await apiClient.post<ServiceAreaResponse>(
     `/api/businesses/${businessId}/service-areas`,
-    data
+    data,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -46,20 +50,24 @@ export async function updateServiceArea(
     state: string;
     county: string | null;
     priority: number;
-  }>
+  }>,
+  options?: { signal?: AbortSignal }
 ): Promise<ServiceAreaResponse> {
   const res = await apiClient.put<ServiceAreaResponse>(
     `/api/businesses/${businessId}/service-areas/${areaId}`,
-    data
+    data,
+    { signal: options?.signal }
   );
   return res.data;
 }
 
 export async function deleteServiceArea(
   businessId: string,
-  areaId: string
+  areaId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<void> {
   await apiClient.delete<void>(
-    `/api/businesses/${businessId}/service-areas/${areaId}`
+    `/api/businesses/${businessId}/service-areas/${areaId}`,
+    { signal: options?.signal }
   );
 }

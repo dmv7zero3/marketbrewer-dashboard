@@ -27,6 +27,8 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
     seen.add(srcAsObj);
 
     for (const [key, value] of Object.entries(srcObj)) {
+      // Only merge keys that exist in target shape to prevent schema corruption
+      if (!Object.prototype.hasOwnProperty.call(tgt, key)) continue;
       if (value === null || value === undefined) continue;
       const targetValue = out[key];
 
@@ -63,10 +65,14 @@ export function safeDeepMerge<T extends Record<string, unknown>>(
             out[key] = targetValue; // On error, keep target array
           }
         } else {
-          out[key] = value;
+          // Skip introducing new arrays not present in target
+          continue;
         }
-      } else {
+      } else if (typeof value !== "object") {
         out[key] = value; // primitives
+      } else {
+        // Skip introducing new nested objects not present in target
+        continue;
       }
     }
 

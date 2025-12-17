@@ -350,12 +350,16 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         if (abortControllerRef.current?.signal.aborted) break;
         try {
           // Fix: Pass AbortController signal to API call
-          await createServiceArea(businessId, {
-            city: area.city,
-            state: area.state,
-            county: area.county ?? null,
-            priority: area.priority,
-          });
+          await createServiceArea(
+            businessId,
+            {
+              city: area.city,
+              state: area.state,
+              county: area.county ?? null,
+              priority: area.priority,
+            },
+            { signal: abortControllerRef.current?.signal }
+          );
           results.success.push(area);
         } catch (e) {
           results.failed.push(area);

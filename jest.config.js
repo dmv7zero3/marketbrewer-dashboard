@@ -11,12 +11,12 @@ module.exports = {
     "<rootDir>/packages/shared",
     "<rootDir>/packages/server",
     "<rootDir>/packages/worker",
+    "<rootDir>/packages/dashboard",
   ],
   collectCoverage: true,
   collectCoverageFrom: [
     "packages/*/src/**/*.{ts,tsx}",
     "!packages/*/src/**/*.d.ts",
-    "!packages/dashboard/**",
   ],
   coverageDirectory: "<rootDir>/coverage",
   coverageReporters: ["text", "lcov"],
