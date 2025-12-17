@@ -95,8 +95,11 @@ CREATE TABLE IF NOT EXISTS job_pages (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Performance indexes
 CREATE INDEX IF NOT EXISTS idx_job_pages_status ON job_pages(job_id, status);
 CREATE INDEX IF NOT EXISTS idx_job_pages_worker ON job_pages(worker_id, status);
+CREATE INDEX IF NOT EXISTS idx_job_pages_claimable ON job_pages(job_id, status, attempts);
+CREATE INDEX IF NOT EXISTS idx_generation_jobs_business ON generation_jobs(business_id, status);
 
 CREATE TABLE IF NOT EXISTS workers (
   id TEXT PRIMARY KEY,
