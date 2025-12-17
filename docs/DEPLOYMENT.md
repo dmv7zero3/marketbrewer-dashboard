@@ -36,6 +36,65 @@
 
 ---
 
+## Quick Commands
+
+These are the safest, copy-paste commands to validate, release, and deploy.
+
+### Local verification
+
+```bash
+# Types, tests, and production build
+npm run typecheck
+npm run test:ci
+npm run build:prod
+
+# Optional: lint locally (may require ESLint install)
+# npm i -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+# npm run lint
+```
+
+### Release (tag already created)
+
+```bash
+# Push tag (already pushed by automation)
+git push origin v1.0.0-pre
+
+# Draft GitHub Release using the tag
+# Paste notes from docs/RELEASES/v1.0.0-pre.md
+open "https://github.com/dmv7zero3/marketbrewer-seo-platform/releases/new?tag=v1.0.0-pre&target=main"
+```
+
+### CloudFormation (validate first)
+
+```bash
+# Validate template structure (no changes applied)
+aws cloudformation validate-template \
+  --template-body file://infrastructure/cloudformation.yaml
+
+# Deploy stack (non-destructive on first run)
+aws cloudformation deploy \
+  --template-file infrastructure/cloudformation.yaml \
+  --stack-name marketbrewer \
+  --parameter-overrides \
+    EnvironmentName=production \
+    InstanceType=t3.large \
+    KeyPairName=marketbrewer \
+    EnableAutoStop=true
+```
+
+### Post-deploy checks
+
+```bash
+# Health
+curl http://<EC2-IP>:3001/health | jq '.'
+
+# SNS alert confirmation (check email)
+# CloudWatch dashboard: MarketBrewerOverview
+open "https://console.aws.amazon.com/cloudwatch/home#dashboards:"
+```
+
+---
+
 ## EC2 Setup
 
 ### 1. Launch EC2 Instance
