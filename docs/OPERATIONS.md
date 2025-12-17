@@ -649,3 +649,55 @@ ollama pull llama3.2:latest             # Update model
 
 **Last Review:** December 16, 2024  
 **Next Review:** January 16, 2025
+
+---
+
+## Shared EBS Volume Usage (Multi-Project)
+
+You can use the same EBS volume for multiple projects on the same EC2 instance. Follow these guardrails to avoid resource contention and ensure isolation:
+
+- Purpose separation: Use one SQLite file per project; never share the same database file across apps.
+- Directory layout: Keep per-project data in separate folders on the same volume.
+
+```bash
+# Example layout (same EBS volume)
+sudo mkdir -p /var/lib/marketbrewer /var/lib/other-app
+sudo chown ubuntu:ubuntu /var/lib/marketbrewer /var/lib/other-app
+chmod 750 /var/lib/marketbrewer /var/lib/other-app
+
+# Project database files (each app uses its own)
+# /var/lib/marketbrewer/database.db
+# /var/lib/other-app/app.db
+```
+
+- Isolation & permissions: Use UNIX ownership and 750 permissions so projects cannot read each other’s data.
+- Capacity guardrail: Keep ≤80% disk usage (≥20GB free on 50GB volume) to avoid starving any project.
+- Monitoring: Add a CloudWatch alarm for disk usage >80% and enable the check-disk-usage systemd timer below.
+- Single-attach note: EBS volumes attach to one instance at a time; for cross-instance sharing, consider EFS (not required for v1.0).
+- Do not multi-process a single SQLite file across apps; separate files per project keeps locking simple and safe.
+
+### Quick Checks
+
+```bash
+# Check disk usage
+df -h /var/lib/marketbrewer
+# Optional: check another project directory
+df -h /var/lib/other-app
+
+# Run capacity check script (80% threshold default)
+/opt/marketbrewer/scripts/check-disk-usage.sh 80 /var/lib/marketbrewer /var/lib/other-app || echo "WARNING: Disk usage over threshold"
+```
+
+## Enable Hourly Disk Capacity Checks (systemd)
+
+Enable a lightweight systemd timer to log warnings if disk usage exceeds your threshold:
+
+```bash
+sudo cp /opt/marketbrewer/systemd/check-disk-usage.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now check-disk-usage.timer
+
+# Verify
+systemctl list-timers | grep check-disk-usage
+journalctl -u check-disk-usage.service -n 20
+```
