@@ -3,7 +3,11 @@
  */
 
 import apiClient from "./client";
-import type { Business, Questionnaire } from "@marketbrewer/shared";
+import type {
+  Business,
+  Questionnaire,
+  QuestionnaireDataStructure,
+} from "@marketbrewer/shared";
 
 export interface BusinessesListResponse {
   businesses: Business[];
@@ -89,7 +93,7 @@ export async function updateBusiness(
  */
 export async function updateQuestionnaire(
   businessId: string,
-  data: Record<string, unknown>
+  data: QuestionnaireDataStructure | Record<string, unknown>
 ): Promise<QuestionnaireResponse> {
   const response = await apiClient.put<QuestionnaireResponse>(
     `/api/businesses/${businessId}/questionnaire`,
