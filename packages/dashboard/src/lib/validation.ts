@@ -11,7 +11,7 @@ export const validateEmail = (email: string): string | null => {
 
 export const validatePhone = (phone: string): string | null => {
   if (!phone.trim()) return null; // Phone is optional
-  const re = /^[\d\-\+\s\(\)]{7,}$/; // Basic: at least 7 digits/symbols
+  const re = /^[\d\-+\s()]{7,}$/; // Basic: at least 7 digits/symbols
   if (!re.test(phone)) return "Invalid phone format";
   return null;
 };

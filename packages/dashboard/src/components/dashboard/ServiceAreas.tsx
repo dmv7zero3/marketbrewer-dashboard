@@ -6,7 +6,6 @@ import {
   listServiceAreas,
   createServiceArea,
   deleteServiceArea,
-  updateServiceArea,
 } from "../../api/service-areas";
 import { validateCity, validateState } from "../../lib/validation";
 import { toCityStateSlug } from "@marketbrewer/shared";
@@ -36,7 +35,7 @@ export const ServiceAreas: React.FC = () => {
     state: string | null;
   }>({ city: null, state: null });
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  // priority update controls are not currently exposed in the UI
 
   useEffect(() => {
     let mounted = true;
@@ -122,27 +121,7 @@ export const ServiceAreas: React.FC = () => {
     }
   };
 
-  const handleUpdatePriority = async (id: string, priority: number) => {
-    if (!selectedBusiness || updatingIds.has(id)) return;
-    setUpdatingIds((prev) => new Set(prev).add(id));
-    try {
-      const { service_area } = await updateServiceArea(selectedBusiness, id, {
-        priority,
-      });
-      setAreas((prev) => prev.map((a) => (a.id === id ? service_area : a)));
-      addToast("Service area priority updated", "success");
-    } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Failed to update service area";
-      addToast(msg, "error", 5000);
-    } finally {
-      setUpdatingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
+  // const handleUpdatePriority = async (id: string, priority: number) => { /* not used */ };
 
   const parseBulkServiceAreas = (text: string) => {
     return text

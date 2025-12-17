@@ -43,7 +43,7 @@ describe("deepEqual", () => {
   it("returns false when exceeding max recursion depth", () => {
     // Construct a deeply nested object beyond depth limit (20)
     const makeDeep = (depth: number): any => {
-      let obj: any = {};
+      const obj: any = {};
       let curr = obj;
       for (let i = 0; i < depth; i++) {
         curr.next = {};

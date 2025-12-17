@@ -35,7 +35,7 @@ describe("safeDeepMerge", () => {
 
   it("returns target when exceeding max recursion depth", () => {
     const target: any = { a: {} };
-    let source: any = {};
+    const source: any = {};
     let curr = source;
     for (let i = 0; i < 50; i++) {
       curr.n = {};
