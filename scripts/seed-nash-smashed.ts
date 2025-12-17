@@ -12,6 +12,11 @@
 
 import Database from "better-sqlite3";
 import { generateId } from "../packages/shared/src/utils";
+import {
+  calculateCompleteness,
+  isSectionComplete,
+  QuestionnaireDataStructure,
+} from "../packages/shared/src/types/questionnaire";
 import path from "path";
 import fs from "fs";
 
@@ -66,13 +71,13 @@ console.log("✓ Inserted business: Nash & Smashed");
 
 // Insert questionnaire with proper data structure
 // Using the QuestionnaireDataStructure format from @marketbrewer/shared
-const questionnaireData = {
+const questionnaireData: QuestionnaireDataStructure = {
   identity: {
     businessName: "Nash & Smashed",
     industry: "Fast Food Restaurant",
     tagline: "Nashville Heat. Smashed to Perfection.",
     yearEstablished: "2023",
-    contactName: "Owner", // Minimal - intentionally incomplete
+    contactName: "Owner",
   },
   location: {
     address: "Multiple locations across DMV", // Minimal - intentionally incomplete
@@ -106,13 +111,17 @@ const questionnaireData = {
   },
 };
 
-// Calculate actual completeness: 2 out of 5 sections = 40%
-// - identity: ✓ (has businessName, industry, contactName)
-// - location: ✓ (has address, serviceType)
-// - services: ✓ (has offerings)
-// - audience: ✗ (missing targetDescription, demographics, painPoints)
-// - brand: ✗ (missing requiredPhrases, callToAction)
-const completenessScore = 60; // 3 sections complete out of 5
+// Remove any existing questionnaire rows to avoid duplicates.
+// The DB schema does not enforce UNIQUE(business_id), so repeated seeding can create multiple rows.
+db.prepare("DELETE FROM questionnaires WHERE business_id = ?").run(businessId);
+
+const completenessScore = calculateCompleteness({
+  identity: isSectionComplete("identity", questionnaireData),
+  location: isSectionComplete("location", questionnaireData),
+  services: isSectionComplete("services", questionnaireData),
+  audience: isSectionComplete("audience", questionnaireData),
+  brand: isSectionComplete("brand", questionnaireData),
+});
 
 db.prepare(
   `
@@ -121,7 +130,7 @@ db.prepare(
   ) VALUES (?, ?, ?, ?)
 `
 ).run(
-  generateId(),
+  `questionnaire-${businessId}`,
   businessId,
   JSON.stringify(questionnaireData),
   completenessScore

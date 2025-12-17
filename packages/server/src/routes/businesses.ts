@@ -174,7 +174,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const questionnaire = dbGet<Questionnaire>(
-        "SELECT * FROM questionnaires WHERE business_id = ?",
+        "SELECT * FROM questionnaires WHERE business_id = ? ORDER BY updated_at DESC, created_at DESC LIMIT 1",
         [req.params.id]
       );
 
@@ -203,7 +203,7 @@ router.put(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const existing = dbGet<Questionnaire>(
-        "SELECT * FROM questionnaires WHERE business_id = ?",
+        "SELECT * FROM questionnaires WHERE business_id = ? ORDER BY updated_at DESC, created_at DESC LIMIT 1",
         [req.params.id]
       );
 
@@ -229,13 +229,13 @@ router.put(
       const now = new Date().toISOString();
 
       dbRun(
-        `UPDATE questionnaires SET data = ?, completeness_score = ?, updated_at = ? WHERE business_id = ?`,
-        [JSON.stringify(data), completenessScore, now, req.params.id]
+        `UPDATE questionnaires SET data = ?, completeness_score = ?, updated_at = ? WHERE id = ?`,
+        [JSON.stringify(data), completenessScore, now, existing.id]
       );
 
       const questionnaire = dbGet<Questionnaire>(
-        "SELECT * FROM questionnaires WHERE business_id = ?",
-        [req.params.id]
+        "SELECT * FROM questionnaires WHERE id = ?",
+        [existing.id]
       );
 
       const result = {
