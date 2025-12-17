@@ -145,7 +145,7 @@ export class Worker {
 
     const prompt = this.buildPrompt({
       business_name: "Nash Smashed",
-      business_category: "Smash Burger Restaurant",
+      business_category: "Nashville Hot Chicken and Smash Burger Restaurant",
       city,
       state,
       keyword,
@@ -174,23 +174,60 @@ export class Worker {
     keyword: string;
     url_path: string;
   }): string {
-    return `You are an SEO writer for ${vars.business_name}, a ${vars.business_category}.
+    // Determine emphasis based on keyword (lead with chicken unless keyword mentions burgers)
+    const lowerKw = vars.keyword.toLowerCase();
+    const leadWithBurgers = /burger|burgers/.test(lowerKw);
 
-Write a local landing page:
-- Keyword: "${vars.keyword}"
-- Location: ${vars.city}, ${vars.state}
-- URL: ${vars.url_path}
+    return `You are writing SEO-optimized content for ${
+      vars.business_name
+    }, a fast-casual ${vars.business_category}.
 
-Output ONLY valid JSON:
+BRAND FACTS (always include):
+- Nashville hot chicken is the signature item
+- All menu items are halal certified
+- Family-friendly atmosphere with craft mocktails
+- Fast-casual dining: dine-in and takeout
+
+LOCATION: ${vars.city}, ${vars.state}
+KEYWORD: ${vars.keyword}
+URL: ${vars.url_path}
+
+Guidelines:
+1. Naturally incorporate the keyword "${
+      vars.keyword
+    }" in title, H1, and 2-3 times in body.
+2. ${
+      leadWithBurgers
+        ? "Lead with smashed burgers for burger-related keywords."
+        : "Lead with Nashville hot chicken for food-related keywords."
+    }
+3. Mention halal certification prominently (important for ${vars.city}).
+4. Reference specific local context for ${
+      vars.city
+    } (neighborhoods, landmarks, commute corridors) without fabricating facts.
+5. Maintain a warm Southern hospitality tone.
+
+Do NOT:
+- Lead with burgers unless the keyword specifically mentions burgers.
+- Use generic filler like "residents know" or "look no further".
+- Invent hours, prices, or menu items not provided.
+
+Output ONLY valid JSON with this structure:
 {
-  "title": "60 char SEO title with keyword + location",
-  "meta_description": "155 char description with keyword + location",
+  "title": "SEO title with keyword + location (max 60 chars)",
+  "meta_description": "Description with keyword + location (max 155 chars)",
   "h1": "Engaging H1 (different from title)",
-  "body": "2-3 paragraphs (200-300 words) mentioning ${vars.city} naturally 3-4 times",
+  "body": "2-3 paragraphs (200-300 words) mentioning ${
+    vars.city
+  } naturally 3-4 times",
   "sections": [
-    {"heading": "About ${vars.keyword} in ${vars.city}", "content": "1-2 paragraphs"},
-    {"heading": "Why Choose ${vars.business_name}", "content": "1-2 paragraphs"},
-    {"heading": "Contact Us Today", "content": "1-2 paragraphs with CTA"}
+    {"heading": "About ${vars.keyword} in ${
+      vars.city
+    }", "content": "1-2 paragraphs"},
+    {"heading": "Why Choose ${
+      vars.business_name
+    }", "content": "1-2 paragraphs"},
+    {"heading": "Halal & Family-Friendly", "content": "Note halal certification and family atmosphere"}
   ],
   "cta": {"text": "Get Started", "url": "/contact"}
 }`;

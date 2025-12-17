@@ -34,12 +34,13 @@ export class OllamaClient {
   private client: AxiosInstance;
   private model: string;
 
-  constructor() {
-    const baseURL = process.env.OLLAMA_URL || "http://localhost:11434";
+  constructor(baseURL?: string, model?: string) {
+    const resolvedBaseURL =
+      baseURL || process.env.OLLAMA_URL || "http://localhost:11434";
     const timeout = parseInt(process.env.OLLAMA_TIMEOUT_MS || "120000", 10);
 
-    this.client = axios.create({ baseURL, timeout });
-    this.model = process.env.OLLAMA_MODEL || "llama3.1:8b-instruct";
+    this.client = axios.create({ baseURL: resolvedBaseURL, timeout });
+    this.model = model || process.env.OLLAMA_MODEL || "llama3.1:8b-instruct";
   }
 
   async generate(prompt: string): Promise<string> {
