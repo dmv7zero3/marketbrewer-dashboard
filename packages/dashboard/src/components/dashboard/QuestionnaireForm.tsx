@@ -11,6 +11,7 @@ import {
   toCityStateSlug,
 } from "@marketbrewer/shared";
 import { createServiceArea, listServiceAreas } from "../../api/service-areas";
+import { BULK_LIMITS, TOAST_DURATION } from "../../lib/constants";
 
 interface QuestionnaireFormProps {
   data: QuestionnaireDataStructure;
@@ -193,7 +194,10 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
           .map((p) => p.trim())
           .filter(Boolean);
         const [keyword, intentRaw, priorityRaw] = parts;
-        const search_intent = intentRaw || undefined;
+        const isValidIntent = (val: string): val is SearchIntent =>
+          (Object.values(SearchIntent) as string[]).includes(val);
+        const search_intent =
+          intentRaw && isValidIntent(intentRaw) ? intentRaw : undefined;
         // Fix: Check for NaN explicitly
         const priority = priorityRaw
           ? !Number.isNaN(Number(priorityRaw))
@@ -273,6 +277,15 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       return;
     }
     const parsed = parseBulkServiceAreas(bulkServiceAreasText);
+    // Enforce per-operation size limit
+    if (parsed.length > BULK_LIMITS.MAX_AREAS_PER_OPERATION) {
+      addToast(
+        `Maximum ${BULK_LIMITS.MAX_AREAS_PER_OPERATION} areas per operation`,
+        "error",
+        TOAST_DURATION.NORMAL
+      );
+      return;
+    }
     if (parsed.length === 0) {
       addToast(
         "No valid service area lines found. Use 'City, State[, County][, Priority]' format.",

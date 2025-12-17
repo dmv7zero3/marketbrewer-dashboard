@@ -3,74 +3,80 @@
  * Handles null/undefined values, validates array types, and prevents corruption.
  */
 
-export function safeDeepMerge<T>(target: T, source: unknown): T {
-  if (!source || typeof source !== "object") {
-    return target;
-  }
+import { BULK_LIMITS } from "./constants";
 
-  // If target is not an object, return it unchanged
-  if (typeof target !== "object" || target === null) {
-    return target;
-  }
+export function safeDeepMerge<T extends Record<string, unknown>>(
+  target: T,
+  source: unknown
+): T {
+  const seen = new WeakSet<object>();
 
-  const result = { ...target } as T;
-  const sourceObj = source as Record<string, unknown>;
-  const resultObj = result as Record<string, unknown>;
-  const targetObj = target as Record<string, unknown>;
+  const merge = (
+    tgt: Record<string, unknown>,
+    src: unknown,
+    depth: number
+  ): Record<string, unknown> => {
+    if (!src || typeof src !== "object") return tgt;
+    if (depth <= 0) return tgt;
 
-  for (const [key, value] of Object.entries(sourceObj)) {
-    if (value === null || value === undefined) {
-      // Skip null/undefined from server
-      continue;
-    }
+    const srcObj = src as Record<string, unknown>;
+    const out: Record<string, unknown> = { ...tgt };
 
-    const targetValue = targetObj[key];
+    const srcAsObj = src as object;
+    if (seen.has(srcAsObj)) return tgt; // prevent cycles
+    seen.add(srcAsObj);
 
-    // If both are objects (not arrays), recursively merge
-    if (
-      typeof targetValue === "object" &&
-      targetValue !== null &&
-      !Array.isArray(targetValue) &&
-      typeof value === "object" &&
-      !Array.isArray(value)
-    ) {
-      resultObj[key] = safeDeepMerge(
-        targetValue as Record<string, unknown>,
-        value as Record<string, unknown>
-      );
-    } else if (Array.isArray(value)) {
-      // Fix: Validate array structure before assigning
-      // Only accept arrays that are either empty or contain primitives/simple objects
-      const isValidArray = Array.isArray(value);
-      if (isValidArray && Array.isArray(targetValue)) {
-        // Preserve target array structure if source array is malformed
-        try {
-          // Test that array elements match expected type by checking first element
-          if (value.length > 0) {
-            const firstElement = value[0];
-            const targetFirstElement = (targetValue as unknown[])[0];
-            // If types don't match and target is defined, skip
-            if (
-              firstElement &&
-              targetFirstElement &&
-              typeof firstElement !== typeof targetFirstElement
-            ) {
-              continue; // Skip malformed array
+    for (const [key, value] of Object.entries(srcObj)) {
+      if (value === null || value === undefined) continue;
+      const targetValue = out[key];
+
+      if (
+        typeof targetValue === "object" &&
+        targetValue !== null &&
+        !Array.isArray(targetValue) &&
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
+        out[key] = merge(
+          targetValue as Record<string, unknown>,
+          value as Record<string, unknown>,
+          depth - 1
+        );
+      } else if (Array.isArray(value)) {
+        // Validate array structure before assigning
+        if (Array.isArray(targetValue)) {
+          try {
+            if (value.length > 0) {
+              const firstElement = value[0];
+              const targetFirstElement = (targetValue as unknown[])[0];
+              if (
+                firstElement &&
+                targetFirstElement &&
+                typeof firstElement !== typeof targetFirstElement
+              ) {
+                continue; // Skip malformed array
+              }
             }
+            out[key] = value;
+          } catch {
+            out[key] = targetValue; // On error, keep target array
           }
-          resultObj[key] = value;
-        } catch {
-          // On any error, keep target array
-          resultObj[key] = targetValue;
+        } else {
+          out[key] = value;
         }
-      } else if (isValidArray) {
-        resultObj[key] = value;
+      } else {
+        out[key] = value; // primitives
       }
-    } else {
-      // For primitives, use server value
-      resultObj[key] = value;
     }
-  }
 
-  return result;
+    return out;
+  };
+
+  if (typeof target !== "object" || target === null) return target;
+  return merge(
+    target as Record<string, unknown>,
+    source,
+    BULK_LIMITS.MAX_RECURSION_DEPTH
+  ) as T;
 }

@@ -3,46 +3,57 @@
  * Handles arrays, objects, and primitives correctly
  */
 
+import { BULK_LIMITS } from "./constants";
+
 export function deepEqual(obj1: unknown, obj2: unknown): boolean {
-  // Same reference
-  if (obj1 === obj2) return true;
+  const seen1 = new WeakSet<object>();
+  const seen2 = new WeakSet<object>();
 
-  // Type check
-  if (typeof obj1 !== typeof obj2) return false;
+  const eq = (a: unknown, b: unknown, depth: number): boolean => {
+    if (a === b) return true;
 
-  // Null/undefined checks
-  if (obj1 === null || obj2 === null) return obj1 === obj2;
-  if (obj1 === undefined || obj2 === undefined) return obj1 === obj2;
+    if (depth <= 0) return false;
 
-  // For non-objects, use strict equality
-  if (typeof obj1 !== "object") return obj1 === obj2;
+    if (typeof a !== typeof b) return false;
 
-  // Array check
-  const isArr1 = Array.isArray(obj1);
-  const isArr2 = Array.isArray(obj2);
-  if (isArr1 !== isArr2) return false;
+    if (a === null || b === null) return a === b;
+    if (a === undefined || b === undefined) return a === b;
 
-  if (isArr1 && isArr2) {
-    if (obj1.length !== obj2.length) return false;
-    return obj1.every((val, idx) => deepEqual(val, obj2[idx]));
-  }
+    if (typeof a !== "object") return a === b;
 
-  // Object check
-  const keys1 = Object.keys(obj1 as Record<string, unknown>);
-  const keys2 = Object.keys(obj2 as Record<string, unknown>);
-  if (keys1.length !== keys2.length) return false;
+    const ao = a as object;
+    const bo = b as object;
 
-  for (const key of keys1) {
-    if (!keys2.includes(key)) return false;
-    if (
-      !deepEqual(
-        (obj1 as Record<string, unknown>)[key],
-        (obj2 as Record<string, unknown>)[key]
-      )
-    ) {
-      return false;
+    // Circular reference protection
+    if (seen1.has(ao) || seen2.has(bo)) return false;
+    seen1.add(ao);
+    seen2.add(bo);
+
+    const isArrA = Array.isArray(a);
+    const isArrB = Array.isArray(b);
+    if (isArrA !== isArrB) return false;
+
+    if (isArrA && isArrB) {
+      const arrA = a as unknown[];
+      const arrB = b as unknown[];
+      if (arrA.length !== arrB.length) return false;
+      for (let i = 0; i < arrA.length; i++) {
+        if (!eq(arrA[i], arrB[i], depth - 1)) return false;
+      }
+      return true;
     }
-  }
 
-  return true;
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+    if (keysA.length !== keysB.length) return false;
+    for (const key of keysA) {
+      if (!keysB.includes(key)) return false;
+      if (!eq(objA[key], objB[key], depth - 1)) return false;
+    }
+    return true;
+  };
+
+  return eq(obj1, obj2, BULK_LIMITS.MAX_RECURSION_DEPTH);
 }

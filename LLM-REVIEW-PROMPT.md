@@ -22,6 +22,7 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Core Implementation Files
 
 1. **packages/dashboard/src/components/dashboard/QuestionnaireForm.tsx** (~1,040 lines)
+
    - Bulk paste operations (services, service areas, keywords)
    - Duplicate prevention with API integration
    - Partial failure tracking and error recovery
@@ -29,15 +30,18 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
    - Number parsing validation
 
 2. **packages/dashboard/src/components/dashboard/BusinessProfile.tsx** (~398 lines)
+
    - Deep merge integration for server data normalization
    - Change detection using deep equality
    - State synchronization
 
 3. **packages/dashboard/src/contexts/ToastContext.tsx** (~101 lines)
+
    - Notification system with warning type support
    - Toast lifecycle management
 
 4. **packages/dashboard/src/lib/safe-deep-merge.ts** (NEW, 74 lines)
+
    - Recursive object merging with safety guards
    - Null/undefined filtering
    - Array type validation
@@ -54,18 +58,21 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **Type Safety & Correctness**
+
    - Are all TypeScript types correct and strict?
    - Are there any remaining type coercions or unsafe patterns?
    - Does the `safeDeepMerge` generic properly constrain types?
    - Are there any implicit `any` types hiding in the codebase?
 
 2. **Error Handling Coverage**
+
    - Are all async operations wrapped in try/catch?
    - Is error recovery graceful and user-friendly?
    - Are there any unhandled promise rejections?
    - Could any error scenario crash the application?
 
 3. **Edge Cases & Robustness**
+
    - What happens with extremely large datasets (1000+ service areas)?
    - How are race conditions between state updates handled?
    - What if user pastes malformed CSV data?
@@ -85,18 +92,21 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **State Management**
+
    - Is the state structure optimal for this use case?
    - Are there any unnecessary state updates causing re-renders?
    - Should bulk operation state be elevated to context?
    - Is the change detection mechanism efficient?
 
 2. **Data Flow**
+
    - Is data flowing predictably through the component hierarchy?
    - Are there any circular dependencies or data loops?
    - Could data normalization be moved upstream (to server)?
    - Is the API contract clear and documented?
 
 3. **Component Separation**
+
    - Is QuestionnaireForm doing too much?
    - Could bulk operations be abstracted into a custom hook?
    - Should BusinessProfile and QuestionnaireForm be decoupled further?
@@ -115,18 +125,21 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **Runtime Performance**
+
    - What's the time complexity of deepEqual() for large objects? Is it optimal?
    - Could we use memoization to prevent unnecessary deepEqual calls?
    - Are there any unnecessary re-renders being triggered?
    - Could useMemo/useCallback improve performance?
 
 2. **Memory Management**
+
    - Are there any memory leaks in the event listeners?
    - Does the AbortController properly clean up resources?
    - Are large arrays being copied unnecessarily?
    - Could we use structural sharing patterns?
 
 3. **Network Optimization**
+
    - Could bulk operations be batched into fewer API calls?
    - Are duplicate checks necessary for every add, or only initially?
    - Could we implement optimistic updates?
@@ -144,17 +157,20 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **Unit Test Coverage**
+
    - What's the minimum test coverage needed for production readiness?
    - What are the 5-10 most critical test cases?
    - How would you test race conditions and async flows?
    - Are there snapshot tests needed for complex state?
 
 2. **Integration Tests**
+
    - How to test the full flow: parse → validate → API call → state update → UI feedback?
    - What API mocking strategy would you recommend?
    - How to test error scenarios without actually failing APIs?
 
 3. **E2E Test Scenarios**
+
    - User pastes 100 service areas with 10 duplicates
    - User closes tab during bulk operation (beforeunload)
    - Network timeout mid-operation
@@ -173,6 +189,7 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Specific Code Review Comments
 
 1. **deepEqual.ts**
+
    ```typescript
    // Question: Should we add a recursion depth limit to prevent stack overflow?
    // Current: Unbounded recursion on circular structures
@@ -180,6 +197,7 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
    ```
 
 2. **safe-deep-merge.ts**
+
    ```typescript
    // Question: The array type checking only compares typeof of first element
    // Is this sufficient for validating complex nested arrays?
@@ -187,6 +205,7 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
    ```
 
 3. **QuestionnaireForm.tsx - Bulk Operation Handler**
+
    ```typescript
    // Question: Should we add progress indicators for long operations?
    // Current: Just "Adding..." button state
@@ -194,6 +213,7 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
    ```
 
 4. **Number Parsing in Bulk Operations**
+
    ```typescript
    // Question: What if user pastes "Priority: high" or scientific notation "1e5"?
    // Current: Returns undefined for NaN
@@ -214,18 +234,21 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **React Best Practices**
+
    - Are hooks used correctly (dependencies, cleanup)?
    - Could we use useReducer for complex state logic?
    - Are there any stale closures or capture issues?
    - Is the component structure following composition patterns?
 
 2. **TypeScript Best Practices**
+
    - Are generics used appropriately or over-engineered?
    - Could type inference be improved?
    - Are there utility types that could simplify signatures?
    - Should we add branded types for domain concepts?
 
 3. **Error Handling Best Practices**
+
    - Is error recovery user-centric (not developer-centric)?
    - Are error messages actionable?
    - Should we log errors for monitoring/analytics?
@@ -244,12 +267,14 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Questions to Address
 
 1. **Input Validation**
+
    - Are all user inputs sanitized before API calls?
    - Could a malicious CSV injection attack occur?
    - Are we protecting against XSS in toast messages?
    - Is there rate limiting on bulk operations?
 
 2. **Data Handling**
+
    - Are sensitive values (IDs, secrets) being logged?
    - Is the deepEqual function safe for sensitive data?
    - Are there any unencrypted data transmission risks?
@@ -266,16 +291,19 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ### Strategic Questions
 
 1. **Extensibility**
+
    - How would we add bulk operations for other features (keywords, audiences)?
    - Could we create a generic BulkOperationComponent?
    - Would these utilities work for other use cases?
 
 2. **Scalability**
+
    - How would this scale to 10,000+ service areas?
    - Should we implement pagination for bulk operations?
    - Could we use WebWorkers for expensive computations?
 
 3. **User Experience**
+
    - Would undo/redo be valuable for bulk operations?
    - Could we implement CSV export of validation errors?
    - Should we provide templates or examples for bulk paste?
@@ -290,17 +318,20 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 ## SECTION 9: DELIVERABLES QUALITY ASSESSMENT
 
 ### Documentation Review
+
 - Is the code sufficiently commented?
 - Are the commit messages clear and descriptive?
 - Is the CODE-REVIEW-DFF24BD.md comprehensive?
 - Are edge cases documented in comments?
 
 ### Testing Readiness
+
 - What percentage of code paths are tested?
 - Are there known gaps in test coverage?
 - What's the critical path that must be tested?
 
 ### Production Readiness
+
 - Are there any known issues or TODOs in the code?
 - Is monitoring/error tracking set up?
 - Are there performance baselines established?
@@ -312,19 +343,23 @@ You are an expert code reviewer conducting a thorough analysis of a completed de
 Please address the following for a comprehensive conclusion:
 
 1. **Overall Quality Grade** (A+, A, B+, B, C+)
+
    - Is this production-ready?
    - What would be your confidence level deploying this?
    - What, if anything, would you change before merge?
 
 2. **Top 3 Strengths**
+
    - What aspects of the implementation are most impressive?
    - What patterns should be replicated in future work?
 
 3. **Top 3 Weaknesses**
+
    - What are the biggest risks or limitations?
    - What would you prioritize fixing next?
 
 4. **Quick Wins (1-2 hours work)**
+
    - What 3-5 small improvements could be added quickly?
    - What would give the best ROI?
 
@@ -338,17 +373,20 @@ Please address the following for a comprehensive conclusion:
 ## CONTEXT FOR REVIEWER
 
 **Technology Stack:**
+
 - React 18.2 + TypeScript 5.3 (strict mode)
 - Tailwind CSS for styling
 - Axios for HTTP
 - Context API for state management
 
 **Project Constraints:**
+
 - Local-first (SQLite, no cloud dependencies)
 - Ollama for LLM generation
 - EC2 deployment target
 
 **Team Context:**
+
 - Small team (1-2 developers)
 - Focus on correctness over velocity
 - Documentation-first approach
