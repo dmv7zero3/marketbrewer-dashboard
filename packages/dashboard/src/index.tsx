@@ -17,8 +17,23 @@ import {
   ServiceAreas,
   URLGeneration,
   PageContentGeneration,
+  Sidebar,
 } from "./components/dashboard";
 import "./styles/index.css";
+
+/**
+ * Wrapper for job pages to include sidebar and business context
+ */
+const JobsLayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <div className="min-h-screen bg-gray-50">
+    <div className="flex">
+      <Sidebar />
+      <main className="flex-1 p-6">{children}</main>
+    </div>
+  </div>
+);
 
 const App: React.FC = () => (
   <ErrorBoundary>
@@ -28,10 +43,32 @@ const App: React.FC = () => (
           <Navbar />
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/jobs/new" element={<JobCreate />} />
+            {/* Jobs with sidebar for business selection */}
+            <Route
+              path="/jobs/new"
+              element={
+                <JobsLayoutWrapper>
+                  <JobCreate />
+                </JobsLayoutWrapper>
+              }
+            />
             <Route path="/jobs/:businessId/:jobId" element={<JobStatus />} />
-            <Route path="/jobs" element={<JobsList />} />
-            <Route path="/jobs/:businessId" element={<JobsList />} />
+            <Route
+              path="/jobs"
+              element={
+                <JobsLayoutWrapper>
+                  <JobsList />
+                </JobsLayoutWrapper>
+              }
+            />
+            <Route
+              path="/jobs/:businessId"
+              element={
+                <JobsLayoutWrapper>
+                  <JobsList />
+                </JobsLayoutWrapper>
+              }
+            />
             {/* Dashboard routes */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route

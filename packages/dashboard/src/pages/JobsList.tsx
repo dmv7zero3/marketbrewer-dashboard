@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getBusinesses } from "../api/businesses";
+import { useBusiness } from "../contexts/BusinessContext";
 import { getJobs } from "../api/jobs";
-import type { Business, GenerationJob } from "@marketbrewer/shared";
+import type { GenerationJob } from "@marketbrewer/shared";
 
 export const JobsList: React.FC = () => {
   const { businessId: routeBusinessId } = useParams<{ businessId: string }>();
-  const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string>(
-    routeBusinessId || ""
-  );
+  const { selectedBusiness, setSelectedBusiness } = useBusiness();
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState<boolean>(true);
   const POLL_INTERVAL_MS = 5000;
 
+  // Sync context with route params
+  useEffect(() => {
+    if (routeBusinessId && routeBusinessId !== selectedBusiness) {
+      setSelectedBusiness(routeBusinessId);
+    }
+  }, [routeBusinessId, selectedBusiness, setSelectedBusiness]);
+
+  // Load jobs for selected business
   useEffect(() => {
     const load = async () => {
+      if (!selectedBusiness) {
+        setLoading(false);
+        return;
+      }
       try {
-        const bizResp = await getBusinesses();
-        setBusinesses(bizResp.businesses);
-        const initialId = routeBusinessId || bizResp.businesses[0]?.id || "";
-        setSelectedBusinessId(initialId);
-        if (initialId) {
-          const jobsResp = await getJobs(initialId);
-          setJobs(jobsResp.jobs);
-        }
+        const jobsResp = await getJobs(selectedBusiness);
+        setJobs(jobsResp.jobs);
         setError(null);
       } catch (e) {
         console.error(e);
@@ -36,35 +39,21 @@ export const JobsList: React.FC = () => {
       }
     };
     load();
-  }, [routeBusinessId]);
+  }, [selectedBusiness]);
 
   // Auto-refresh polling
   useEffect(() => {
-    if (!polling || !selectedBusinessId) return;
+    if (!polling || !selectedBusiness) return;
     const interval = setInterval(async () => {
       try {
-        const jobsResp = await getJobs(selectedBusinessId);
+        const jobsResp = await getJobs(selectedBusiness);
         setJobs(jobsResp.jobs);
       } catch (e) {
         console.error(e);
       }
     }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [polling, selectedBusinessId]);
-
-  const onBusinessChange = async (id: string) => {
-    setSelectedBusinessId(id);
-    setLoading(true);
-    try {
-      const jobsResp = await getJobs(id);
-      setJobs(jobsResp.jobs);
-      setError(null);
-    } catch (e) {
-      setError("Failed to load jobs");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [polling, selectedBusiness]);
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -85,7 +74,7 @@ export const JobsList: React.FC = () => {
     <div className="container">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Jobs</h1>
-        <Link to="/" className="text-blue-600 hover:underline">
+        <Link to="/jobs/new" className="text-blue-600 hover:underline">
           Create Job
         </Link>
       </div>
@@ -106,25 +95,6 @@ export const JobsList: React.FC = () => {
         </button>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Business
-        </label>
-        <select
-          value={selectedBusinessId}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            onBusinessChange(e.target.value)
-          }
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {businesses.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name} ({b.industry})
-            </option>
-          ))}
-        </select>
-      </div>
-
       {loading ? (
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
@@ -134,6 +104,8 @@ export const JobsList: React.FC = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
+      ) : !selectedBusiness ? (
+        <div className="text-gray-600">Select a business to view jobs.</div>
       ) : jobs.length === 0 ? (
         <div className="text-gray-600">No jobs found for this business.</div>
       ) : (
@@ -167,7 +139,7 @@ export const JobsList: React.FC = () => {
                   </td>
                   <td className="px-4 py-2 text-right">
                     <Link
-                      to={`/jobs/${selectedBusinessId}/${j.id}`}
+                      to={`/jobs/${selectedBusiness}/${j.id}`}
                       className="text-blue-600 hover:underline"
                     >
                       View
