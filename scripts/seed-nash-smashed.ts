@@ -64,18 +64,55 @@ db.prepare(
 
 console.log("✓ Inserted business: Nash & Smashed");
 
-// Insert questionnaire (data as JSON)
+// Insert questionnaire with proper data structure
+// Using the QuestionnaireDataStructure format from @marketbrewer/shared
 const questionnaireData = {
-  business_description:
-    "Nash & Smashed is the ultimate destination for fried chicken, Nashville-style sandwiches, and smashed burgers serving the DMV region. We offer halal-certified, quality ingredients with signature Nashville hot chicken sandwiches, customizable smash burgers, crispy tenders, wings, mac and cheese, and waffle fries.",
-  target_audience:
-    "Food enthusiasts aged 18-45, busy professionals, college students, families, and halal food consumers across Manassas, Dumfries, Herndon (VA), Silver Spring (MD), and Washington DC who value authenticity and quality in casual dining.",
-  unique_selling_points:
-    "Halal-certified menu, authentic Nashville hot chicken, premium smash burgers, five locations across DMV, Southern hospitality with culinary excellence, fast-casual dining experience",
-  brand_voice: "Friendly, inviting, locally-focused, food-quality driven",
-  call_to_action:
-    "Visit us today for the best Nashville hot chicken and smashed burgers in the DMV area",
+  identity: {
+    businessName: "Nash & Smashed",
+    industry: "Fast Food Restaurant",
+    tagline: "Nashville Heat. Smashed to Perfection.",
+    yearEstablished: "2023",
+    contactName: "Owner", // Minimal - intentionally incomplete
+  },
+  location: {
+    address: "Multiple locations across DMV", // Minimal - intentionally incomplete
+    serviceType: "onsite" as const,
+  },
+  services: {
+    offerings: [
+      {
+        name: "Nashville Hot Chicken",
+        description: "Authentic Nashville-style fried chicken",
+        isPrimary: true,
+      },
+      {
+        name: "Smash Burgers",
+        description: "Premium smashed burgers",
+        isPrimary: true,
+      },
+    ],
+  },
+  audience: {
+    targetDescription: "", // Missing - incomplete
+    demographics: "", // Missing - incomplete
+    painPoints: "", // Missing - incomplete
+    languages: [],
+  },
+  brand: {
+    voiceTone: "friendly",
+    requiredPhrases: [], // Missing - incomplete
+    forbiddenWords: [],
+    callToAction: "", // Missing - incomplete
+  },
 };
+
+// Calculate actual completeness: 2 out of 5 sections = 40%
+// - identity: ✓ (has businessName, industry, contactName)
+// - location: ✓ (has address, serviceType)
+// - services: ✓ (has offerings)
+// - audience: ✗ (missing targetDescription, demographics, painPoints)
+// - brand: ✗ (missing requiredPhrases, callToAction)
+const completenessScore = 60; // 3 sections complete out of 5
 
 db.prepare(
   `
@@ -87,7 +124,7 @@ db.prepare(
   generateId(),
   businessId,
   JSON.stringify(questionnaireData),
-  100 // Fully complete
+  completenessScore
 );
 
 console.log("✓ Inserted questionnaire");
