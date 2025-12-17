@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { QuestionnaireForm } from "./QuestionnaireForm";
 import { ValidationSummary } from "./ValidationSummary";
@@ -60,6 +60,11 @@ export const BusinessProfile: React.FC = () => {
   const [savingQ, setSavingQ] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completenessScore, setCompletenessScore] = useState<number>(0);
+  const [bulkAreasLoading, setBulkAreasLoading] = useState(false);
+
+  // Refs for DOM manipulation
+  const validationSummaryRef = useRef<HTMLDivElement>(null);
+  const saveTargetRef = useRef<string | null>(null);
 
   // Compute unified dirty state
   const businessDirty = useMemo(() => {
@@ -78,14 +83,19 @@ export const BusinessProfile: React.FC = () => {
   // Global unsaved changes warning on page exit
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasAnyUnsavedChanges) {
+      if (hasAnyUnsavedChanges || bulkAreasLoading) {
         e.preventDefault();
-        e.returnValue = "You have unsaved changes.";
+        e.returnValue =
+          hasAnyUnsavedChanges && bulkAreasLoading
+            ? "You have unsaved changes and a bulk operation in progress."
+            : hasAnyUnsavedChanges
+            ? "You have unsaved changes."
+            : "A bulk operation is in progress.";
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasAnyUnsavedChanges]);
+  }, [hasAnyUnsavedChanges, bulkAreasLoading]);
 
   useEffect(() => {
     let mounted = true;
@@ -178,36 +188,6 @@ export const BusinessProfile: React.FC = () => {
     return !hasErrors;
   };
 
-  const handleSaveBusiness = async () => {
-    if (!selectedBusiness || !business) return;
-
-    if (!validateBusinessForm()) return;
-
-    try {
-      setSavingBiz(true);
-      setError(null);
-      const payload = {
-        name: business.name,
-        industry: business.industry,
-        website: business.website ?? null,
-        phone: business.phone ?? null,
-        email: business.email ?? null,
-      };
-      const { business: updated } = await updateBusiness(
-        selectedBusiness,
-        payload
-      );
-      setBusiness(updated);
-      addToast("Business profile saved successfully", "success");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to save business";
-      setError(msg);
-      addToast(msg, "error", 5000);
-    } finally {
-      setSavingBiz(false);
-    }
-  };
-
   const handleSaveQuestionnaire = async () => {
     if (!selectedBusiness) return;
     try {
@@ -277,9 +257,17 @@ export const BusinessProfile: React.FC = () => {
     }
 
     if (allErrors.length > 0) {
-      // Show validation summary
+      // Show validation summary and scroll to it
+      validationSummaryRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
       return;
     }
+
+    // Track current save target to prevent stale saves
+    const currentTarget = selectedBusiness;
+    saveTargetRef.current = currentTarget;
 
     // Save both if validation passes
     try {
@@ -301,6 +289,13 @@ export const BusinessProfile: React.FC = () => {
               selectedBusiness,
               payload
             );
+
+            // Guard: Check if this save is still for current business
+            if (saveTargetRef.current !== currentTarget) {
+              setSavingBiz(false);
+              return; // Stale save, discard
+            }
+
             setBusiness(updated);
             setOriginalBusiness(updated);
             setSavingBiz(false);
@@ -311,14 +306,48 @@ export const BusinessProfile: React.FC = () => {
       if (questionnaireDirty) {
         promises.push(
           (async () => {
+            // Guard: Check if this save is still for current business
+            if (saveTargetRef.current !== currentTarget) return;
             await handleSaveQuestionnaire();
           })()
         );
       }
 
       if (promises.length > 0) {
-        await Promise.all(promises);
-        addToast("All changes saved successfully", "success");
+        // Use allSettled to handle partial failures gracefully
+        const results = await Promise.allSettled(promises);
+
+        const fulfilled = results.filter(
+          (r): r is PromiseFulfilledResult<void> => r.status === "fulfilled"
+        );
+        const rejected = results.filter(
+          (r): r is PromiseRejectedResult => r.status === "rejected"
+        );
+
+        // Only update state if this is still the current save
+        if (saveTargetRef.current !== currentTarget) {
+          return; // Stale save, discard
+        }
+
+        if (rejected.length === 0) {
+          // All saves succeeded
+          addToast("All changes saved successfully", "success");
+        } else if (fulfilled.length > 0) {
+          // Partial failure - some saves succeeded, some failed
+          const failureDetails = rejected
+            .map((r) =>
+              r.reason instanceof Error ? r.reason.message : "Unknown error"
+            )
+            .join("; ");
+          addToast(
+            `Partially saved: ${fulfilled.length}/${results.length} sections saved. Errors: ${failureDetails}`,
+            "warning",
+            7000
+          );
+        } else {
+          // All saves failed
+          addToast("Failed to save changes. Please retry.", "error", 5000);
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to save changes";
@@ -338,6 +367,7 @@ export const BusinessProfile: React.FC = () => {
       phone: null,
       email: null,
     });
+    // Note: QuestionnaireForm warnings are cleared internally when hasUnsavedChanges = false
   };
 
   // Collect all validation errors for summary
@@ -427,9 +457,11 @@ export const BusinessProfile: React.FC = () => {
         ) : (
           <>
             {/* Validation Summary */}
-            {validationErrorsList.length > 0 && (
-              <ValidationSummary errors={validationErrorsList} />
-            )}
+            <div ref={validationSummaryRef}>
+              {validationErrorsList.length > 0 && (
+                <ValidationSummary errors={validationErrorsList} />
+              )}
+            </div>
 
             {/* Main Grid: Business Details + Questionnaire + Completeness */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -580,14 +612,6 @@ export const BusinessProfile: React.FC = () => {
                       </p>
                     )}
                   </div>
-
-                  <button
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
-                    onClick={handleSaveBusiness}
-                    disabled={!businessDirty || savingBiz || isSavingAny}
-                  >
-                    {savingBiz ? "Saving..." : "Save Details"}
-                  </button>
                 </div>
               </div>
 
@@ -602,6 +626,7 @@ export const BusinessProfile: React.FC = () => {
                   isLoading={loading}
                   hasUnsavedChanges={questionnaireDirty}
                   businessId={selectedBusiness ?? undefined}
+                  onBulkOperationChange={setBulkAreasLoading}
                 />
               </div>
             </div>

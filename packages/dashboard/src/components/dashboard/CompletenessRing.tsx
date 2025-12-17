@@ -48,7 +48,14 @@ export const CompletenessRing: React.FC<CompletenessRingProps> = ({
 
   return (
     <div className="flex flex-col items-center">
-      <div className={`relative ${sizeClasses[size]}`}>
+      <div
+        className={`relative ${sizeClasses[size]}`}
+        role="progressbar"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Profile completeness: ${score}%, ${getStatusText()}`}
+      >
         <svg className="w-full h-full transform -rotate-90">
           {/* Background circle */}
           <circle

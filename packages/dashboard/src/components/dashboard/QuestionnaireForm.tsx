@@ -22,6 +22,7 @@ interface QuestionnaireFormProps {
   isLoading?: boolean;
   hasUnsavedChanges?: boolean;
   businessId?: string; // needed for bulk service-area add
+  onBulkOperationChange?: (isLoading: boolean) => void; // notify parent of bulk operations
 }
 
 type TabName = "identity" | "location" | "services" | "audience" | "brand";
@@ -45,6 +46,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   isLoading = false,
   hasUnsavedChanges = false,
   businessId,
+  onBulkOperationChange,
 }) => {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabName>("identity");
@@ -117,19 +119,17 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
     validateCurrentSection();
   }, [activeTab]);
 
-  // Fix: Warn user if they try to leave during bulk operation
+  // Clear warnings when changes are discarded
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (bulkAreasLoading) {
-        e.preventDefault();
-        e.returnValue =
-          "Bulk operation in progress. Are you sure you want to leave?";
-        return e.returnValue;
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [bulkAreasLoading]);
+    if (!hasUnsavedChanges) {
+      setWarnings({});
+    }
+  }, [hasUnsavedChanges]);
+
+  // Notify parent of bulk operations for global beforeunload handler
+  useEffect(() => {
+    onBulkOperationChange?.(bulkAreasLoading);
+  }, [bulkAreasLoading, onBulkOperationChange]);
 
   const handleTabChange = (tab: TabName) => {
     setActiveTab(tab);

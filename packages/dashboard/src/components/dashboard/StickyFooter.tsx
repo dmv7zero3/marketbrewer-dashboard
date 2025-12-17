@@ -22,7 +22,7 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
   cancelLabel = "Discard Changes",
 }) => {
   return (
-    <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+    <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Status indicator */}
         <div className="flex items-center gap-2">
@@ -35,14 +35,16 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
             <>
               <div className="w-2 h-2 bg-yellow-600 rounded-full" />
               <span className="text-sm text-yellow-700 font-medium">
-                ● Unsaved changes
+                <span aria-hidden="true">●</span>
+                <span className="ml-1">Unsaved changes</span>
               </span>
             </>
           ) : (
             <>
               <div className="w-2 h-2 bg-green-600 rounded-full" />
               <span className="text-sm text-green-700 font-medium">
-                ✓ All changes saved
+                <span aria-hidden="true">✓</span>
+                <span className="ml-1">All changes saved</span>
               </span>
             </>
           )}
@@ -61,10 +63,29 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
           <button
             onClick={onSave}
             disabled={!hasChanges || isSaving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             type="button"
           >
-            {isSaving ? "Saving..." : saveLabel}
+            {isSaving ? (
+              <>
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-6-8c0 3.31 2.69 6 6 6s6-2.69 6-6-2.69-6-6-6-6 2.69-6 6z"
+                  />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              saveLabel
+            )}
           </button>
         </div>
       </div>
