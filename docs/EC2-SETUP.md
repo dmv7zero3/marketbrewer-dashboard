@@ -26,6 +26,7 @@
 ```
 
 **From AWS CLI:**
+
 ```bash
 aws ec2 run-instances \
   --image-id ami-0c55b159cbfafe1f0 \
@@ -112,11 +113,13 @@ sudo journalctl -u seo-api -f
 ### Environment Variables
 
 **Critical (must configure):**
+
 - `NODE_ENV=production`
 - `DATABASE_PATH=/var/lib/marketbrewer/seo-platform.db`
 - `CORS_ORIGINS=http://yourdomain.com` (dashboard domain)
 
 **Optional (sensible defaults):**
+
 - `SERVER_PORT=3001`
 - `SERVER_HOST=0.0.0.0`
 - `LOG_LEVEL=warn`
@@ -143,16 +146,19 @@ Full template: `.env.example`
 ### Systemd Services
 
 **API Server (`seo-api.service`):**
+
 - Starts Node.js API server on port 3001
 - Automatically restarts on failure
 - Logs to systemd journal
 
 **Worker (`seo-worker.service`):**
+
 - Depends on: API server, Ollama
 - Polls for jobs every 5 seconds
 - Processes up to 2 jobs concurrently
 
 **Commands:**
+
 ```bash
 sudo systemctl start seo-api         # Start
 sudo systemctl stop seo-api          # Stop
@@ -258,6 +264,7 @@ sudo systemctl start seo-api seo-worker
 ### Increase Resources
 
 **If experiencing slow LLM generation:**
+
 ```bash
 # Upgrade instance type (t3.medium → t3.large)
 # 1. Stop instance
@@ -267,6 +274,7 @@ sudo systemctl start seo-api seo-worker
 ```
 
 **If database is large (> 500MB):**
+
 ```bash
 # Enable compression
 # Increase backup storage
@@ -276,6 +284,7 @@ sudo systemctl start seo-api seo-worker
 ### Load Balancing (Future)
 
 For multiple instances, use:
+
 - AWS Application Load Balancer (ALB) on port 80/443
 - Point to multiple API server instances
 - Shared database (RDS, not SQLite)
@@ -285,14 +294,14 @@ For multiple instances, use:
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| **API won't start** | Port 3001 occupied | `lsof -i :3001` then kill process |
-| **Worker can't find API** | API not running | `sudo systemctl restart seo-api` |
-| **Ollama timeout** | Model not pulled | `ollama pull llama3.2` |
-| **Database locked** | Concurrent access | `sudo systemctl restart seo-api seo-worker` |
-| **Slow LLM responses** | Insufficient RAM | Upgrade to t3.large |
-| **Disk full** | Database too large | Backup old records, clean up |
+| Symptom                   | Cause              | Fix                                         |
+| ------------------------- | ------------------ | ------------------------------------------- |
+| **API won't start**       | Port 3001 occupied | `lsof -i :3001` then kill process           |
+| **Worker can't find API** | API not running    | `sudo systemctl restart seo-api`            |
+| **Ollama timeout**        | Model not pulled   | `ollama pull llama3.2`                      |
+| **Database locked**       | Concurrent access  | `sudo systemctl restart seo-api seo-worker` |
+| **Slow LLM responses**    | Insufficient RAM   | Upgrade to t3.large                         |
+| **Disk full**             | Database too large | Backup old records, clean up                |
 
 ### Emergency Recovery
 
@@ -358,11 +367,13 @@ ls -la /var/lib/marketbrewer/backups/
 ### Instance Type
 
 **t3.medium (recommended):**
+
 - $0.0416/hour (~$30/month)
 - Sufficient for 10-50 concurrent users
 - Scales to t3.large if needed
 
 **Cost Breakdown:**
+
 - EC2: ~$30/month
 - Storage (50GB): ~$5/month
 - **Total: ~$35/month**
@@ -370,6 +381,7 @@ ls -la /var/lib/marketbrewer/backups/
 ### Cost Controls
 
 1. **Stop instance when not in use:**
+
    ```bash
    aws ec2 stop-instances --instance-ids i-xxxxxxxxx
    aws ec2 start-instances --instance-ids i-xxxxxxxxx
@@ -386,6 +398,7 @@ ls -la /var/lib/marketbrewer/backups/
 ### Automated Daily Backups
 
 Configured in `/etc/cron.d/marketbrewer-backup`:
+
 ```
 0 2 * * * ubuntu /usr/local/bin/backup-marketbrewer.sh
 ```
@@ -434,6 +447,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 ### Custom Alerts
 
 Create CloudWatch alarms for:
+
 - High CPU usage
 - High disk usage (> 80%)
 - API errors (HTTP 5xx)
@@ -445,21 +459,25 @@ Create CloudWatch alarms for:
 ## Support & Escalation
 
 **For API Issues:**
+
 - Check logs: `sudo journalctl -u seo-api -n 50`
 - Review code: `packages/server/src/`
 - Contact: Dev team
 
 **For Database Issues:**
+
 - See: `docs/DATABASE-MIGRATION.md`
 - Verify schema: `sqlite3 .schema`
 - Restore backup if corrupted
 
 **For Ollama Issues:**
+
 - Check model: `ollama list`
 - Restart service: `sudo systemctl restart ollama`
 - Pull model: `ollama pull llama3.2`
 
 **For Operations Questions:**
+
 - Review: `docs/DEPLOYMENT.md`
 - Check runbook steps
 - Contact: Ops team
