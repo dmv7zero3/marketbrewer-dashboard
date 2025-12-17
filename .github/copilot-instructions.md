@@ -8,12 +8,12 @@
 
 ## Quick Reference
 
-| Component | Location | Tech |
-|-----------|----------|------|
-| Dashboard | `packages/dashboard/` | React 18 + TypeScript + Tailwind + Webpack 5 |
-| API Server | `packages/server/` | Express + TypeScript + SQLite |
-| Worker | `packages/worker/` | TypeScript + Ollama |
-| Shared Types | `packages/shared/` | TypeScript |
+| Component    | Location              | Tech                                         | Status      |
+| ------------ | --------------------- | -------------------------------------------- | ----------- |
+| Dashboard    | `packages/dashboard/` | React 18 + TypeScript + Tailwind + Webpack 5 | ⚠️ Partial  |
+| API Server   | `packages/server/`    | Express + TypeScript + SQLite                | ✅ Working  |
+| Worker       | `packages/worker/`    | TypeScript + Ollama                          | ✅ Working  |
+| Shared Types | `packages/shared/`    | TypeScript                                   | ✅ Complete |
 
 ---
 
@@ -21,19 +21,36 @@
 
 All detailed documentation lives in `docs/`. Read the relevant file before starting work.
 
-| Topic | File |
-|-------|------|
-| Project overview | `docs/README.md` |
-| File structure | `docs/STRUCTURE.md` |
-| Code conventions | `docs/CONVENTIONS.md` |
-| Architecture | `docs/architecture/OVERVIEW.md` |
-| API endpoints | `docs/api/ENDPOINTS.md` |
-| CORS policy | `docs/api/CORS.md` |
-| Database schema | `docs/architecture/DATABASE.md` |
-| Worker queue | `docs/architecture/WORKER-QUEUE.md` |
-| Running questions | `docs/QUESTIONS.md` |
+| Topic             | File                                |
+| ----------------- | ----------------------------------- |
+| Project overview  | `docs/README.md`                    |
+| File structure    | `docs/STRUCTURE.md`                 |
+| Code conventions  | `docs/CONVENTIONS.md`               |
+| Architecture      | `docs/architecture/OVERVIEW.md`     |
+| API endpoints     | `docs/api/ENDPOINTS.md`             |
+| CORS policy       | `docs/api/CORS.md`                  |
+| Database schema   | `docs/architecture/DATABASE.md`     |
+| Worker queue      | `docs/architecture/WORKER-QUEUE.md` |
+| Running questions | `docs/QUESTIONS.md`                 |
 
 ---
+
+## Current Status (Dec 16, 2024)
+
+**✅ Completed:**
+
+- Phase 1: Foundation (server, worker, dashboard scaffolds)
+- Phase 2: Ollama Integration Sprint
+- P0 Fixes: Named parameters, atomic claim, health checks
+- Database: Seeded with 26 Nash & Smashed locations, 50 keywords
+- End-to-end: Tested with real Ollama (llama3.2:latest)
+- Generated content: 1 page successfully created
+
+**📊 Test Data:**
+
+- 26 service areas (VA, MD, DC, SC, NY)
+- 50 keywords (best-fried-chicken, nashville-hot-chicken, etc.)
+- 1,300 potential pages (50 × 26)
 
 ## Core Rules
 
@@ -47,12 +64,12 @@ All detailed documentation lives in `docs/`. Read the relevant file before start
 
 ## File Naming
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Utilities | `kebab-case.ts` | `api-client.ts` |
-| React components | `PascalCase.tsx` | `BusinessProfile.tsx` |
-| Types | `kebab-case.ts` | `business.ts` |
-| Docs | `SCREAMING-CASE.md` | `CONVENTIONS.md` |
+| Type             | Convention          | Example               |
+| ---------------- | ------------------- | --------------------- |
+| Utilities        | `kebab-case.ts`     | `api-client.ts`       |
+| React components | `PascalCase.tsx`    | `BusinessProfile.tsx` |
+| Types            | `kebab-case.ts`     | `business.ts`         |
+| Docs             | `SCREAMING-CASE.md` | `CONVENTIONS.md`      |
 
 ---
 

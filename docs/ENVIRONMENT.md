@@ -6,16 +6,17 @@ Single reference documentation for all environment variables across the MarketBr
 
 ## Quick Reference
 
-| Variable        | Required | Component | Default                  | Description                         |
-| --------------- | -------- | --------- | ------------------------ | ----------------------------------- |
-| `API_TOKEN`     | ✅       | Server    | -                        | Bearer token for API authentication |
-| `DATABASE_PATH` | ❌       | Server    | `./data/seo-platform.db` | SQLite database file path           |
-| `PORT`          | ❌       | Server    | `3001`                   | HTTP server port                    |
-| `OLLAMA_URL`    | ✅       | Worker    | -                        | Ollama API endpoint                 |
-| `OLLAMA_MODEL`  | ✅       | Worker    | -                        | Model name (e.g., `llama2`)         |
-| `API_URL`       | ✅       | Worker    | -                        | Server API endpoint                 |
-| `WORKER_TOKEN`  | ✅       | Worker    | -                        | Worker authentication token         |
-| `CONCURRENCY`   | ❌       | Worker    | `1`                      | Parallel job processing limit       |
+| Variable        | Required | Component     | Default                  | Description                          | Current Value (Dev)          |
+| --------------- | -------- | ------------- | ------------------------ | ------------------------------------ | ---------------------------- |
+| `API_TOKEN`     | ✅       | Server/Worker | -                        | Bearer token for API authentication  | `local-dev-token-12345`      |
+| `DATABASE_PATH` | ❌       | Server        | `./data/seo-platform.db` | SQLite database file path            | `../../data/seo-platform.db` |
+| `PORT`          | ❌       | Server        | `3001`                   | HTTP server port                     | `3001`                       |
+| `OLLAMA_URL`    | ✅       | Worker        | -                        | Ollama API endpoint                  | `http://localhost:11434`     |
+| `OLLAMA_MODEL`  | ✅       | Worker        | -                        | Model name (e.g., `llama3.2:latest`) | `llama3.2:latest`            |
+| `API_URL`       | ✅       | Worker        | -                        | Server API endpoint                  | `http://localhost:3001`      |
+| `CONCURRENCY`   | ❌       | Worker        | `1`                      | Parallel job processing limit        | `1` (safe for testing)       |
+
+**Note:** Worker uses `API_TOKEN` not `WORKER_TOKEN` (naming convention updated in code).
 
 ---
 

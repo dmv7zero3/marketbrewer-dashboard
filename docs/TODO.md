@@ -15,48 +15,67 @@ Short, actionable tasks tracked before implementation.
 - [x] Scripts: seed-db, export-json
 - [x] Sample seed: Nash & Smashed
 
-## 🚧 Phase 2: Ready to Start
+## ✅ Phase 2 Complete (Dec 16, 2024)
 
-**Critical Path:**
+**Ollama Integration Sprint:**
 
-1. **Ollama Integration** - Replace placeholder generation in `packages/worker/src/worker.ts`
+- [x] P0 Fix: Named parameters in batch insert
+- [x] P0 Fix: Atomic claim with UPDATE...RETURNING
+- [x] P0 Fix: Ollama health check at startup
+- [x] Real generateContent() with OllamaClient
+- [x] Prompt template system (hardcoded for V1)
+- [x] JSON parsing with fallback handling
+- [x] Error handling for LLM failures
+- [x] Database seeded with Nash & Smashed (26 locations, 50 keywords)
+- [x] End-to-end test: Created job, ran worker, generated 1 page
+- [x] Committed and pushed to main (41b6f4e)
 
-   - Implement actual LLM calls to Ollama API
-   - Handle prompt template variable substitution
-   - Add error handling for Ollama timeouts/failures
+**Verified Working:**
 
-2. **Prompt Template System**
+- Server API on :3001
+- Worker claiming and generating pages
+- Ollama integration (llama3.2:latest)
+- Sample output: `/best-food-near-me/fairfax-county-va`
 
-   - Build prompt from business data + keywords + service areas
-   - Fetch active prompt template from DB
-   - Variable substitution logic
+## 🚧 Phase 3: Production Readiness
 
-3. **Business Data Endpoints** (P1 APIs from PLANS.md)
+**Immediate (P0):**
 
-   - `/api/businesses/:id/keywords` - CRUD for keywords
-   - `/api/businesses/:id/service-areas` - CRUD for service areas
-   - `/api/businesses/:id/prompts` - CRUD for prompt templates
+1. **Dashboard Webpack Config**
 
-4. **Dashboard Enhancement**
+   - Fix broken webpack build
+   - Verify dev server works on :3000
+   - Test job creation flow
 
-   - Business list/detail pages
-   - Keyword/service area management
-   - Prompt editor with preview
+2. **Batch Generation**
 
-5. **Unit Testing** (Along the way)
+   - Run worker on full 1,300 page job
+   - Monitor for failures/timeouts
+   - Verify completion
 
-   - Set up Jest + @types/jest
-   - Test utilities (toSlug, calculateCompletenessScore, generateId)
-   - Test Zod schemas (validation edge cases)
-   - Test Ollama client (mock responses)
-   - Test prompt builder (variable substitution)
-   - Target: 70%+ coverage on shared/worker packages
+3. **Content Quality Review**
+   - Review 10-20 generated pages
+   - Assess SEO quality
+   - Refine prompt template if needed
 
-6. **End-to-End Testing**
-   - Seed database with test data
-   - Create job via dashboard
-   - Worker generates content via Ollama
-   - Verify JSON export
+**Important (P1):**
+
+4. **Dashboard CRUD Pages**
+
+   - Keywords management
+   - Service areas management
+   - Prompt template editor
+
+5. **JSON Export Pipeline**
+
+   - Export completed pages to JSON
+   - Prepare for static site build
+   - Test with sample pages
+
+6. **Performance Testing**
+   - Monitor generation speed
+   - Identify bottlenecks
+   - Optimize if needed
 
 ## Later (Post-MVP)
 

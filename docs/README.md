@@ -6,12 +6,13 @@ Local SEO content generation platform for producing thousands of location-target
 
 ## Quick Links
 
-| Document                           | Purpose                |
-| ---------------------------------- | ---------------------- |
-| [STRUCTURE.md](./STRUCTURE.md)     | File and folder layout |
-| [CONVENTIONS.md](./CONVENTIONS.md) | Code style and naming  |
-| [PLANS.md](./PLANS.md)             | Concise build plan     |
-| [QUESTIONS.md](./QUESTIONS.md)     | Running questions log  |
+| Document                                           | Purpose                        |
+| -------------------------------------------------- | ------------------------------ |
+| [STRUCTURE.md](./STRUCTURE.md)                     | File and folder layout         |
+| [CONVENTIONS.md](./CONVENTIONS.md)                 | Code style and naming          |
+| [PLANS.md](./PLANS.md)                             | Concise build plan             |
+| [PRODUCTION-STRATEGY.md](./PRODUCTION-STRATEGY.md) | Nash & Smashed 3,000 page plan |
+| [QUESTIONS.md](./QUESTIONS.md)                     | Running questions log          |
 
 ### Architecture
 
