@@ -19,6 +19,12 @@ export const Navbar: React.FC = () => {
           <Link to="/jobs" className={`${active("/jobs")} hover:text-blue-700`}>
             Jobs
           </Link>
+          <Link
+            to="/dashboard"
+            className={`${active("/dashboard")} hover:text-blue-700`}
+          >
+            Dashboard
+          </Link>
         </div>
       </div>
     </nav>

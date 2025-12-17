@@ -1,0 +1,62 @@
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useBusiness } from "../../contexts/BusinessContext";
+
+const menuItems = [
+  { title: "Overview", path: "/dashboard" },
+  { title: "Business Profile", path: "/dashboard/business-profile" },
+  { title: "Prompts", path: "/dashboard/prompts" },
+  { title: "SEO Keywords", path: "/dashboard/keywords" },
+  { title: "Service Areas", path: "/dashboard/service-areas" },
+  { title: "Websites", path: "/dashboard/websites" },
+  { title: "URL Generation", path: "/dashboard/url-generation" },
+  { title: "Generate Pages", path: "/dashboard/page-content-generation" },
+];
+
+export const Sidebar: React.FC = () => {
+  const { businesses, selectedBusiness, setSelectedBusiness, loading } =
+    useBusiness();
+  const { pathname } = useLocation();
+
+  return (
+    <aside className="w-64 border-r bg-white h-[calc(100vh-64px)] sticky top-16">
+      <div className="p-4 space-y-3 border-b">
+        <div className="text-sm font-semibold">Business</div>
+        <select
+          className="w-full border rounded px-2 py-1"
+          value={selectedBusiness ?? ""}
+          onChange={(e) => setSelectedBusiness(e.target.value || null)}
+          disabled={loading}
+        >
+          <option value="">Select a business</option>
+          {businesses.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <nav className="p-2 space-y-1">
+        {menuItems.map((item) => {
+          const active = pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`block px-3 py-2 rounded ${
+                active
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {item.title}
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+};
+
+export default Sidebar;
