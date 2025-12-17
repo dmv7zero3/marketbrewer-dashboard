@@ -3,7 +3,6 @@ import { CompletenessRing } from "./CompletenessRing";
 
 interface ProfileStatusProps {
   completenessScore: number;
-  isLoading?: boolean;
 }
 
 /**
@@ -11,21 +10,21 @@ interface ProfileStatusProps {
  * Memoized to prevent unnecessary re-renders
  */
 export const ProfileStatus = memo<ProfileStatusProps>(
-  ({ completenessScore, isLoading = false }) => {
+  ({ completenessScore }) => {
     const isReady = completenessScore >= 40;
     const statusText = isReady
       ? "Your profile is ready for content generation"
       : "Complete more sections to enable generation";
 
     return (
-      <div className="flex flex-col items-center border rounded-lg p-6 bg-white shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+      <div className="flex flex-col items-center p-6 bg-white border rounded-lg shadow-sm">
+        <h2 className="mb-6 text-lg font-semibold text-gray-900">
           Profile Status
         </h2>
 
         <CompletenessRing score={completenessScore} size="md" />
 
-        <div className="mt-6 text-center space-y-3">
+        <div className="mt-6 space-y-3 text-center">
           <p className="text-xs text-gray-600">{statusText}</p>
 
           {/* Progress indicator */}
@@ -40,7 +39,7 @@ export const ProfileStatus = memo<ProfileStatusProps>(
                 {completenessScore}%
               </span>
             </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
               <div
                 className={`h-full rounded-full transition-all ${
                   isReady ? "bg-green-500" : "bg-yellow-500"
