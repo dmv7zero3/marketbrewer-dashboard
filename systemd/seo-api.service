@@ -1,16 +1,40 @@
 [Unit]
 Description=MarketBrewer SEO Platform API Server
+Documentation=https://github.com/dmv7zero3/marketbrewer-seo-platform
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/opt/marketbrewer-seo-platform
-Environment=API_HOST=0.0.0.0
-Environment=API_PORT=3001
-Environment=API_TOKEN=CHANGE_ME
-ExecStart=/usr/bin/npm --prefix packages/server run start
-Restart=always
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/var/www/marketbrewer-seo-platform
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="NODE_ENV=production"
+Environment="SERVER_HOST=0.0.0.0"
+Environment="SERVER_PORT=3001"
+Environment="DATABASE_PATH=/var/lib/marketbrewer/seo-platform.db"
+Environment="LOG_LEVEL=warn"
+Environment="ENABLE_REQUEST_LOGGING=true"
+EnvironmentFile=/var/www/marketbrewer-seo-platform/.env
+
+ExecStart=/usr/bin/node packages/server/dist/index.js
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+# Resource limits
 LimitNOFILE=8192
+LimitNPROC=65536
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=seo-api
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
