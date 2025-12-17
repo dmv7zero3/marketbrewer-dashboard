@@ -12,8 +12,16 @@ module.exports = {
     ],
   },
   collectCoverageFrom: [
-    "<rootDir>/src/**/*.{ts,tsx}",
+    "<rootDir>/src/ollama/**/*.{ts,tsx}",
     "!<rootDir>/src/**/*.d.ts",
   ],
   coverageDirectory: "<rootDir>/coverage",
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
 };

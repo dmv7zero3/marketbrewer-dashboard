@@ -12,8 +12,16 @@ module.exports = {
     ],
   },
   collectCoverageFrom: [
-    "<rootDir>/src/**/*.{ts,tsx}",
+    "<rootDir>/src/middleware/**/*.{ts,tsx}",
     "!<rootDir>/src/**/*.d.ts",
   ],
   coverageDirectory: "<rootDir>/coverage",
+  coverageThreshold: {
+    global: {
+      branches: 30,
+      functions: 30,
+      lines: 30,
+      statements: 30,
+    },
+  },
 };

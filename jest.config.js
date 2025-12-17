@@ -28,5 +28,7 @@ module.exports = {
       statements: 60,
     },
   },
+  clearMocks: true,
+  resetModules: true,
   verbose: true,
 };
