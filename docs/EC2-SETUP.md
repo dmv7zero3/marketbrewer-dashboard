@@ -39,6 +39,7 @@ aws ec2 run-instances \
 ```
 
 **Instance Specs:**
+
 - **Instance Type:** t3.large (2 vCPU, 8GB RAM) **← RECOMMENDED**
   - Why t3.large: Parallel job processing, 50% faster page generation (15-30s vs 30-60s)
   - Cost: ~$60/month running 24/7, **~$20/month if stopped when not in use**
@@ -46,6 +47,7 @@ aws ec2 run-instances \
 - **Storage:** 50GB EBS (gp3) = ~$2.50/month
 
 **⚠️ CRITICAL Cost Control:**
+
 ```bash
 # Stop instance at END of workday
 aws ec2 stop-instances --instance-ids i-xxxxxxxxx
@@ -56,6 +58,7 @@ aws ec2 start-instances --instance-ids i-xxxxxxxxx
 # Cost: $20/month (8h/day) + $2.50 storage = $22.50/month ✅
 # (Well under your $35/month budget!)
 ```
+
 See [COST-OPTIMIZATION.md](COST-OPTIMIZATION.md) for auto-stop script and monitoring.
 
 ### Step 2: Configure Server (10 minutes)
@@ -391,6 +394,7 @@ ls -la /var/lib/marketbrewer/backups/
 ### Instance Type: t3.large (Recommended)
 
 **Why t3.large:**
+
 - 2 vCPU, 8GB RAM (vs t3.medium 2 vCPU, 4GB)
 - 50% faster page generation (15-30s vs 30-60s)
 - Parallel job processing
@@ -405,9 +409,11 @@ ls -la /var/lib/marketbrewer/backups/
 ### Cost Controls (Mandatory)
 
 1. **Stop instance when not in use:**
+
    ```bash
    aws ec2 stop-instances --instance-ids i-xxxxxxxxx
    ```
+
    Running 24/7 = $60/month ❌  
    Running 8h/day = $20/month ✅
 
@@ -415,12 +421,14 @@ ls -la /var/lib/marketbrewer/backups/
    See [COST-OPTIMIZATION.md](COST-OPTIMIZATION.md) for script
 
 3. **CloudWatch billing alert** at $30/month:
+
    ```bash
    aws cloudwatch put-metric-alarm --threshold 30
    ```
 
 4. **Monthly budget review:**
    AWS Console → Billing → Cost Explorer
+
 - **Total: ~$35/month**
 
 ### Cost Controls

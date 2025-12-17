@@ -16,13 +16,13 @@
 
 ### t3.large (Recommended for v1.0)
 
-| Component | Cost/Month | Notes |
-|-----------|-----------|-------|
-| EC2 t3.large (24/7) | $60 | ❌ Over budget |
-| EC2 t3.large (8h/day) | $20 | ✅ Recommended |
-| EBS Storage (50GB) | $2.50 | Stays same |
-| Ollama (local, free) | $0 | No cloud costs |
-| **Total (8h/day)** | **$22.50** | ✅ Under $35 |
+| Component             | Cost/Month | Notes          |
+| --------------------- | ---------- | -------------- |
+| EC2 t3.large (24/7)   | $60        | ❌ Over budget |
+| EC2 t3.large (8h/day) | $20        | ✅ Recommended |
+| EBS Storage (50GB)    | $2.50      | Stays same     |
+| Ollama (local, free)  | $0         | No cloud costs |
+| **Total (8h/day)**    | **$22.50** | ✅ Under $35   |
 
 ### Cost Comparison
 
@@ -42,11 +42,13 @@ SPOT t3.large (Phase 2):  $6 + $2.50 = $8.50    ← Future option
 ### ✅ Manual Start/Stop (Simple)
 
 **When to stop:**
+
 - End of workday (5pm)
 - After deployment verification
 - Not using actively
 
 **When to start:**
+
 - Beginning of workday (8am)
 - Testing new features
 - Client demonstrations
@@ -66,6 +68,7 @@ aws ec2 describe-instances --instance-ids i-xxxxxxxxx \
 ```
 
 **AWS Console:**
+
 1. EC2 Dashboard → Instances
 2. Select instance
 3. Instance State → Stop / Start
@@ -94,11 +97,11 @@ while true; do
   # Get CPU usage
   CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)
   CPU_USAGE=${CPU_USAGE%.*}  # Remove decimals
-  
+
   if [ "$CPU_USAGE" -lt "$CPU_THRESHOLD" ]; then
     IDLE_COUNTER=$((IDLE_COUNTER + 1))
     IDLE_MINUTES=$((IDLE_COUNTER * CHECK_INTERVAL_SECONDS / 60))
-    
+
     if [ "$IDLE_MINUTES" -ge "$IDLE_THRESHOLD_MINUTES" ]; then
       echo "[$(date)] CPU idle for $IDLE_MINUTES minutes. Stopping instance..."
       aws ec2 stop-instances --instance-ids "$INSTANCE_ID"
@@ -107,7 +110,7 @@ while true; do
   else
     IDLE_COUNTER=0  # Reset if CPU active
   fi
-  
+
   sleep "$CHECK_INTERVAL_SECONDS"
 done
 EOF
@@ -134,6 +137,7 @@ aws events put-rule \
 ```
 
 **Easier Alternative: AWS Systems Manager (Free)**
+
 1. AWS Console → Systems Manager → Maintenance Windows
 2. Create window: Mon-Fri 10pm UTC (6pm EST)
 3. Add task: Stop EC2 instances
@@ -234,6 +238,7 @@ aws ce get-cost-and-usage \
 ### When to use SPOT for v1.0? ❌
 
 **Not recommended yet because:**
+
 - Ollama model cold-start takes ~10 minutes
 - Can be interrupted mid-page-generation
 - Needs complex interrupt handling
@@ -256,6 +261,7 @@ Total: ~$26-35/month for high volume
 ```
 
 **Benefits:**
+
 - 70% cheaper for burst capacity
 - Handle interruptions gracefully
 - Scale to 1000s of pages/month
@@ -267,11 +273,13 @@ Total: ~$26-35/month for high volume
 ### Could we use Lambda for content generation? ❌
 
 **Pros:**
+
 - Pay only for compute time
 - Auto-scales
 - No instance management
 
 **Cons:**
+
 - **Ollama model size:** 4GB+ exceeds Lambda limits
 - **Cold start:** Model load = 10 minutes (unacceptable)
 - **Timeout:** 15-minute max (reasonable but tight)
@@ -300,13 +308,13 @@ Before going to production, execute:
 
 ## Monthly Budget Template
 
-| Item | Planned | Actual | Notes |
-|------|---------|--------|-------|
-| EC2 t3.large (8h/day) | $20 | | |
-| EBS Storage (50GB) | $2.50 | | |
-| Data transfer | $0 | | |
-| CloudWatch | $0 | | |
-| **Total** | **$22.50** | | **Budget: $35** |
+| Item                  | Planned    | Actual | Notes           |
+| --------------------- | ---------- | ------ | --------------- |
+| EC2 t3.large (8h/day) | $20        |        |                 |
+| EBS Storage (50GB)    | $2.50      |        |                 |
+| Data transfer         | $0         |        |                 |
+| CloudWatch            | $0         |        |                 |
+| **Total**             | **$22.50** |        | **Budget: $35** |
 
 ---
 
@@ -324,24 +332,26 @@ Before going to production, execute:
 
 ## Key Takeaways
 
-| Goal | Solution | Cost Impact |
-|------|----------|-------------|
-| **Faster pages** | Upgrade to t3.large | +$10/month |
-| **Cost control** | Stop when not using | -$40/month |
-| **Auto shutdown** | Install script | $0 + peace of mind |
-| **Budget safety** | CloudWatch alerts | $0 + assurance |
-| **Phase 2 scale** | SPOT instances | -$14/month for burst |
+| Goal              | Solution            | Cost Impact          |
+| ----------------- | ------------------- | -------------------- |
+| **Faster pages**  | Upgrade to t3.large | +$10/month           |
+| **Cost control**  | Stop when not using | -$40/month           |
+| **Auto shutdown** | Install script      | $0 + peace of mind   |
+| **Budget safety** | CloudWatch alerts   | $0 + assurance       |
+| **Phase 2 scale** | SPOT instances      | -$14/month for burst |
 
 ---
 
 ## Support & Escalation
 
 **Questions about costs?**
+
 - See AWS EC2 pricing page
 - Contact AWS Support for reserved instances
 - Consider AWS Cost Optimization reviews
 
 **Got an unexpected bill?**
+
 - Check CloudWatch logs for rogue processes
 - Verify no SPOT instances left running
 - Contact AWS for bill review

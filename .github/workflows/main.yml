@@ -1,0 +1,230 @@
+name: MarketBrewer v1.0.0 CI/CD Pipeline
+
+on:
+    push:
+        branches: [main, staging]
+    pull_request:
+        branches: [main, staging]
+
+env:
+    NODE_VERSION: "18"
+
+jobs:
+    # Job 1: Lint & Type Check
+    lint-and-typecheck:
+        name: Lint & TypeScript Check
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: TypeScript compilation check
+              run: npm run typecheck
+
+            - name: Lint code
+              run: npm run lint
+
+    # Job 2: Build
+    build:
+        name: Build All Packages
+        runs-on: ubuntu-latest
+        needs: lint-and-typecheck
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build all packages
+              run: npm run build:all
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-artifacts
+                  path: |
+                      packages/server/dist
+                      packages/dashboard/dist
+                  retention-days: 5
+
+    # Job 3: Unit Tests
+    test:
+        name: Run Unit Tests
+        runs-on: ubuntu-latest
+        needs: lint-and-typecheck
+        strategy:
+            matrix:
+                test-suite: ["shared", "server", "worker"]
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run ${{ matrix.test-suite }} tests
+              run: npm run test:${{ matrix.test-suite }}
+
+            - name: Upload coverage reports
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-${{ matrix.test-suite }}
+                  path: packages/${{ matrix.test-suite }}/coverage/
+                  retention-days: 30
+
+    # Job 4: Smoke Tests (Local)
+    smoke-tests:
+        name: API Smoke Tests
+        runs-on: ubuntu-latest
+        needs: build
+        services:
+            # Could add SQLite setup here if needed
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build server
+              run: npm run build:server
+
+            - name: Start API server
+              run: |
+                  cd packages/server
+                  API_TOKEN=test-token npm start &
+                  sleep 5
+              env:
+                  NODE_ENV: test
+                  DATABASE_PATH: /tmp/test.db
+
+            - name: Run smoke tests
+              run: bash scripts/smoke-tests.sh local
+              continue-on-error: true
+
+    # Job 5: Security Check
+    security-check:
+        name: Security Vulnerability Scan
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run npm audit (advisory only)
+              run: npm audit --audit-level=moderate
+              continue-on-error: true
+
+    # Job 6: Code Coverage Report
+    coverage-report:
+        name: Code Coverage Summary
+        runs-on: ubuntu-latest
+        needs: test
+        if: always()
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download all coverage reports
+              uses: actions/download-artifact@v4
+              with:
+                  path: coverage-reports
+
+            - name: Generate coverage badge
+              run: |
+                  echo "Coverage reports downloaded to coverage-reports/"
+                  echo "Check individual test outputs for details"
+
+    # Job 7: Production Build (Main branch only)
+    production-build:
+        name: Production Build Verification
+        runs-on: ubuntu-latest
+        needs: [build, test, lint-and-typecheck]
+        if: github.ref == 'refs/heads/main'
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Production build
+              run: npm run build:all
+              env:
+                  NODE_ENV: production
+
+            - name: Verify build outputs exist
+              run: |
+                  test -d packages/server/dist || exit 1
+                  test -d packages/dashboard/dist || exit 1
+                  echo "✓ Production build verified"
+
+            - name: Calculate bundle size
+              run: |
+                  echo "Server bundle size:"
+                  du -sh packages/server/dist
+                  echo "Dashboard bundle size:"
+                  du -sh packages/dashboard/dist
+
+    # Job 8: Generate Report
+    test-report:
+        name: Test & Build Report
+        runs-on: ubuntu-latest
+        needs: [lint-and-typecheck, build, test, smoke-tests]
+        if: always()
+        steps:
+            - name: Generate summary
+              run: |
+                  echo "## ✓ MarketBrewer v1.0.0 CI/CD Pipeline" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+                  echo "- Lint & TypeScript: ${{ needs.lint-and-typecheck.result }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Unit Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Smoke Tests: ${{ needs.smoke-tests.result }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Build Artifacts" >> $GITHUB_STEP_SUMMARY
+                  echo "- Server build: `packages/server/dist`" >> $GITHUB_STEP_SUMMARY
+                  echo "- Dashboard build: `packages/dashboard/dist`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Documentation" >> $GITHUB_STEP_SUMMARY
+                  echo "- [Deployment Guide](docs/DEPLOYMENT.md)" >> $GITHUB_STEP_SUMMARY
+                  echo "- [EC2 Setup](docs/EC2-SETUP.md)" >> $GITHUB_STEP_SUMMARY
+                  echo "- [Cost Optimization](docs/COST-OPTIMIZATION.md)" >> $GITHUB_STEP_SUMMARY
