@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { DashboardLayout } from "./DashboardLayout";
-import { QuestionnaireForm } from "./QuestionnaireForm";
+import {
+  BusinessProfileLayout,
+  type ProfileSection,
+} from "./profile-v1/BusinessProfileLayout";
+import { EssentialsTab } from "./profile-v1/EssentialsTab";
+import { LocationsAndHoursTab } from "./profile-v1/LocationsAndHoursTab";
+import { SocialLinksTab } from "./profile-v1/SocialLinksTab";
+import { ContentProfileTab } from "./profile-v1/ContentProfileTab";
 import { ValidationSummary } from "./ValidationSummary";
 import { StickyFooter } from "./StickyFooter";
-import { BusinessDetailsForm } from "./BusinessDetailsForm";
-import { ProfileStatus } from "./ProfileStatus";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
 import { safeDeepMerge } from "../../lib/safe-deep-merge";
@@ -33,6 +37,10 @@ import { createEmptyQuestionnaire } from "@marketbrewer/shared";
 export const BusinessProfile: React.FC = () => {
   const { selectedBusiness } = useBusiness();
   const { addToast } = useToast();
+
+  // Navigation state
+  const [activeSection, setActiveSection] =
+    useState<ProfileSection>("essentials");
 
   // Business form state
   const [business, setBusiness] = useState<Business | null>(null);
@@ -391,124 +399,104 @@ export const BusinessProfile: React.FC = () => {
   }, [businessDirty, validationErrors]);
 
   return (
-    <DashboardLayout>
-      <div className="pb-24 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Business Profile</h1>
+    <BusinessProfileLayout
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      completenessScore={completenessScore}
+    >
+      {!selectedBusiness ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              className="w-full h-full"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.5m0 0H9m0 0H3.5m0 0H1m5.5 0a2.121 2.121 0 00-3-3m3 3a2.121 2.121 0 01-3-3m3 3v3.5M3.5 21h5.5m0 0v3.5"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No business selected
+          </h3>
           <p className="text-gray-600">
-            Manage your business information and profile details for content
-            generation.
+            Select a business from the sidebar to manage its profile.
           </p>
         </div>
-
-        {!selectedBusiness ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
-              <svg
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                className="w-full h-full"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.5m0 0H9m0 0H3.5m0 0H1m5.5 0a2.121 2.121 0 00-3-3m3 3a2.121 2.121 0 01-3-3m3 3v3.5M3.5 21h5.5m0 0v3.5"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No business selected
-            </h3>
-            <p className="text-gray-600">
-              Select a business from the sidebar to manage its profile.
-            </p>
+      ) : loading ? (
+        <div className="space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+            ))}
           </div>
-        ) : loading ? (
-          <div className="space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="h-10 bg-gray-200 rounded animate-pulse"
-                  />
-                ))}
-              </div>
-              <div className="lg:col-span-2 space-y-3">
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="h-10 bg-gray-200 rounded w-24 animate-pulse"
-                    />
-                  ))}
-                </div>
-                <div className="h-64 bg-gray-200 rounded animate-pulse" />
-              </div>
-            </div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded p-4 text-red-600">
+          {error}
+        </div>
+      ) : (
+        <>
+          {/* Validation Summary */}
+          <div ref={validationSummaryRef}>
+            {validationErrorsList.length > 0 && (
+              <ValidationSummary errors={validationErrorsList} />
+            )}
           </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded p-4 text-red-600">
-            {error}
-          </div>
-        ) : (
-          <>
-            {/* Validation Summary */}
-            <div ref={validationSummaryRef}>
-              {validationErrorsList.length > 0 && (
-                <ValidationSummary errors={validationErrorsList} />
-              )}
-            </div>
 
-            {/* Main Grid: Left column (Status + Core Details) + Right column (Questionnaire) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1 space-y-8">
-                <ProfileStatus completenessScore={completenessScore} />
+          {/* Render active section */}
+          {activeSection === "essentials" && (
+            <EssentialsTab
+              business={business}
+              validationErrors={validationErrors}
+              onChange={setBusiness}
+              disabled={isSavingAny}
+            />
+          )}
 
-                <div className="border rounded-lg p-6 bg-white shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    Core Details
-                  </h2>
-                  <BusinessDetailsForm
-                    business={business}
-                    validationErrors={validationErrors}
-                    onChange={setBusiness}
-                    disabled={isSavingAny}
-                  />
-                </div>
-              </div>
+          {activeSection === "locations" && selectedBusiness && (
+            <LocationsAndHoursTab
+              businessId={selectedBusiness}
+              isLoading={loading}
+              isSaving={isSavingAny}
+            />
+          )}
 
-              <div className="lg:col-span-2 border rounded-lg p-6 bg-white shadow-sm">
-                <QuestionnaireForm
-                  data={questionnaireData}
-                  onDataChange={handleQuestionnaireDataChange}
-                  onSave={handleSaveQuestionnaire}
-                  onCancel={handleCancelQuestionnaire}
-                  isSaving={savingQ}
-                  isLoading={loading}
-                  hasUnsavedChanges={questionnaireDirty}
-                  businessId={selectedBusiness ?? undefined}
-                  onBulkOperationChange={setBulkAreasLoading}
-                />
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+          {activeSection === "social" && (
+            <SocialLinksTab isSaving={isSavingAny} />
+          )}
 
-      {/* Sticky Footer with Unified Save Controls */}
-      {selectedBusiness && !loading && (
-        <StickyFooter
-          hasChanges={hasAnyUnsavedChanges}
-          isSaving={isSavingAny}
-          onSave={handleSaveAll}
-          onCancel={handleCancelAll}
-        />
+          {activeSection === "content" && (
+            <ContentProfileTab
+              data={questionnaireData}
+              onDataChange={handleQuestionnaireDataChange}
+              onSave={handleSaveQuestionnaire}
+              onCancel={handleCancelQuestionnaire}
+              isSaving={savingQ}
+              isLoading={loading}
+              hasUnsavedChanges={questionnaireDirty}
+              businessId={selectedBusiness ?? undefined}
+            />
+          )}
+        </>
       )}
-    </DashboardLayout>
+    </BusinessProfileLayout>
+
+    {/* Sticky Footer with Unified Save Controls */}
+    {selectedBusiness && !loading && (
+      <StickyFooter
+        hasChanges={hasAnyUnsavedChanges}
+        isSaving={isSavingAny}
+        onSave={handleSaveAll}
+        onCancel={handleCancelAll}
+      />
+    )}
   );
 };
 
