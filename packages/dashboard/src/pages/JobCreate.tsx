@@ -11,7 +11,7 @@ import type { PageType } from "@marketbrewer/shared";
 export const JobCreate: React.FC = () => {
   const navigate = useNavigate();
   const { selectedBusiness, setSelectedBusiness, businesses } = useBusiness();
-  const [pageType, setPageType] = useState<PageType>("keyword-location");
+  const [pageType, setPageType] = useState<PageType>("location-keyword");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completenessScore, setCompletenessScore] = useState<number | null>(
@@ -145,8 +145,8 @@ export const JobCreate: React.FC = () => {
               <input
                 type="radio"
                 name="pageType"
-                value="keyword-location"
-                checked={pageType === "keyword-location"}
+                value="location-keyword"
+                checked={pageType === "location-keyword"}
                 onChange={(e) => setPageType(e.target.value as PageType)}
                 className="mr-2"
                 disabled={loading}
@@ -160,8 +160,8 @@ export const JobCreate: React.FC = () => {
               <input
                 type="radio"
                 name="pageType"
-                value="service-location"
-                checked={pageType === "service-location"}
+                value="service-area"
+                checked={pageType === "service-area"}
                 onChange={(e) => setPageType(e.target.value as PageType)}
                 className="mr-2"
                 disabled={loading}

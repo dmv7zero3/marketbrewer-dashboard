@@ -15,7 +15,7 @@ const router = Router();
  * Validation schema for creating a prompt template
  */
 const CreatePromptSchema = z.object({
-  page_type: z.enum(["service-location", "keyword-location"]),
+  page_type: z.enum(["location-keyword", "service-area"]),
   version: z.number().int().positive(),
   template: z.string().min(10).max(50000),
   required_variables: z.array(z.string()).optional(),

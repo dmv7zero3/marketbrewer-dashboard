@@ -11,6 +11,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { title: "Business Profile", path: "/dashboard/business-profile" },
+  { title: "Store Locations", path: "/dashboard/locations" },
   { title: "SEO Keywords", path: "/dashboard/keywords" },
   { title: "Service Areas", path: "/dashboard/service-areas" },
   { title: "Prompts", path: "/dashboard/prompts" },

@@ -20,25 +20,53 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (process.env.NODE_ENV === "development") {
-      console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(
+        `[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${
+          config.url
+        }`
+      );
+      console.log(`[API Request] Headers:`, config.headers);
     }
     return config;
   },
   (error) => {
+    console.error("[API Request Error]", error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[API Response] ${response.status} ${response.config.url}`);
+    }
+    return response;
+  },
   (error) => {
-    if (error.response) {
+    // Network error (server not reachable)
+    if (error.code === "ERR_NETWORK" || error.code === "ECONNREFUSED") {
+      console.error(
+        `[API Error] Server not reachable at ${API_URL}`,
+        "\n→ Is the server running? Start it with: npm run dev:server"
+      );
+    }
+    // HTTP error response
+    else if (error.response) {
       console.error(
         `[API Error] ${error.response.status}:`,
         error.response.data
       );
-    } else {
+      // Log validation details if present
+      if (error.response.data?.details) {
+        console.error(
+          "[API Error] Validation details:",
+          error.response.data.details
+        );
+      }
+    }
+    // Other errors
+    else {
       console.error("[API Error]", error.message);
     }
     return Promise.reject(error);

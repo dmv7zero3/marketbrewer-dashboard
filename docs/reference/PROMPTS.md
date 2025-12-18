@@ -22,25 +22,27 @@ Every prompt should return:
 
 ### Required (all templates)
 
-| Variable | Source | Example |
-|----------|--------|---------|
+| Variable            | Source           | Example        |
+| ------------------- | ---------------- | -------------- |
 | `{{business_name}}` | Business profile | Nash & Smashed |
-| `{{city}}` | Service area | Sterling |
-| `{{state}}` | Service area | VA |
-| `{{phone}}` | Business profile | 703-555-1234 |
+| `{{city}}`          | Service area     | Sterling       |
+| `{{state}}`         | Service area     | VA             |
+| `{{phone}}`         | Business profile | 703-555-1234   |
 
 ### Optional (enhance quality)
 
-| Variable | Source | Example |
-|----------|--------|---------|
-| `{{years_experience}}` | Questionnaire | 15 |
-| `{{differentiators}}` | Questionnaire | Halal-certified, family-owned |
-| `{{target_audience}}` | Questionnaire | Families seeking halal options |
-| `{{cta_text}}` | Content preferences | Call now for a free consultation |
+| Variable               | Source              | Example                          |
+| ---------------------- | ------------------- | -------------------------------- |
+| `{{years_experience}}` | Questionnaire       | 15                               |
+| `{{differentiators}}`  | Questionnaire       | Halal-certified, family-owned    |
+| `{{target_audience}}`  | Questionnaire       | Families seeking halal options   |
+| `{{cta_text}}`         | Content preferences | Call now for a free consultation |
 
 ---
 
-## Service-Location Template
+## Location-Keyword Template
+
+Generates pages for **actual store locations** (cities where physical stores exist).
 
 ```
 You are an SEO content writer for {{business_name}}, a {{industry}} business.
@@ -83,7 +85,9 @@ IMPORTANT:
 
 ---
 
-## Keyword-Location Template
+## Service-Area Template
+
+Generates pages for **nearby cities** (no physical store, but targeting for SEO).
 
 ```
 You are an SEO content writer. Create a landing page optimized for "{{primary_keyword}}" targeting {{city}}, {{state}}.
@@ -163,15 +167,15 @@ LEGAL NOTES:
 
 After generation, validate:
 
-| Check | Rule | Action |
-|-------|------|--------|
-| Title length | ≤70 chars | Truncate or regenerate |
-| Meta length | ≤160 chars | Truncate or regenerate |
-| Word count | 350-500 words | Flag for review |
-| Keyword in title | Required | Flag for review |
-| Phone in body | Required | Flag for review |
-| City mentions | 2+ times | Flag for review |
-| No placeholders | No `{{var}}` | Regenerate |
+| Check            | Rule          | Action                 |
+| ---------------- | ------------- | ---------------------- |
+| Title length     | ≤70 chars     | Truncate or regenerate |
+| Meta length      | ≤160 chars    | Truncate or regenerate |
+| Word count       | 350-500 words | Flag for review        |
+| Keyword in title | Required      | Flag for review        |
+| Phone in body    | Required      | Flag for review        |
+| City mentions    | 2+ times      | Flag for review        |
+| No placeholders  | No `{{var}}`  | Regenerate             |
 
 ---
 
@@ -181,9 +185,8 @@ Store templates with versions:
 
 ```
 config/prompts/
-├── service-location-v1.json
-├── service-location-v2.json  ← current
-├── keyword-location-v1.json  ← current
+├── location-keyword-v1.json  ← current (store cities)
+├── service-area-v1.json  ← current (nearby cities)
 ├── restaurant-v1.json
 └── legal-v1.json
 ```
@@ -196,7 +199,7 @@ Track which version generated each page for rollback.
 
 ```json
 {
-  "pageType": "service-location",
+  "pageType": "location-keyword",
   "version": 2,
   "template": "You are an SEO content writer...",
   "requiredVariables": ["business_name", "city", "state", "phone"],

@@ -79,7 +79,9 @@ CREATE TABLE service_areas (
 CREATE TABLE prompt_templates (
   id TEXT PRIMARY KEY,
   business_id TEXT NOT NULL REFERENCES businesses(id),
-  page_type TEXT NOT NULL,  -- 'service-location' | 'keyword-location'
+  page_type TEXT NOT NULL,  -- 'location-keyword' | 'service-area'
+  -- location-keyword: store cities (from locations table) × keywords
+  -- service-area: nearby cities (from service_areas table) × keywords
   version INTEGER NOT NULL DEFAULT 1,
   template TEXT NOT NULL,
   required_variables TEXT,  -- JSON array
@@ -153,15 +155,15 @@ CREATE TABLE workers (
 ### Atomic Page Claim
 
 ```sql
-UPDATE job_pages 
-SET 
+UPDATE job_pages
+SET
   status = 'processing',
   worker_id = :worker_id,
   claimed_at = CURRENT_TIMESTAMP,
   attempts = attempts + 1
 WHERE id = (
-  SELECT id FROM job_pages 
-  WHERE job_id = :job_id 
+  SELECT id FROM job_pages
+  WHERE job_id = :job_id
     AND status = 'queued'
   ORDER BY created_at ASC
   LIMIT 1
@@ -173,11 +175,11 @@ RETURNING *;
 
 ```sql
 UPDATE job_pages
-SET 
+SET
   status = 'queued',
   worker_id = NULL,
   claimed_at = NULL
-WHERE 
+WHERE
   status = 'processing'
   AND claimed_at < datetime('now', '-5 minutes');
 ```
@@ -185,7 +187,7 @@ WHERE
 ### Job Progress
 
 ```sql
-SELECT 
+SELECT
   status,
   COUNT(*) as count
 FROM job_pages
@@ -230,10 +232,10 @@ cp ./data/seo-platform.db "./data/seo-platform-$(date +%Y%m%d-%H%M%S).db"
 
 When migrating to AWS, the schema maps to single-table design:
 
-| SQLite Table | DynamoDB PK | DynamoDB SK |
-|--------------|-------------|-------------|
-| businesses | `BUS#{id}` | `PROFILE` |
-| keywords | `BUS#{business_id}` | `KW#{slug}` |
-| service_areas | `BUS#{business_id}` | `AREA#{slug}` |
-| generation_jobs | `JOB#{id}` | `STATUS#{status}` |
-| job_pages | `JOB#{job_id}` | `PAGE#{id}` |
+| SQLite Table    | DynamoDB PK         | DynamoDB SK       |
+| --------------- | ------------------- | ----------------- |
+| businesses      | `BUS#{id}`          | `PROFILE`         |
+| keywords        | `BUS#{business_id}` | `KW#{slug}`       |
+| service_areas   | `BUS#{business_id}` | `AREA#{slug}`     |
+| generation_jobs | `JOB#{id}`          | `STATUS#{status}` |
+| job_pages       | `JOB#{job_id}`      | `PAGE#{id}`       |

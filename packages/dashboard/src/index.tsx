@@ -15,6 +15,7 @@ import {
   KeywordsManagement,
   ServiceAreas,
   PageContentGeneration,
+  LocationsManagement,
   Sidebar,
 } from "./components/dashboard";
 import "./styles/index.css";
@@ -82,7 +83,10 @@ const App: React.FC = () => (
               element={<KeywordsManagement />}
             />
             <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
-
+            <Route
+              path="/dashboard/locations"
+              element={<LocationsManagement />}
+            />
             <Route
               path="/dashboard/page-content-generation"
               element={<PageContentGeneration />}

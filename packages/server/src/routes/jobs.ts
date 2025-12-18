@@ -79,10 +79,10 @@ router.post(
         );
       }
 
-      if (data.page_type === "keyword-location" && keywords.length === 0) {
+      if (data.page_type === "location-keyword" && keywords.length === 0) {
         throw new HttpError(
           422,
-          "At least one keyword is required for keyword-location pages",
+          "At least one keyword is required for location-keyword pages",
           "INSUFFICIENT_DATA"
         );
       }
@@ -101,8 +101,34 @@ router.post(
         created_at: string;
       }> = [];
 
-      if (data.page_type === "keyword-location") {
-        // Create a page for each keyword × service area combination
+      if (data.page_type === "location-keyword") {
+        // location-keyword: Business location city × keyword
+        // Uses actual store locations (NOT service areas)
+        const locations = dbAll<{ city: string; state: string }>(
+          "SELECT DISTINCT city, state FROM locations WHERE business_id = ? AND status = 'active' AND is_headquarters = 0 ORDER BY priority DESC",
+          [businessId]
+        );
+
+        for (const keyword of keywords) {
+          for (const location of locations) {
+            const locationSlug = toCityStateSlug(location.city, location.state);
+            const urlPath = `/${keyword.slug}/${locationSlug}`;
+
+            jobPages.push({
+              id: generateId(),
+              job_id: jobId,
+              business_id: businessId,
+              keyword_slug: keyword.slug,
+              service_area_slug: locationSlug,
+              url_path: urlPath,
+              status: "queued",
+              created_at: now,
+            });
+          }
+        }
+      } else if (data.page_type === "service-area") {
+        // service-area: Nearby city (no store) × keyword
+        // Uses service areas (cities around stores, not store cities themselves)
         for (const keyword of keywords) {
           for (const area of serviceAreas) {
             const serviceAreaSlug = toCityStateSlug(area.city, area.state);
@@ -119,23 +145,6 @@ router.post(
               created_at: now,
             });
           }
-        }
-      } else {
-        // service-location: One page per service area
-        for (const area of serviceAreas) {
-          const serviceAreaSlug = toCityStateSlug(area.city, area.state);
-          const urlPath = `/${serviceAreaSlug}`;
-
-          jobPages.push({
-            id: generateId(),
-            job_id: jobId,
-            business_id: businessId,
-            keyword_slug: null,
-            service_area_slug: serviceAreaSlug,
-            url_path: urlPath,
-            status: "queued",
-            created_at: now,
-          });
         }
       }
 

@@ -11,6 +11,7 @@ module.exports = {
       { configFile: "<rootDir>/../../babel.config.js" },
     ],
   },
+  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
   collectCoverageFrom: [
     "<rootDir>/src/middleware/**/*.{ts,tsx}",
     "!<rootDir>/src/**/*.d.ts",
@@ -24,4 +25,5 @@ module.exports = {
       statements: 30,
     },
   },
+  testTimeout: 30000,
 };

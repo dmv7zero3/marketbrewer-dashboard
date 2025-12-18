@@ -230,7 +230,7 @@ POST /businesses/:id/prompts
 Content-Type: application/json
 
 {
-  "pageType": "service-location",
+  "pageType": "location-keyword",  // Store cities × keywords
   "template": "Write a local SEO page for {{business_name}}...",
   "requiredVariables": ["business_name", "city", "state"],
   "optionalVariables": ["phone", "years_experience"],
@@ -249,7 +249,7 @@ POST /businesses/:id/generate
 Content-Type: application/json
 
 {
-  "pageType": "keyword-location"
+  "pageType": "service-area"  // Nearby cities × keywords
 }
 ```
 

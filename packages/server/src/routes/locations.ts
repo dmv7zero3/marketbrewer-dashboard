@@ -70,7 +70,7 @@ router.get(
       const stats: LocationStats = {
         total: locations.length,
         active: locations.filter((l) => l.status === "active").length,
-        comingSoon: locations.filter((l) => l.status === "coming-soon").length,
+        upcoming: locations.filter((l) => l.status === "upcoming").length,
         byState: {},
         byCountry: {},
       };

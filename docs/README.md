@@ -54,7 +54,7 @@ Architecture Decision Records (ADRs) in `decisions/`:
 
 **Included:**
 
-- Page types: `service-location`, `keyword-location`
+- Page types: `location-keyword` (store cities × keywords), `service-area` (nearby cities × keywords)
 - LLM: Ollama only (local)
 - Workers: 2+ laptops via Tailscale
 - Database: SQLite

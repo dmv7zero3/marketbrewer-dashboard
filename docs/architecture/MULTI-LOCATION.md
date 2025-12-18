@@ -4,6 +4,17 @@
 
 This document outlines the multi-location system designed for franchise and multi-location businesses like Nash & Smashed, based on their real-world 28+ location operation across VA, MD, DC, SC, and NY.
 
+## Location Status Model (V1.1)
+
+**Simplified 2-status model:**
+
+| Status     | Description                      | UI Badge |
+| ---------- | -------------------------------- | -------- |
+| `active`   | Location is open and operational | Green    |
+| `upcoming` | Location is planned/coming soon  | Blue     |
+
+> **Migration Note:** Previous 4-status model (`active`, `coming-soon`, `closed`, `temporarily-closed`) has been simplified. Closed locations are archived to `locations_archive` table.
+
 ## Database Schema
 
 ### `locations` Table
@@ -16,7 +27,7 @@ This document outlines the multi-location system designed for franchise and mult
 - `city` - City name
 - `state` - State/region code
 - `country` - Country (default: "USA")
-- `status` - Operational status: `active`, `coming-soon`, `closed`, `temporarily-closed`
+- `status` - Operational status: `active` or `upcoming`
 
 **Optional Fields:**
 
@@ -33,13 +44,28 @@ This document outlines the multi-location system designed for franchise and mult
 - `note` - Special notes (e.g., "Inside Walmart Super-center")
 - `priority` - Display ordering
 
+### `locations_archive` Table
+
+Stores closed/removed locations for historical reference:
+
+- Same fields as `locations` table
+- `original_status` - Status before archiving
+- `archived_at` - When location was archived
+- `archive_reason` - Why location was archived
+
 ### Service Area Integration
 
-Locations can **automatically create service areas** for SEO content generation:
+**Key Distinction:**
 
-- Active locations → auto-create corresponding service area
-- Service areas can reference their source location via `location_id`
-- When a location closes, service area remains but is unlinked
+- **Locations** = Cities where physical stores exist
+- **Service Areas** = Nearby/surrounding cities you want to target for SEO (NOT duplicates of store cities)
+
+**Relationship:**
+
+- Service areas can optionally reference a nearby location via `location_id`
+- Service areas are additional cities around locations, expanding SEO reach
+- Example: Manassas store location → service areas might include Centreville, Bull Run, Gainesville
+- When a location is archived, its linked service areas remain but are unlinked
 
 ## API Endpoints
 
@@ -49,8 +75,12 @@ GET    /api/businesses/:id/locations/stats              # Statistics
 GET    /api/businesses/:id/locations/:locationId        # Get single
 POST   /api/businesses/:id/locations                    # Create
 PUT    /api/businesses/:id/locations/:locationId        # Update
-DELETE /api/businesses/:id/locations/:locationId        # Delete
+DELETE /api/businesses/:id/locations/:locationId        # Delete (archives)
 POST   /api/businesses/:id/locations/bulk-import        # Bulk import
+
+# Archive endpoints
+GET    /api/businesses/:id/locations/archive            # List archived
+POST   /api/businesses/:id/locations/:id/restore        # Restore from archive
 ```
 
 ## UI/UX Features
@@ -58,10 +88,10 @@ POST   /api/businesses/:id/locations/bulk-import        # Bulk import
 ### List View
 
 - **Grouping**: Locations grouped by state/region
-- **Filters**: Status (active/coming-soon) and state dropdown
-- **Stats Cards**: Total, Active, Coming Soon, States count
-- **Status Badges**: Color-coded (green=active, blue=coming-soon, yellow=temp closed, gray=closed)
-- **Quick Actions**: Map link, Order link, Edit, Delete
+- **Filters**: Status (active/upcoming) and state dropdown
+- **Stats Cards**: Total, Active, Upcoming, States count
+- **Status Badges**: Color-coded (green=active, blue=upcoming)
+- **Quick Actions**: Map link, Order link, Edit, Delete (archive)
 
 ### Form Experience
 
@@ -73,7 +103,7 @@ POST   /api/businesses/:id/locations/bulk-import        # Bulk import
   - `status` defaults to "active"
 
 - **Conditional Validation**:
-  - Coming-soon locations: only require name, city, state, country
+  - Upcoming locations: only require name, city, state, country
   - Active locations: encourage but don't require address, phone, contact
 
 ### Bulk Import
@@ -83,195 +113,150 @@ POST   /api/businesses/:id/locations/bulk-import        # Bulk import
 - Error reporting per row
 - Partial success handling (e.g., 25 created, 2 failed)
 
-## Recommendations
-
-### 1. **Status-Based Requirements**
-
-**Coming Soon Locations** (minimal required):
-
-```typescript
-{
-  name: "Alexandria",
-  city: "Alexandria",
-  state: "VA",
-  country: "USA",
-  status: "coming-soon",
-  email: "Farhan-mushtaq@hotmail.com" // optional
-}
-```
-
-**Active Locations** (fuller profile):
-
-```typescript
-{
-  name: "Manassas",
-  city: "Manassas",
-  state: "VA",
-  country: "USA",
-  status: "active",
-  address: "12853 Galveston Ct",
-  zip_code: "20112",
-  phone: "571-762-2677",
-  email: "kaziarif393@gmail.com",
-  google_maps_url: "https://maps.app.goo.gl/...",
-  store_id: "3045437",
-  order_link: "https://order.online/store/..."
-}
-```
-
-### 2. **Headquarters Management**
-
-- One location per business can be marked `is_headquarters: true`
-- Headquarters appears first in lists
-- Special visual indicator in UI
-- Used for default contact info in generated content
-
-### 3. **Service Area Automation**
-
-**Recommended Flow:**
-
-1. User adds active location → system asks "Create service area for {city}, {state}?"
-2. If yes → auto-create service area with same city/state/country
-3. Link service area to location via `location_id`
-4. When generating content, prefer locations with linked service areas
-
-**Benefits:**
-
-- Reduces duplicate data entry
-- Ensures service areas match actual locations
-- Easy audit: which service areas have physical locations
-
-### 4. **Bulk Operations**
-
-**Import Format** (CSV or JSON):
+**CSV Format:**
 
 ```csv
-name,city,state,country,status,address,zip_code,phone,email,google_maps_url
-Manassas,Manassas,VA,USA,active,12853 Galveston Ct,20112,571-762-2677,kaziarif393@gmail.com,https://maps.app.goo.gl/...
-Alexandria,Alexandria,VA,USA,coming-soon,,,,Farhan-mushtaq@hotmail.com,
+name,city,state,country,status,address,zip_code,phone,email,note
+Manassas,Manassas,VA,USA,active,12853 Galveston Ct,20112,571-762-2677,kaziarif393@gmail.com,
+Alexandria,Alexandria,VA,USA,upcoming,7609 Richmond Hwy,22306,,Farhan-mushtaq@hotmail.com,
 ```
 
-**Import Options:**
+## TypeScript Types
 
-- `auto_create_service_areas`: true/false
-- `skip_duplicates`: true/false
-- `update_existing`: true/false
+```typescript
+type LocationStatus = "active" | "upcoming";
 
-### 5. **Map Integration**
+interface Location {
+  id: string;
+  business_id: string;
 
-**Phase 1** (Current):
+  // Required
+  name: string;
+  city: string;
+  state: string;
+  country: string;
+  status: LocationStatus;
 
-- Store Google Maps URLs
-- External link in UI
+  // Optional
+  display_name?: string | null;
+  address?: string | null;
+  zip_code?: string | null;
+  full_address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  google_maps_url?: string | null;
+  store_id?: string | null;
+  order_link?: string | null;
+  is_headquarters?: boolean;
+  note?: string | null;
+  priority?: number;
 
-**Phase 2** (Future Enhancement):
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
+```
 
-- Embedded map view in dashboard
-- Visual location picker for new locations
-- Geocoding API to validate addresses
-- Distance-based service area expansion
+## Helper Functions
 
-### 6. **Franchise/Multi-Owner Support**
+```typescript
+import {
+  getLocationDisplayValue,
+  getLocationOptionText,
+  getLocationsByStatus,
+  getActiveLocations,
+  getUpcomingLocations,
+  getLocationGroups,
+} from "@marketbrewer/shared";
 
-For franchise operations like Nash & Smashed (each location has owner email):
+// Display value with status indicator
+getLocationDisplayValue(location); // "Manassas, VA" or "Alexandria, VA (Coming Soon)"
 
-**Option A: Simple** (Current)
+// For dropdowns
+getLocationOptionText(location); // "Nash and Smashed (Manassas)" or with "(Coming Soon)"
 
-- `email` field stores franchisee contact
-- Used for operational communication
+// Filter by status
+const active = getActiveLocations(locations);
+const upcoming = getUpcomingLocations(locations);
 
-**Option B: Advanced** (Future)
+// Group by region
+const groups = getLocationGroups(locations);
+// { "Virginia": [...], "Maryland": [...], "Washington D.C.": [...] }
+```
 
-- Add `franchisee_id` foreign key
-- Link to `franchisees` table with full profile
-- Role-based access: franchisees see only their locations
+## Location Status Workflow
 
-### 7. **Location Status Workflow**
-
-Recommended status transitions:
+Simple status transitions:
 
 ```
-coming-soon → active → temporarily-closed → active
-                    └→ closed (permanent)
+upcoming → active (location opens)
+active → (archive) (location closes permanently)
 ```
 
 **UI Features:**
 
 - Quick status toggle in list view
-- Confirmation for permanent closure
-- Archive/hide closed locations option
+- Confirmation for archiving
+- View archived locations in separate tab
 
-### 8. **Content Generation Integration**
+## Content Generation Integration
 
-**Current**: Service areas drive content generation
+**How it works:**
 
-**With Locations**:
+1. **Service areas** drive what cities get SEO pages generated
+2. **Locations** provide real business details for those pages
+
+**Example Flow:**
 
 ```typescript
-// When generating for service area "Manassas, VA"
-const serviceArea = getServiceArea("manassas-va");
-const location = getLocation(serviceArea.location_id);
+// Service area "Centreville, VA" (NOT a store location, but nearby one)
+const serviceArea = getServiceArea("centreville-va");
+const nearestLocation = getLocation(serviceArea.location_id); // e.g., Manassas store
 
-// Prompt enrichment
+// Generate page for Centreville targeting customers there,
+// but showing info about the nearest Manassas location:
 const prompt = buildPrompt({
-  ...baseData,
-  location_name: location.name,
-  location_address: location.full_address,
-  location_phone: location.phone,
-  location_maps_url: location.google_maps_url,
-  location_order_link: location.order_link,
+  target_city: serviceArea.city, // "Centreville"
+  target_state: serviceArea.state, // "VA"
+  nearest_location_name: nearestLocation.name, // "Manassas"
+  location_address: nearestLocation.full_address,
+  location_phone: nearestLocation.phone,
+  location_maps_url: nearestLocation.google_maps_url,
+  location_order_link: nearestLocation.order_link,
 });
 ```
 
 **Benefits:**
 
-- More accurate local content
-- Include actual business details
-- Link to real ordering/maps in generated pages
+- Target more cities than you have physical stores
+- SEO pages for nearby cities drive traffic to actual stores
+- Include real business details (address, phone, ordering) from nearest location
+- Expand local SEO reach without opening new stores
 
-## Migration Strategy
+## Migration from V1.0
 
-### For Existing Nash & Smashed Data:
+If you have existing data with old status values:
 
-1. **Seed Script**:
+```sql
+-- Run migration
+-- packages/server/migrations/004_simplify_location_status.sql
 
-   ```bash
-   npx ts-node scripts/seed-locations-nash-smashed.ts
-   ```
-
-2. **Link to Service Areas**:
-
-   - Match existing service areas by city+state
-   - Set `location_id` on matching pairs
-   - Report unmatched service areas (e.g., broader regions)
-
-3. **Dashboard Rollout**:
-   - Add "Locations" to sidebar
-   - Keep "Service Areas" separate for now
-   - Show link count in both views
-
-## Next Steps
-
-1. ✅ Database schema and migration
-2. ✅ Type definitions and validation schemas
-3. ✅ API endpoints with bulk import
-4. ✅ Basic dashboard component
-5. ⏳ Add/Edit modal forms
-6. ⏳ Bulk import UI
-7. ⏳ Integration with service areas
-8. ⏳ Seed script for Nash & Smashed locations
-9. ⏳ Content generation enrichment
+-- This will:
+-- 1. Archive closed/temporarily-closed locations
+-- 2. Convert coming-soon → upcoming
+-- 3. Update table constraint
+```
 
 ## Example Usage
 
 ```typescript
-// Add new coming-soon location
+// Add new upcoming location
 await createLocation("nash-and-smashed", {
   name: "Tysons Corner",
   city: "McLean",
   state: "VA",
   country: "USA",
-  status: "coming-soon",
+  status: "upcoming",
   email: "franchisee@example.com"
 });
 

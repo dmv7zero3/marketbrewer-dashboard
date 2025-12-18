@@ -18,7 +18,7 @@ const TABS: { name: TabName; label: string }[] = [
   { name: "instructions", label: "Instructions" },
 ];
 
-type PageType = "service-location" | "keyword-location";
+type PageType = "location-keyword" | "service-area";
 
 interface TemplateFormData {
   page_type: PageType;
@@ -31,7 +31,7 @@ interface TemplateFormData {
 }
 
 const EMPTY_FORM: TemplateFormData = {
-  page_type: "service-location",
+  page_type: "location-keyword",
   version: 1,
   template: "",
   required_variables: "",
@@ -253,8 +253,8 @@ export const PromptsManagement: React.FC = () => {
             }
             disabled={saving}
           >
-            <option value="service-location">service-location</option>
-            <option value="keyword-location">keyword-location</option>
+            <option value="location-keyword">location-keyword</option>
+            <option value="service-area">service-area</option>
           </select>
         </div>
 
@@ -427,7 +427,7 @@ export const PromptsManagement: React.FC = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <span
                       className={`px-2 py-0.5 text-xs rounded font-medium ${
-                        t.page_type === "service-location"
+                        t.page_type === "location-keyword"
                           ? "bg-purple-100 text-purple-800"
                           : "bg-green-100 text-green-800"
                       }`}

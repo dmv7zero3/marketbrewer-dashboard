@@ -442,7 +442,7 @@ curl -X POST http://localhost:3001/jobs \
   -H "Content-Type: application/json" \
   -d '{
     "business_id": "{business_id}",
-    "page_type": "service-location"
+    "page_type": "location-keyword"  // Store cities × keywords
   }' | jq '.job'
 
 # Check job status (should move from pending → processing → completed)

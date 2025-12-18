@@ -9,7 +9,15 @@ export type JobStatus =
   | "failed"
   | "cancelled";
 export type PageStatus = "queued" | "processing" | "completed" | "failed";
-export type PageType = "service-location" | "keyword-location";
+
+/**
+ * Page Types:
+ * - location-keyword: Business location city (where store exists) × keyword
+ *   Example: Manassas × best fried chicken
+ * - service-area: Nearby city (no store) × keyword
+ *   Example: Centreville × best fried chicken (targets Centreville, directs to Manassas store)
+ */
+export type PageType = "location-keyword" | "service-area";
 
 export interface GenerationJob {
   id: string;

@@ -173,8 +173,8 @@ Configuration files (templates, seeds).
 ```
 config/
 ├── prompts/
-│   ├── service-location-v1.json
-│   └── keyword-location-v1.json
+│   ├── location-keyword-v1.json  # Store cities × keywords
+│   └── service-area-v1.json      # Nearby cities × keywords
 └── seeds/
     ├── nash-smashed.json
     ├── street-lawyer.json

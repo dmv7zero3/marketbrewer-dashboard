@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 export const PageContentGeneration: React.FC = () => {
   const { selectedBusiness } = useBusiness();
   const { addToast } = useToast();
-  const [pageType, setPageType] = useState<PageType>("keyword-location");
+  const [pageType, setPageType] = useState<PageType>("location-keyword");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [job, setJob] = useState<GenerationJob | null>(null);
@@ -23,7 +23,10 @@ export const PageContentGeneration: React.FC = () => {
       const res = await createJob(selectedBusiness, pageType);
       setJob(res.job);
       setTotalCreated(res.total_pages_created);
-      addToast(`Generation job created successfully (ID: ${res.job.id})`, "success");
+      addToast(
+        `Generation job created successfully (ID: ${res.job.id})`,
+        "success"
+      );
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to create job";
       setError(msg);
@@ -51,8 +54,10 @@ export const PageContentGeneration: React.FC = () => {
                 onChange={(e) => setPageType(e.target.value as PageType)}
                 disabled={creating}
               >
-                <option value="keyword-location">Keyword × Location</option>
-                <option value="service-location">Service Location Only</option>
+                <option value="location-keyword">
+                  Store Locations × Keywords
+                </option>
+                <option value="service-area">Service Areas × Keywords</option>
               </select>
             </div>
 

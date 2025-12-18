@@ -32,7 +32,6 @@ export const KeywordsManagement: React.FC = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let mounted = true;
@@ -111,51 +110,24 @@ export const KeywordsManagement: React.FC = () => {
     }
   };
 
-  const handleUpdatePriority = async (id: string, priority: number) => {
-    if (!selectedBusiness || updatingIds.has(id)) return;
-    setUpdatingIds((prev) => new Set(prev).add(id));
-    try {
-      const { keyword } = await updateKeyword(selectedBusiness, id, {
-        priority,
-      });
-      setKeywords((prev) => prev.map((k) => (k.id === id ? keyword : k)));
-      addToast("Keyword priority updated", "success");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to update keyword";
-      addToast(msg, "error", 5000);
-    } finally {
-      setUpdatingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
-
   const parseBulkKeywords = (text: string) => {
     return text
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
-        // Expected: keyword[, intent][, priority]
+        // Expected: keyword[, intent]
         const parts = line
           .split(",")
           .map((p) => p.trim())
           .filter(Boolean);
-        const [keyword, intentRaw, priorityRaw] = parts;
+        const [keyword, intentRaw] = parts;
         const search_intent = intentRaw || undefined;
-        const priority = priorityRaw
-          ? !Number.isNaN(Number(priorityRaw))
-            ? Number(priorityRaw)
-            : undefined
-          : undefined;
-        return { keyword, search_intent, priority };
+        return { keyword, search_intent };
       })
       .filter((k) => k.keyword) as Array<{
       keyword: string;
       search_intent?: string;
-      priority?: number;
     }>;
   };
 
@@ -227,7 +199,6 @@ export const KeywordsManagement: React.FC = () => {
           await createKeyword(selectedBusiness, {
             keyword: kw.keyword,
             search_intent: kw.search_intent ?? null,
-            priority: kw.priority,
           });
           results.success.push(kw);
         } catch (e) {
@@ -254,11 +225,7 @@ export const KeywordsManagement: React.FC = () => {
       if (results.failed.length > 0) {
         setBulkText(
           results.failed
-            .map((k) =>
-              [k.keyword, k.search_intent, k.priority]
-                .filter(Boolean)
-                .join(", ")
-            )
+            .map((k) => [k.keyword, k.search_intent].filter(Boolean).join(", "))
             .join("\n")
         );
       } else {
@@ -309,26 +276,13 @@ export const KeywordsManagement: React.FC = () => {
                 <p className="text-gray-800">{k.keyword}</p>
                 <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  className="border rounded px-2 py-1 w-20"
-                  value={k.priority}
-                  onChange={(e) =>
-                    handleUpdatePriority(
-                      k.id,
-                      parseInt(e.target.value || "0", 10)
-                    )
-                  }
-                />
-                <button
-                  className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                  onClick={() => handleDelete(k.id)}
-                  disabled={deletingIds.has(k.id)}
-                >
-                  {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
-                </button>
-              </div>
+              <button
+                className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                onClick={() => handleDelete(k.id)}
+                disabled={deletingIds.has(k.id)}
+              >
+                {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
+              </button>
             </li>
           ))}
         </ul>
@@ -342,9 +296,7 @@ export const KeywordsManagement: React.FC = () => {
         <label className="block text-sm font-medium text-gray-700">
           Paste keywords (one per line)
         </label>
-        <p className="text-sm text-gray-600">
-          Format: keyword[, intent][, priority]
-        </p>
+        <p className="text-sm text-gray-600">Format: keyword[, intent]</p>
         <textarea
           className="border rounded p-2 w-full font-mono text-sm"
           rows={12}
@@ -381,10 +333,6 @@ export const KeywordsManagement: React.FC = () => {
           <li>
             <span className="font-medium">Search Intent</span> — optional,
             string (e.g., "informational", "commercial", "transactional")
-          </li>
-          <li>
-            <span className="font-medium">Priority</span> — integer; higher
-            values surface first in content generation
           </li>
           <li>
             <span className="font-medium">Slug</span> — derived from keyword

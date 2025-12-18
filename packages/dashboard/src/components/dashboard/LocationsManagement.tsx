@@ -17,14 +17,70 @@ import type { Location, LocationStats } from "@marketbrewer/shared";
 import {
   getLocations,
   getLocationStats,
+  createLocation,
+  updateLocation,
   deleteLocation,
+  bulkImportLocations,
 } from "../../api/locations";
+import { LocationFormModal, LocationFormData } from "./LocationFormModal";
+import { BulkImportModal } from "./BulkImportModal";
 
-type LocationStatus =
-  | "active"
-  | "coming-soon"
-  | "closed"
-  | "temporarily-closed";
+type LocationStatus = "active" | "upcoming";
+
+/**
+ * Parse CSV or JSON import data into location objects
+ */
+function parseImportData(text: string): LocationFormData[] {
+  const trimmed = text.trim();
+
+  // Try parsing as JSON first
+  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch (e) {
+      throw new Error("Invalid JSON format");
+    }
+  }
+
+  // Parse as CSV
+  const lines = trimmed.split("\n").filter((line) => line.trim());
+  if (lines.length < 2) {
+    throw new Error("CSV must have header row and at least one data row");
+  }
+
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const locations: LocationFormData[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(",").map((v) => v.trim());
+    const location: any = {};
+
+    headers.forEach((header, index) => {
+      const value = values[index];
+      if (value) {
+        // Convert boolean-like strings
+        if (header === "is_headquarters") {
+          location[header] = value.toLowerCase() === "true" || value === "1";
+        } else if (header === "priority") {
+          location[header] = parseInt(value) || 0;
+        } else {
+          location[header] = value;
+        }
+      }
+    });
+
+    if (location.name && location.city && location.state) {
+      locations.push(location as LocationFormData);
+    }
+  }
+
+  if (locations.length === 0) {
+    throw new Error("No valid locations found in CSV");
+  }
+
+  return locations;
+}
 
 export const LocationsManagement: React.FC = () => {
   const { selectedBusiness } = useBusiness();
@@ -37,10 +93,9 @@ export const LocationsManagement: React.FC = () => {
     "all"
   );
   const [stateFilter, setStateFilter] = useState<string>("all");
-  // TODO: Add modal implementations for create, update, and bulk import
-  // const [showAddModal, setShowAddModal] = useState(false);
-  // const [showImportModal, setShowImportModal] = useState(false);
-  // const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
 
   useEffect(() => {
     if (selectedBusiness) {
@@ -73,31 +128,94 @@ export const LocationsManagement: React.FC = () => {
   };
 
   // TODO: Implement handler for adding new locations via modal
-  // const handleAddLocation = async (data: any) => {
-  //   if (!selectedBusiness) return;
-  //   try {
-  //     await createLocation(selectedBusiness, data);
-  //     addToast("Location added successfully", "success");
-  //     loadLocations();
-  //     loadStats();
-  //     setShowAddModal(false);
-  //   } catch (error) {
-  //     addToast("Failed to add location", "error");
-  //   }
-  // };
+  const handleAddLocation = async (data: LocationFormData) => {
+    if (!selectedBusiness) return;
+    try {
+      await createLocation(selectedBusiness, data);
+      addToast("Location added successfully", "success");
+      loadLocations();
+      loadStats();
+      setShowAddModal(false);
+    } catch (error) {
+      addToast("Failed to add location", "error");
+      throw error;
+    }
+  };
 
-  // TODO: Implement handler for updating existing locations via modal
-  // const handleUpdateLocation = async (locationId: string, data: any) => {
-  //   if (!selectedBusiness) return;
-  //   try {
-  //     await updateLocation(selectedBusiness, locationId, data);
-  //     addToast("Location updated successfully", "success");
-  //     loadLocations();
-  //     setEditingLocation(null);
-  //   } catch (error) {
-  //     addToast("Failed to update location", "error");
-  //   }
-  // };
+  const handleUpdateLocation = async (data: LocationFormData) => {
+    if (!selectedBusiness || !editingLocation) return;
+    try {
+      // Clean up the data: remove empty strings and undefined values for optional fields
+      const cleanedData: Partial<LocationFormData> = {};
+
+      Object.entries(data).forEach(([key, value]) => {
+        // Always include required fields and non-empty values
+        if (
+          key === "name" ||
+          key === "city" ||
+          key === "state" ||
+          key === "country" ||
+          key === "status"
+        ) {
+          // Required fields - always include
+          cleanedData[key as keyof LocationFormData] = value as any;
+        } else if (typeof value === "boolean" || typeof value === "number") {
+          // Booleans and numbers - always include (even if 0 or false)
+          cleanedData[key as keyof LocationFormData] = value as any;
+        } else if (value !== "" && value !== undefined && value !== null) {
+          // Optional string fields - only include if not empty
+          cleanedData[key as keyof LocationFormData] = value as any;
+        }
+      });
+
+      console.log("[handleUpdateLocation] Original data:", data);
+      console.log("[handleUpdateLocation] Cleaned data:", cleanedData);
+
+      await updateLocation(selectedBusiness, editingLocation.id, cleanedData);
+      addToast("Location updated successfully", "success");
+      loadLocations();
+      loadStats();
+      setEditingLocation(null);
+    } catch (error) {
+      addToast("Failed to update location", "error");
+      throw error;
+    }
+  };
+
+  const handleBulkImport = async (data: {
+    text: string;
+    autoCreateServiceAreas: boolean;
+  }) => {
+    if (!selectedBusiness) return;
+    try {
+      // Parse CSV or JSON
+      const locations = parseImportData(data.text);
+
+      const result = await bulkImportLocations(selectedBusiness, {
+        locations,
+        auto_create_service_areas: data.autoCreateServiceAreas,
+      });
+
+      if (result.failed > 0) {
+        addToast(
+          `Imported ${result.created} locations, ${result.failed} failed`,
+          "warning"
+        );
+      } else {
+        addToast(
+          `Successfully imported ${result.created} locations`,
+          "success"
+        );
+      }
+
+      loadLocations();
+      loadStats();
+      setShowImportModal(false);
+    } catch (error) {
+      addToast("Failed to import locations", "error");
+      throw error;
+    }
+  };
 
   const handleDeleteLocation = async (locationId: string) => {
     if (!selectedBusiness) return;
@@ -175,9 +293,9 @@ export const LocationsManagement: React.FC = () => {
               </div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Coming Soon</div>
+              <div className="text-sm text-gray-600">Upcoming</div>
               <div className="text-2xl font-bold text-blue-600">
-                {stats.comingSoon}
+                {stats.upcoming}
               </div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -199,9 +317,7 @@ export const LocationsManagement: React.FC = () => {
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
-              <option value="coming-soon">Coming Soon</option>
-              <option value="temporarily-closed">Temporarily Closed</option>
-              <option value="closed">Closed</option>
+              <option value="upcoming">Upcoming</option>
             </select>
 
             <select
@@ -225,16 +341,14 @@ export const LocationsManagement: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
-              disabled
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-400 cursor-not-allowed"
-              title="Coming soon"
+              onClick={() => setShowImportModal(true)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
             >
               Bulk Import
             </button>
             <button
-              disabled
-              className="px-4 py-2 bg-gray-400 text-white rounded-lg text-sm cursor-not-allowed"
-              title="Coming soon"
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
             >
               Add Location
             </button>
@@ -250,9 +364,8 @@ export const LocationsManagement: React.FC = () => {
           <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
             <div className="text-gray-600 mb-4">No locations found</div>
             <button
-              disabled
-              className="text-gray-400 cursor-not-allowed font-medium"
-              title="Coming soon"
+              onClick={() => setShowAddModal(true)}
+              className="text-blue-600 hover:text-blue-700 font-medium"
             >
               Add your first location
             </button>
@@ -275,9 +388,7 @@ export const LocationsManagement: React.FC = () => {
                     <LocationRow
                       key={location.id}
                       location={location}
-                      onEdit={() => {
-                        // TODO: Implement edit modal
-                      }}
+                      onEdit={() => setEditingLocation(location)}
                       onDelete={() => handleDeleteLocation(location.id)}
                     />
                   ))}
@@ -287,6 +398,28 @@ export const LocationsManagement: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <LocationFormModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddLocation}
+        mode="create"
+      />
+
+      <LocationFormModal
+        isOpen={!!editingLocation}
+        onClose={() => setEditingLocation(null)}
+        onSubmit={handleUpdateLocation}
+        location={editingLocation}
+        mode="edit"
+      />
+
+      <BulkImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleBulkImport}
+      />
     </DashboardLayout>
   );
 };
@@ -304,10 +437,8 @@ const LocationRow: React.FC<LocationRowProps> = ({
 }) => {
   const statusColors = {
     active: "bg-green-100 text-green-800",
-    "coming-soon": "bg-blue-100 text-blue-800",
-    "temporarily-closed": "bg-yellow-100 text-yellow-800",
-    closed: "bg-gray-100 text-gray-800",
-  };
+    upcoming: "bg-blue-100 text-blue-800",
+  } as const;
 
   return (
     <div className="px-4 py-4 hover:bg-gray-50 flex items-center justify-between">
@@ -326,7 +457,7 @@ const LocationRow: React.FC<LocationRowProps> = ({
               statusColors[location.status]
             }`}
           >
-            {location.status.replace("-", " ")}
+            {location.status === "upcoming" ? "Coming Soon" : "Active"}
           </span>
         </div>
         <div className="text-sm text-gray-600 space-y-1">

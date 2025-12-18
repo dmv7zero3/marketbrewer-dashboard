@@ -332,6 +332,11 @@ export interface Keyword {
   created_at: string;
 }
 
+/**
+ * Service Area = Cities you want to target for SEO content
+ * These are nearby/surrounding cities, NOT the cities where stores are located.
+ * Example: Store in Manassas → service areas might be Centreville, Bull Run, Gainesville
+ */
 export interface ServiceArea {
   id: string;
   business_id: string;
@@ -341,12 +346,13 @@ export interface ServiceArea {
   county: string | null;
   priority: number;
   created_at: string;
+  location_id?: string | null; // Optional: link to nearest physical location
 }
 
 export interface PromptTemplate {
   id: string;
   business_id: string;
-  page_type: "service-location" | "keyword-location";
+  page_type: "location-keyword" | "service-area";
   version: number;
   template: string;
   required_variables: string | null;

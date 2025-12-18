@@ -2,35 +2,27 @@
  * API functions for locations management
  */
 
-import axios from "axios";
+import apiClient from "./client";
 import type { Location, LocationStats } from "@marketbrewer/shared";
-
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-const API_TOKEN = process.env.REACT_APP_API_TOKEN || "local-dev-token";
-
-const client = axios.create({
-  baseURL: API_BASE,
-  headers: {
-    Authorization: `Bearer ${API_TOKEN}`,
-    "Content-Type": "application/json",
-  },
-});
 
 export async function getLocations(
   businessId: string,
   filters?: { status?: string; state?: string; country?: string }
 ): Promise<{ locations: Location[] }> {
-  const { data } = await client.get(`/businesses/seo/${businessId}/locations`, {
-    params: filters,
-  });
+  const { data } = await apiClient.get(
+    `/api/businesses/seo/${businessId}/locations`,
+    {
+      params: filters,
+    }
+  );
   return data;
 }
 
 export async function getLocationStats(
   businessId: string
 ): Promise<{ stats: LocationStats }> {
-  const { data } = await client.get(
-    `/businesses/seo/${businessId}/locations/stats`
+  const { data } = await apiClient.get(
+    `/api/businesses/seo/${businessId}/locations/stats`
   );
   return data;
 }
@@ -39,8 +31,8 @@ export async function getLocation(
   businessId: string,
   locationId: string
 ): Promise<{ location: Location }> {
-  const { data } = await client.get(
-    `/businesses/seo/${businessId}/locations/${locationId}`
+  const { data } = await apiClient.get(
+    `/api/businesses/seo/${businessId}/locations/${locationId}`
   );
   return data;
 }
@@ -49,8 +41,8 @@ export async function createLocation(
   businessId: string,
   location: Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
 ): Promise<{ location: Location }> {
-  const { data } = await client.post(
-    `/businesses/seo/${businessId}/locations`,
+  const { data } = await apiClient.post(
+    `/api/businesses/seo/${businessId}/locations`,
     location
   );
   return data;
@@ -63,8 +55,8 @@ export async function updateLocation(
     Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
   >
 ): Promise<{ location: Location }> {
-  const { data } = await client.put(
-    `/businesses/seo/${businessId}/locations/${locationId}`,
+  const { data } = await apiClient.put(
+    `/api/businesses/seo/${businessId}/locations/${locationId}`,
     updates
   );
   return data;
@@ -74,7 +66,9 @@ export async function deleteLocation(
   businessId: string,
   locationId: string
 ): Promise<void> {
-  await client.delete(`/businesses/seo/${businessId}/locations/${locationId}`);
+  await apiClient.delete(
+    `/api/businesses/seo/${businessId}/locations/${locationId}`
+  );
 }
 
 export async function bulkImportLocations(
@@ -91,8 +85,8 @@ export async function bulkImportLocations(
   locations: Location[];
   errors: Array<{ index: number; error: string }>;
 }> {
-  const { data } = await client.post(
-    `/businesses/seo/${businessId}/locations/bulk-import`,
+  const { data } = await apiClient.post(
+    `/api/businesses/seo/${businessId}/locations/bulk-import`,
     payload
   );
   return data;

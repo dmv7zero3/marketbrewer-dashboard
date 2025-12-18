@@ -44,7 +44,7 @@ export async function getPromptTemplate(
 export async function createPromptTemplate(
   businessId: string,
   data: {
-    page_type: "service-location" | "keyword-location";
+    page_type: "location-keyword" | "service-area";
     version: number;
     template: string;
     required_variables?: string[];
@@ -67,7 +67,7 @@ export async function updatePromptTemplate(
   businessId: string,
   templateId: string,
   data: Partial<{
-    page_type: "service-location" | "keyword-location";
+    page_type: "location-keyword" | "service-area";
     version: number;
     template: string;
     required_variables: string[];

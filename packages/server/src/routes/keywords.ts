@@ -19,7 +19,7 @@ router.get(
     try {
       const businessId = req.params.id;
       const keywords = dbAll<Keyword>(
-        "SELECT * FROM keywords WHERE business_id = ? ORDER BY priority DESC, created_at DESC",
+        "SELECT * FROM keywords WHERE business_id = ? ORDER BY created_at DESC",
         [businessId]
       );
       res.json({ keywords });
@@ -44,10 +44,9 @@ router.post(
       if (!business) {
         throw new HttpError(404, "Business not found", "NOT_FOUND");
       }
-      const { keyword, search_intent, priority } = req.body as {
+      const { keyword, search_intent } = req.body as {
         keyword: string;
         search_intent?: string | null;
-        priority?: number;
       };
       if (!keyword || typeof keyword !== "string") {
         throw new HttpError(400, "Keyword is required", "VALIDATION_ERROR");
@@ -56,17 +55,9 @@ router.post(
       const slug = toSlug(keyword);
       const now = new Date().toISOString();
       dbRun(
-        `INSERT INTO keywords (id, business_id, slug, keyword, search_intent, priority, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          businessId,
-          slug,
-          keyword,
-          search_intent ?? null,
-          priority ?? 0,
-          now,
-        ]
+        `INSERT INTO keywords (id, business_id, slug, keyword, search_intent, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, businessId, slug, keyword, search_intent ?? null, now]
       );
       const created = dbGet<Keyword>("SELECT * FROM keywords WHERE id = ?", [
         id,
@@ -93,10 +84,9 @@ router.put(
       if (!existing) {
         throw new HttpError(404, "Keyword not found", "NOT_FOUND");
       }
-      const { keyword, search_intent, priority } = req.body as {
+      const { keyword, search_intent } = req.body as {
         keyword?: string;
         search_intent?: string | null;
-        priority?: number;
       };
       const updates: string[] = [];
       const values: unknown[] = [];
@@ -109,10 +99,6 @@ router.put(
       if (search_intent !== undefined) {
         updates.push("search_intent = ?");
         values.push(search_intent ?? null);
-      }
-      if (priority !== undefined) {
-        updates.push("priority = ?");
-        values.push(priority);
       }
       if (updates.length === 0) {
         res.json({ keyword: existing });

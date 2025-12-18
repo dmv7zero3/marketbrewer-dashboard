@@ -464,7 +464,7 @@ export const BusinessProfile: React.FC = () => {
               />
             )}
 
-            {activeSection === "locations" && selectedBusiness && (
+            {activeSection === "hours" && selectedBusiness && (
               <LocationsAndHoursTab
                 businessId={selectedBusiness}
                 isLoading={loading}
