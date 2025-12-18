@@ -189,7 +189,7 @@ describe("calculateCompletenessScore", () => {
         hasHours: false,
         hasFullAddress: false,
       })
-    ).toBe(17); // phone 8 + website 4 + brand voiceTone 5
+    ).toBe(15); // phone 5 + website 5 + brand voiceTone 5
   });
 
   it("scores location fields", () => {
@@ -210,7 +210,7 @@ describe("calculateCompletenessScore", () => {
         hasHours: false,
         hasFullAddress: true,
       })
-    ).toBe(20); // primaryLocation 10 + address 5 + brand voiceTone 5
+    ).toBe(20); // city 2.5 + state 2.5 + address 10 + default voiceTone 5
   });
 
   it("scores services fields", () => {
@@ -240,7 +240,7 @@ describe("calculateCompletenessScore", () => {
         hasHours: false,
         hasFullAddress: false,
       })
-    ).toBe(25); // brand voiceTone 5 + services 20 (10+5+5)
+    ).toBe(17); // default voiceTone 5 + services (4+4+4)
   });
 
   it("scores social and hours", () => {
@@ -261,7 +261,7 @@ describe("calculateCompletenessScore", () => {
         hasHours: true,
         hasFullAddress: false,
       })
-    ).toBe(20); // brand voiceTone 5 + social/hours 15 (5+5+5)
+    ).toBe(20); // brand voiceTone 5 + callToAction 5 + hours 10
   });
 
   it("caps at 100", () => {

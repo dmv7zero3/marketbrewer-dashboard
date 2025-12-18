@@ -80,43 +80,55 @@ export function calculateCompletenessScore(
   const { business, questionnaire, socialLinkCount, hasHours, hasFullAddress } =
     input;
 
-  // Required minimums
+  // Required minimums - profile is 0% if missing critical info
   if (!business.name?.trim() || !business.industry_type?.trim()) {
     return 0;
   }
 
   let score = 0;
+  const maxScore = 100;
 
-  // Contact (20)
-  if (business.phone) score += 8;
-  if (business.email) score += 4;
-  if (business.website) score += 4;
-  if (business.gbp_url) score += 4;
+  // === ESSENTIALS SECTION (30 points) ===
+  // Business Details
+  if (business.phone) score += 5;
+  if (business.email) score += 5;
+  if (business.website) score += 5;
+  if (business.gbp_url) score += 5;
 
-  // Location (15)
-  if (business.primary_city && business.primary_state) score += 10;
-  if (hasFullAddress) score += 5;
+  // Primary Location
+  if (business.primary_city?.trim()) score += 2.5;
+  if (business.primary_state?.trim()) score += 2.5;
 
-  // Identity (15)
-  if (questionnaire.identity?.tagline) score += 8;
-  if (questionnaire.identity?.yearEstablished) score += 4;
-  if (questionnaire.identity?.ownerName) score += 3;
+  // === LOCATION & HOURS SECTION (20 points) ===
+  if (hasFullAddress) score += 10;
+  if (hasHours) score += 10;
 
-  // Services (20)
+  // === CONTENT PROFILE SECTION (50 points) ===
+
+  // Identity (12 points)
+  if (questionnaire.identity?.tagline?.trim()) score += 4;
+  if (questionnaire.identity?.yearEstablished?.toString()?.trim()) score += 4;
+  if (questionnaire.identity?.ownerName?.trim()) score += 4;
+
+  // Services (12 points)
   const services = questionnaire.services?.offerings || [];
-  if (services.length >= 1) score += 10;
-  if (services.some((s) => !!s.isPrimary)) score += 5;
-  if (services.length >= 3) score += 5;
+  if (services.length >= 1) score += 4;
+  if (services.some((s) => s?.isPrimary)) score += 4;
+  if (services.length >= 2) score += 4;
 
-  // Brand (15)
-  if (questionnaire.brand?.voiceTone) score += 5;
-  if (questionnaire.brand?.callToAction) score += 5;
-  if ((questionnaire.brand?.forbiddenTerms || []).length > 0) score += 5;
+  // Audience (13 points)
+  if (questionnaire.audience?.targetDescription?.trim()) score += 6;
+  if ((questionnaire.audience?.languages || []).length > 0) score += 7;
 
-  // Social & Hours (15)
-  if (socialLinkCount >= 1) score += 5;
-  if (socialLinkCount >= 3) score += 5;
-  if (hasHours) score += 5;
+  // Brand (13 points)
+  if (questionnaire.brand?.voiceTone?.trim()) score += 5;
+  if (questionnaire.brand?.callToAction?.trim()) score += 5;
+  if ((questionnaire.brand?.forbiddenTerms || []).length > 0) score += 3;
 
-  return Math.max(0, Math.min(100, score));
+  // === SOCIAL LINKS SECTION (bonus 5 points if present, up to max 100) ===
+  if (socialLinkCount >= 1) score += 2;
+  if (socialLinkCount >= 2) score += 2;
+  if (socialLinkCount >= 3) score += 1;
+
+  return Math.max(0, Math.min(maxScore, Math.round(score)));
 }
