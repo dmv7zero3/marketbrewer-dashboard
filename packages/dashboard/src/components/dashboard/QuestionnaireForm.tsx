@@ -302,7 +302,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium">
-                  Service Offerings *
+                  Service Offerings
                 </label>
                 <button
                   onClick={() => {
@@ -474,7 +474,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Brand Voice Tone *
+                Brand Voice Tone
               </label>
               <select
                 value={data.brand.voiceTone}
@@ -501,7 +501,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Call to Action *
+                Call to Action
               </label>
               <textarea
                 value={data.brand.callToAction}
