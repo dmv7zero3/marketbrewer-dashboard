@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { LocationForm, type LocationInput } from "./LocationForm";
-import { BusinessHoursForm, type BusinessHoursInput } from "./BusinessHoursForm";
+import {
+  BusinessHoursForm,
+  type BusinessHoursInput,
+} from "./BusinessHoursForm";
 
 interface LocationsAndHoursTabProps {
   businessId: string;

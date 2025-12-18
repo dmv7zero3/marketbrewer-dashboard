@@ -399,11 +399,12 @@ export const BusinessProfile: React.FC = () => {
   }, [businessDirty, validationErrors]);
 
   return (
-    <BusinessProfileLayout
-      activeSection={activeSection}
-      onSectionChange={setActiveSection}
-      completenessScore={completenessScore}
-    >
+    <>
+      <BusinessProfileLayout
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        completenessScore={completenessScore}
+      >
       {!selectedBusiness ? (
         <div className="text-center py-12">
           <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
@@ -486,17 +487,18 @@ export const BusinessProfile: React.FC = () => {
           )}
         </>
       )}
-    </BusinessProfileLayout>
+      </BusinessProfileLayout>
 
-    {/* Sticky Footer with Unified Save Controls */}
-    {selectedBusiness && !loading && (
-      <StickyFooter
-        hasChanges={hasAnyUnsavedChanges}
-        isSaving={isSavingAny}
-        onSave={handleSaveAll}
-        onCancel={handleCancelAll}
-      />
-    )}
+      {/* Sticky Footer with Unified Save Controls */}
+      {selectedBusiness && !loading && (
+        <StickyFooter
+          hasChanges={hasAnyUnsavedChanges}
+          isSaving={isSavingAny}
+          onSave={handleSaveAll}
+          onCancel={handleCancelAll}
+        />
+      )}
+    </>
   );
 };
 
