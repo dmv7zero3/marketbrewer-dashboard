@@ -34,7 +34,10 @@ export const IndustrySelector = memo<IndustrySelectorProps>(
     return (
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1.5">
-          Industry <span className="text-red-600 ml-0.5">*</span>
+          Industry{" "}
+          <span className="ml-2 text-xs font-normal text-gray-400">
+            optional
+          </span>
         </label>
         <select
           disabled={disabled}
