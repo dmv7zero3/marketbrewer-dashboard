@@ -5,9 +5,10 @@ describe("authMiddleware", () => {
   const OLD_ENV = process.env;
   let warnSpy: jest.SpyInstance;
 
-  const loadMiddleware = () => {
+  const loadMiddleware = async () => {
     jest.resetModules();
-    return require("../middleware/auth") as typeof import("../middleware/auth");
+    const mod = await import("../middleware/auth");
+    return mod;
   };
 
   const createMocks = () => {
@@ -34,17 +35,17 @@ describe("authMiddleware", () => {
     process.env = OLD_ENV;
   });
 
-  it("skips auth on health endpoints", () => {
-    const { authMiddleware } = loadMiddleware();
+  it("skips auth on health endpoints", async () => {
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next } = createMocks();
     Object.defineProperty(req, "path", { value: "/health" });
     authMiddleware(req, res, next);
     expect(next).toHaveBeenCalled();
   });
 
-  it("returns 500 when API_TOKEN is missing", () => {
+  it("returns 500 when API_TOKEN is missing", async () => {
     delete process.env.API_TOKEN;
-    const { authMiddleware } = loadMiddleware();
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next, status, json } = createMocks();
     authMiddleware(req, res, next);
     expect(status).toHaveBeenCalledWith(500);
@@ -55,8 +56,8 @@ describe("authMiddleware", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("rejects missing Authorization header", () => {
-    const { authMiddleware } = loadMiddleware();
+  it("rejects missing Authorization header", async () => {
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next, status, json } = createMocks();
     authMiddleware(req, res, next);
     expect(status).toHaveBeenCalledWith(401);
@@ -66,8 +67,8 @@ describe("authMiddleware", () => {
     });
   });
 
-  it("rejects bad format", () => {
-    const { authMiddleware } = loadMiddleware();
+  it("rejects bad format", async () => {
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next, status, json } = createMocks();
     req.headers.authorization = "Token abc";
     authMiddleware(req, res, next);
@@ -78,8 +79,8 @@ describe("authMiddleware", () => {
     });
   });
 
-  it("rejects wrong token", () => {
-    const { authMiddleware } = loadMiddleware();
+  it("rejects wrong token", async () => {
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next, status, json } = createMocks();
     req.headers.authorization = "Bearer wrong";
     authMiddleware(req, res, next);
@@ -90,8 +91,8 @@ describe("authMiddleware", () => {
     });
   });
 
-  it("calls next and sets token on success", () => {
-    const { authMiddleware } = loadMiddleware();
+  it("calls next and sets token on success", async () => {
+    const { authMiddleware } = await loadMiddleware();
     const { req, res, next } = createMocks();
     req.headers.authorization = "Bearer test-token";
     authMiddleware(req, res, next);

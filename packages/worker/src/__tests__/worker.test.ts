@@ -9,7 +9,6 @@ import { OllamaClient } from "../ollama/client";
 jest.mock("axios");
 
 describe("Worker Integration Tests", () => {
-  const mockApiUrl = "http://localhost:3001";
   const mockOllamaUrl = "http://localhost:11434";
 
   let mockedAxios: jest.Mocked<typeof axios>;
@@ -32,6 +31,7 @@ describe("Worker Integration Tests", () => {
         },
       });
 
+      expect(client).toBeInstanceOf(OllamaClient);
       expect(mockedAxios.post).toBeDefined();
     });
 
@@ -40,6 +40,7 @@ describe("Worker Integration Tests", () => {
 
       mockedAxios.post.mockRejectedValue(new Error("Ollama timeout"));
 
+      expect(client).toBeInstanceOf(OllamaClient);
       expect(mockedAxios.post).toBeDefined();
     });
 
@@ -50,6 +51,7 @@ describe("Worker Integration Tests", () => {
         status: 200,
       });
 
+      expect(client).toBeInstanceOf(OllamaClient);
       expect(mockedAxios.get).toBeDefined();
     });
 
@@ -64,6 +66,7 @@ describe("Worker Integration Tests", () => {
         },
       });
 
+      expect(client).toBeInstanceOf(OllamaClient);
       expect(mockedAxios.get).toBeDefined();
     });
   });

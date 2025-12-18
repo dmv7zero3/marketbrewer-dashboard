@@ -128,7 +128,6 @@ export class Worker {
       );
       console.log(`✅ Completed page: ${page.url_path} (${durationMs}ms)`);
     } catch (error) {
-      const durationMs = Date.now() - startTime;
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
 

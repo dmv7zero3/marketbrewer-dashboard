@@ -9,6 +9,7 @@ import jobPagesRouter from "./job-pages";
 import keywordsRouter from "./keywords";
 import serviceAreasRouter from "./service-areas";
 import promptsRouter from "./prompts";
+import locationsRouter from "./locations";
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use("/jobs", jobPagesRouter); // /jobs/:jobId/claim, /jobs/:jobId/pages/:
 router.use("/businesses", keywordsRouter);
 router.use("/businesses", serviceAreasRouter);
 router.use("/businesses", promptsRouter); // /businesses/:id/prompts routes
+router.use("/businesses", locationsRouter); // /businesses/:id/locations routes
 
 export default router;

@@ -35,6 +35,8 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
+  // Reference _next to satisfy lint while preserving 4-arg signature for Express error handlers
+  void _next;
   console.error(`[ERROR] ${req.method} ${req.path}:`, err);
 
   // Handle Zod validation errors

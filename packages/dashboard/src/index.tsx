@@ -10,7 +10,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { BusinessProvider } from "./contexts/BusinessContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import {
-  Dashboard,
   BusinessProfile,
   PromptsManagement,
   KeywordsManagement,

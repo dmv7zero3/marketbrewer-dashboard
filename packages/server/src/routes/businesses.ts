@@ -7,7 +7,6 @@ import { dbRun, dbGet, dbAll } from "../db/connection";
 import {
   CreateBusinessSchema,
   UpdateBusinessSchema,
-  toSlug,
   generateId,
 } from "@marketbrewer/shared";
 import type { Business, Questionnaire } from "@marketbrewer/shared";

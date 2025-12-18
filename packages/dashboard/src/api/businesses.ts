@@ -101,3 +101,6 @@ export async function updateQuestionnaire(
   );
   return response.data;
 }
+
+// Re-export locations API
+export * from "./locations";

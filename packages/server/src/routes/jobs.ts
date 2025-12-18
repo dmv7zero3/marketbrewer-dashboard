@@ -8,12 +8,10 @@ import db from "../db/connection";
 import {
   CreateGenerationJobSchema,
   generateId,
-  toSlug,
   toCityStateSlug,
 } from "@marketbrewer/shared";
 import type {
   GenerationJob,
-  JobPage,
   JobWithCounts,
   Business,
   Keyword,
