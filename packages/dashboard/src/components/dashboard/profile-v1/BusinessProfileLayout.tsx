@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode } from "react";
 import { DashboardLayout } from "../DashboardLayout";
 
 export type ProfileSection = "essentials" | "locations" | "social" | "content";
@@ -99,7 +99,6 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
   children,
   completenessScore = 0,
 }) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   return (
     <DashboardLayout>
       <div className="pb-24">
@@ -115,26 +114,8 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
         {/* Main container with sidebar */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Sidebar Navigation */}
-          <div className={`lg:col-span-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:col-span-0 lg:w-0 lg:overflow-hidden' : 'lg:col-span-1'}`}>
+          <div className="lg:col-span-1">
             <div className="sticky bg-white border rounded-lg shadow-sm top-4">
-              {/* Collapse Toggle Button */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className={`font-semibold text-gray-900 transition-opacity ${sidebarCollapsed ? 'hidden lg:hidden' : 'block'}`}>
-                  Profile Sections
-                </h2>
-                <button
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 transition-colors"
-                  title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                >
-                  {sidebarCollapsed ? (
-                    <span className="text-lg">▶</span>
-                  ) : (
-                    <span className="text-lg">◀</span>
-                  )}
-                </button>
-              </div>
-
               <nav className="p-4 space-y-2">
                 {SECTION_GROUPS.map((group) => (
                   <div key={group.name}>
@@ -147,11 +128,11 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
                       }`}
                     >
                       <span className="mr-2">{group.icon}</span>
-                      <span className={`transition-opacity ${sidebarCollapsed ? 'hidden lg:hidden' : 'inline'}`}>{group.label}</span>
+                      {group.label}
                     </button>
 
                     {/* Submenu items */}
-                    {activeSection === group.name && !sidebarCollapsed && (
+                    {activeSection === group.name && (
                       <div className="mt-2 ml-4 space-y-1">
                         {PROFILE_SECTIONS[group.name].map((item) => (
                           <button
@@ -171,7 +152,7 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
               </nav>
 
               {/* Progress Bar */}
-              <div className={`p-4 border-t transition-opacity ${sidebarCollapsed ? 'hidden lg:hidden' : 'block'}`}>
+              <div className="p-4 border-t">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-gray-600">
                     Completeness
@@ -191,7 +172,7 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
           </div>
 
           {/* Main Content Area */}
-          <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:col-span-4' : 'lg:col-span-3'}`}>
+          <div className="lg:col-span-3">
             <div className="p-6 bg-white border rounded-lg shadow-sm">
               {children}
             </div>
