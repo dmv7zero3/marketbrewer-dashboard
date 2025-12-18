@@ -155,7 +155,7 @@ describe("calculateCompletenessScore", () => {
       calculateCompletenessScore({
         business: {
           name: "",
-          industry_type: null,
+          industry_type: "LocalBusiness",
           phone: null,
           email: null,
           website: null,

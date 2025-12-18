@@ -80,8 +80,8 @@ export function calculateCompletenessScore(
   const { business, questionnaire, socialLinkCount, hasHours, hasFullAddress } =
     input;
 
-  // Required minimums - profile is 0% if missing critical info
-  if (!business.name?.trim() || !business.industry_type?.trim()) {
+  // Required minimum - profile is 0% if missing business name
+  if (!business.name?.trim()) {
     return 0;
   }
 
