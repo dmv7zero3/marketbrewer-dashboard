@@ -20,7 +20,7 @@ export async function getLocations(
   businessId: string,
   filters?: { status?: string; state?: string; country?: string }
 ): Promise<{ locations: Location[] }> {
-  const { data } = await client.get(`/businesses/${businessId}/locations`, {
+  const { data } = await client.get(`/businesses/seo/${businessId}/locations`, {
     params: filters,
   });
   return data;
@@ -30,7 +30,7 @@ export async function getLocationStats(
   businessId: string
 ): Promise<{ stats: LocationStats }> {
   const { data } = await client.get(
-    `/businesses/${businessId}/locations/stats`
+    `/businesses/seo/${businessId}/locations/stats`
   );
   return data;
 }
@@ -40,17 +40,17 @@ export async function getLocation(
   locationId: string
 ): Promise<{ location: Location }> {
   const { data } = await client.get(
-    `/businesses/${businessId}/locations/${locationId}`
+    `/businesses/seo/${businessId}/locations/${locationId}`
   );
   return data;
 }
 
 export async function createLocation(
   businessId: string,
-  location: any
+  location: Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
 ): Promise<{ location: Location }> {
   const { data } = await client.post(
-    `/businesses/${businessId}/locations`,
+    `/businesses/seo/${businessId}/locations`,
     location
   );
   return data;
@@ -59,10 +59,12 @@ export async function createLocation(
 export async function updateLocation(
   businessId: string,
   locationId: string,
-  updates: any
+  updates: Partial<
+    Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
+  >
 ): Promise<{ location: Location }> {
   const { data } = await client.put(
-    `/businesses/${businessId}/locations/${locationId}`,
+    `/businesses/seo/${businessId}/locations/${locationId}`,
     updates
   );
   return data;
@@ -72,12 +74,17 @@ export async function deleteLocation(
   businessId: string,
   locationId: string
 ): Promise<void> {
-  await client.delete(`/businesses/${businessId}/locations/${locationId}`);
+  await client.delete(`/businesses/seo/${businessId}/locations/${locationId}`);
 }
 
 export async function bulkImportLocations(
   businessId: string,
-  payload: { locations: any[]; auto_create_service_areas?: boolean }
+  payload: {
+    locations: Array<
+      Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
+    >;
+    auto_create_service_areas?: boolean;
+  }
 ): Promise<{
   created: number;
   failed: number;
@@ -85,7 +92,7 @@ export async function bulkImportLocations(
   errors: Array<{ index: number; error: string }>;
 }> {
   const { data } = await client.post(
-    `/businesses/${businessId}/locations/bulk-import`,
+    `/businesses/seo/${businessId}/locations/bulk-import`,
     payload
   );
   return data;

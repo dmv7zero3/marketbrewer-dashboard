@@ -2,6 +2,9 @@
  * Utility functions for @marketbrewer/shared
  */
 
+import type { Business } from "../types/business";
+import type { QuestionnaireDataStructure } from "../types/questionnaire";
+
 /**
  * Convert a string to a URL-friendly slug
  * Transliterates diacritics for SEO-friendly URLs (San José → san-jose)
@@ -50,56 +53,70 @@ export function generateId(): string {
 }
 
 /**
- * Calculate questionnaire completeness score
+ * Calculate Business Profile V1 completeness score (0-100)
  */
-export function calculateCompletenessScore(
-  data: Record<string, unknown>
-): number {
-  const requiredFields = [
-    "business_name",
-    "industry",
-    "phone",
-    "services",
-    "service_areas",
-    "target_audience",
-  ];
 
-  const optionalFields = [
-    "website",
-    "email",
-    "address",
-    "tagline",
-    "year_established",
-    "differentiators",
-    "testimonials",
-    "awards",
-    "brand_voice",
-    "cta_text",
-  ];
+export interface CompletenessScoreInput {
+  business: Pick<
+    Business,
+    | "name"
+    | "industry_type"
+    | "phone"
+    | "email"
+    | "website"
+    | "gbp_url"
+    | "primary_city"
+    | "primary_state"
+  >;
+  questionnaire: QuestionnaireDataStructure;
+  socialLinkCount: number;
+  hasHours: boolean;
+  hasFullAddress: boolean;
+}
+
+export function calculateCompletenessScore(
+  input: CompletenessScoreInput
+): number {
+  const { business, questionnaire, socialLinkCount, hasHours, hasFullAddress } =
+    input;
+
+  // Required minimums
+  if (!business.name?.trim() || !business.industry_type?.trim()) {
+    return 0;
+  }
 
   let score = 0;
-  const requiredWeight = 60 / requiredFields.length;
-  const optionalWeight = 40 / optionalFields.length;
 
-  for (const field of requiredFields) {
-    if (
-      data[field] !== undefined &&
-      data[field] !== null &&
-      data[field] !== ""
-    ) {
-      score += requiredWeight;
-    }
-  }
+  // Contact (20)
+  if (business.phone) score += 8;
+  if (business.email) score += 4;
+  if (business.website) score += 4;
+  if (business.gbp_url) score += 4;
 
-  for (const field of optionalFields) {
-    if (
-      data[field] !== undefined &&
-      data[field] !== null &&
-      data[field] !== ""
-    ) {
-      score += optionalWeight;
-    }
-  }
+  // Location (15)
+  if (business.primary_city && business.primary_state) score += 10;
+  if (hasFullAddress) score += 5;
 
-  return Math.round(Math.min(100, score));
+  // Identity (15)
+  if (questionnaire.identity?.tagline) score += 8;
+  if (questionnaire.identity?.yearEstablished) score += 4;
+  if (questionnaire.identity?.ownerName) score += 3;
+
+  // Services (20)
+  const services = questionnaire.services?.offerings || [];
+  if (services.length >= 1) score += 10;
+  if (services.some((s) => !!s.isPrimary)) score += 5;
+  if (services.length >= 3) score += 5;
+
+  // Brand (15)
+  if (questionnaire.brand?.voiceTone) score += 5;
+  if (questionnaire.brand?.callToAction) score += 5;
+  if ((questionnaire.brand?.forbiddenTerms || []).length > 0) score += 5;
+
+  // Social & Hours (15)
+  if (socialLinkCount >= 1) score += 5;
+  if (socialLinkCount >= 3) score += 5;
+  if (hasHours) score += 5;
+
+  return Math.max(0, Math.min(100, score));
 }

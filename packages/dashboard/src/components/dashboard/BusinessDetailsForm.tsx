@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import type { Business } from "@marketbrewer/shared";
+import { IndustrySelector } from "./profile-v1/IndustrySelector";
 
 interface BusinessDetailsFormProps {
   business: Business | null;
@@ -30,11 +31,11 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         value: business.name ?? "",
       },
       {
-        key: "industry",
-        label: "Industry",
-        required: true,
-        placeholder: "e.g., Restaurant, Plumbing, HVAC",
-        value: business.industry ?? "",
+        key: "gbp_url",
+        label: "Google Business Profile URL",
+        required: false,
+        placeholder: "https://business.google.com/...",
+        value: business.gbp_url ?? "",
       },
       {
         key: "website",
@@ -57,10 +58,37 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         placeholder: "contact@example.com",
         value: business.email ?? "",
       },
+      {
+        key: "primary_city",
+        label: "Primary City",
+        required: false,
+        placeholder: "Arlington",
+        value: business.primary_city ?? "",
+      },
+      {
+        key: "primary_state",
+        label: "Primary State",
+        required: false,
+        placeholder: "VA",
+        value: business.primary_state ?? "",
+      },
     ] as const;
 
     return (
       <div className="space-y-4">
+        <IndustrySelector
+          value={business.industry_type ?? business.industry ?? ""}
+          disabled={disabled}
+          error={validationErrors.industry_type || validationErrors.industry}
+          onChange={(val) =>
+            onChange({
+              ...business,
+              industry_type: val,
+              industry: val || business.industry,
+            })
+          }
+        />
+
         {fields.map((field) => {
           const error = validationErrors[field.key];
           const hasError = !!error;

@@ -8,6 +8,7 @@ import {
   CreateBusinessSchema,
   UpdateBusinessSchema,
   generateId,
+  normalizeQuestionnaireData,
 } from "@marketbrewer/shared";
 import type { Business, Questionnaire } from "@marketbrewer/shared";
 import { HttpError } from "../middleware/error-handler";
@@ -56,16 +57,38 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     const id = generateId();
     const now = new Date().toISOString();
 
+    const industryType = data.industry_type ?? data.industry ?? null;
+    const industryLegacy = data.industry ?? industryType;
+    if (!industryLegacy || !industryType) {
+      throw new HttpError(400, "Industry is required", "VALIDATION_ERROR");
+    }
+
     dbRun(
-      `INSERT INTO businesses (id, name, industry, website, phone, email, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO businesses (
+        id,
+        name,
+        industry,
+        industry_type,
+        website,
+        phone,
+        email,
+        gbp_url,
+        primary_city,
+        primary_state,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         data.name,
-        data.industry,
+        industryLegacy,
+        industryType,
         data.website ?? null,
         data.phone ?? null,
         data.email ?? null,
+        data.gbp_url ?? null,
+        null,
+        null,
         now,
         now,
       ]
@@ -115,6 +138,16 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
       updates.push("industry = ?");
       values.push(data.industry);
     }
+    if (data.industry_type !== undefined) {
+      updates.push("industry_type = ?");
+      values.push(data.industry_type);
+
+      // Keep legacy industry column populated for older consumers.
+      if (data.industry === undefined) {
+        updates.push("industry = ?");
+        values.push(data.industry_type);
+      }
+    }
     if (data.website !== undefined) {
       updates.push("website = ?");
       values.push(data.website);
@@ -126,6 +159,18 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
     if (data.email !== undefined) {
       updates.push("email = ?");
       values.push(data.email);
+    }
+    if (data.gbp_url !== undefined) {
+      updates.push("gbp_url = ?");
+      values.push(data.gbp_url);
+    }
+    if (data.primary_city !== undefined) {
+      updates.push("primary_city = ?");
+      values.push(data.primary_city);
+    }
+    if (data.primary_state !== undefined) {
+      updates.push("primary_state = ?");
+      values.push(data.primary_state);
     }
 
     values.push(req.params.id);
@@ -184,7 +229,9 @@ router.get(
       // Parse JSON data
       const result = {
         ...questionnaire,
-        data: JSON.parse((questionnaire.data as unknown as string) || "{}"),
+        data: normalizeQuestionnaireData(
+          JSON.parse((questionnaire.data as unknown as string) || "{}")
+        ),
       };
 
       res.json({ questionnaire: result });
@@ -220,16 +267,56 @@ router.put(
         );
       }
 
-      // Calculate completeness score
+      // Normalize data and calculate completeness score
       const { calculateCompletenessScore } = await import(
         "@marketbrewer/shared"
       );
-      const completenessScore = calculateCompletenessScore(data);
+      const normalized = normalizeQuestionnaireData(data);
+
+      const business = dbGet<Business>(
+        "SELECT * FROM businesses WHERE id = ?",
+        [req.params.id]
+      );
+      if (!business) {
+        throw new HttpError(404, "Business not found", "NOT_FOUND");
+      }
+
+      const socialLinkCount = dbGet<{ count: number }>(
+        "SELECT COUNT(*) as count FROM business_social_links WHERE business_id = ?",
+        [req.params.id]
+      )?.count;
+
+      const hoursExists = dbGet<{ exists: number }>(
+        "SELECT 1 as exists FROM business_hours WHERE business_id = ? LIMIT 1",
+        [req.params.id]
+      )?.exists;
+
+      const fullAddressExists = dbGet<{ exists: number }>(
+        "SELECT 1 as exists FROM business_locations WHERE business_id = ? AND street_address IS NOT NULL AND TRIM(street_address) <> '' LIMIT 1",
+        [req.params.id]
+      )?.exists;
+
+      const completenessScore = calculateCompletenessScore({
+        business: {
+          name: business.name,
+          industry_type: business.industry_type ?? null,
+          phone: business.phone,
+          email: business.email,
+          website: business.website,
+          gbp_url: business.gbp_url ?? null,
+          primary_city: business.primary_city ?? null,
+          primary_state: business.primary_state ?? null,
+        },
+        questionnaire: normalized,
+        socialLinkCount: socialLinkCount ?? 0,
+        hasHours: !!hoursExists,
+        hasFullAddress: !!fullAddressExists,
+      });
       const now = new Date().toISOString();
 
       dbRun(
         `UPDATE questionnaires SET data = ?, completeness_score = ?, updated_at = ? WHERE id = ?`,
-        [JSON.stringify(data), completenessScore, now, existing.id]
+        [JSON.stringify(normalized), completenessScore, now, existing.id]
       );
 
       const questionnaire = dbGet<Questionnaire>(
@@ -239,7 +326,9 @@ router.put(
 
       const result = {
         ...questionnaire,
-        data: JSON.parse((questionnaire!.data as unknown as string) || "{}"),
+        data: normalizeQuestionnaireData(
+          JSON.parse((questionnaire!.data as unknown as string) || "{}")
+        ),
       };
 
       res.json({ questionnaire: result });

@@ -10,6 +10,8 @@ import {
   calculateCompletenessScore,
 } from "../utils";
 
+import { createEmptyQuestionnaire } from "../types/questionnaire";
+
 describe("toSlug", () => {
   it("converts simple string to lowercase slug", () => {
     expect(toSlug("Hello World")).toBe("hello-world");
@@ -146,110 +148,156 @@ describe("generateId", () => {
 });
 
 describe("calculateCompletenessScore", () => {
-  const requiredFields = [
-    "business_name",
-    "industry",
-    "phone",
-    "services",
-    "service_areas",
-    "target_audience",
-  ];
+  const baseQuestionnaire = createEmptyQuestionnaire();
 
-  const optionalFields = [
-    "website",
-    "email",
-    "address",
-    "tagline",
-    "year_established",
-    "differentiators",
-    "testimonials",
-    "awards",
-    "brand_voice",
-    "cta_text",
-  ];
-
-  it("returns 0 for empty object", () => {
-    expect(calculateCompletenessScore({})).toBe(0);
+  it("returns 0 when required fields are missing", () => {
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "",
+          industry_type: null,
+          phone: null,
+          email: null,
+          website: null,
+          gbp_url: null,
+          primary_city: null,
+          primary_state: null,
+        },
+        questionnaire: baseQuestionnaire,
+        socialLinkCount: 0,
+        hasHours: false,
+        hasFullAddress: false,
+      })
+    ).toBe(0);
   });
 
-  it("returns 60 for all required fields filled", () => {
-    const data: Record<string, unknown> = {};
-    for (const field of requiredFields) {
-      data[field] = "value";
-    }
-    expect(calculateCompletenessScore(data)).toBe(60);
+  it("scores contact fields", () => {
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "Acme Co",
+          industry_type: "LocalBusiness",
+          phone: "555-555-5555",
+          email: null,
+          website: "https://example.com",
+          gbp_url: null,
+          primary_city: null,
+          primary_state: null,
+        },
+        questionnaire: baseQuestionnaire,
+        socialLinkCount: 0,
+        hasHours: false,
+        hasFullAddress: false,
+      })
+    ).toBe(17); // phone 8 + website 4 + brand voiceTone 5
   });
 
-  it("returns 100 for all fields filled", () => {
-    const data: Record<string, unknown> = {};
-    for (const field of [...requiredFields, ...optionalFields]) {
-      data[field] = "value";
-    }
-    expect(calculateCompletenessScore(data)).toBe(100);
+  it("scores location fields", () => {
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "Acme Co",
+          industry_type: "LocalBusiness",
+          phone: null,
+          email: null,
+          website: null,
+          gbp_url: null,
+          primary_city: "Sterling",
+          primary_state: "VA",
+        },
+        questionnaire: baseQuestionnaire,
+        socialLinkCount: 0,
+        hasHours: false,
+        hasFullAddress: true,
+      })
+    ).toBe(20); // primaryLocation 10 + address 5 + brand voiceTone 5
   });
 
-  it("ignores empty string values", () => {
-    const data: Record<string, unknown> = {
-      business_name: "",
-      industry: "Food & Beverage",
-    };
-    expect(calculateCompletenessScore(data)).toBe(10);
+  it("scores services fields", () => {
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "Acme Co",
+          industry_type: "LocalBusiness",
+          phone: null,
+          email: null,
+          website: null,
+          gbp_url: null,
+          primary_city: null,
+          primary_state: null,
+        },
+        questionnaire: {
+          ...baseQuestionnaire,
+          services: {
+            offerings: [
+              { name: "Service 1", description: "", isPrimary: true },
+              { name: "Service 2", description: "", isPrimary: false },
+              { name: "Service 3", description: "", isPrimary: false },
+            ],
+          },
+        },
+        socialLinkCount: 0,
+        hasHours: false,
+        hasFullAddress: false,
+      })
+    ).toBe(25); // brand voiceTone 5 + services 20 (10+5+5)
   });
 
-  it("ignores null values", () => {
-    const data: Record<string, unknown> = {
-      business_name: null,
-      industry: "Food & Beverage",
-    };
-    expect(calculateCompletenessScore(data)).toBe(10);
-  });
-
-  it("ignores undefined values", () => {
-    const data: Record<string, unknown> = {
-      business_name: undefined,
-      industry: "Food & Beverage",
-    };
-    expect(calculateCompletenessScore(data)).toBe(10);
-  });
-
-  it("calculates partial score correctly", () => {
-    const data: Record<string, unknown> = {
-      business_name: "Nash & Smashed",
-      industry: "Food & Beverage",
-      phone: "703-555-1234",
-      website: "https://nashsmashed.com",
-    };
-    expect(calculateCompletenessScore(data)).toBe(34);
+  it("scores social and hours", () => {
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "Acme Co",
+          industry_type: "LocalBusiness",
+          phone: null,
+          email: null,
+          website: null,
+          gbp_url: null,
+          primary_city: null,
+          primary_state: null,
+        },
+        questionnaire: baseQuestionnaire,
+        socialLinkCount: 3,
+        hasHours: true,
+        hasFullAddress: false,
+      })
+    ).toBe(20); // brand voiceTone 5 + social/hours 15 (5+5+5)
   });
 
   it("caps at 100", () => {
-    const data: Record<string, unknown> = {};
-    for (const field of [...requiredFields, ...optionalFields]) {
-      data[field] = "value";
-    }
-    data["extra_field1"] = "value";
-    data["extra_field2"] = "value";
-    expect(calculateCompletenessScore(data)).toBe(100);
-  });
-
-  it("handles array values", () => {
-    const data: Record<string, unknown> = {
-      services: ["burgers", "fries", "shakes"],
-    };
-    expect(calculateCompletenessScore(data)).toBe(10);
-  });
-
-  it("handles number values", () => {
-    const data: Record<string, unknown> = {
-      year_established: 2020,
-    };
-    expect(calculateCompletenessScore(data)).toBe(4);
-  });
-
-  it("handles zero as valid value", () => {
-    const data: Record<string, unknown> = {
-      year_established: 0,
-    };
-    expect(calculateCompletenessScore(data)).toBe(4);
+    expect(
+      calculateCompletenessScore({
+        business: {
+          name: "Acme Co",
+          industry_type: "LocalBusiness",
+          phone: "555-555-5555",
+          email: "a@b.com",
+          website: "https://example.com",
+          gbp_url: "https://google.com/maps",
+          primary_city: "Sterling",
+          primary_state: "VA",
+        },
+        questionnaire: {
+          identity: { tagline: "Hi", yearEstablished: "2020", ownerName: "J" },
+          services: {
+            offerings: [
+              { name: "S1", description: "", isPrimary: true },
+              { name: "S2", description: "", isPrimary: false },
+              { name: "S3", description: "", isPrimary: false },
+            ],
+          },
+          audience: { targetDescription: "All", languages: ["English"] },
+          brand: {
+            voiceTone: "friendly",
+            forbiddenTerms: ["cheap"],
+            callToAction: "Call",
+          },
+          serviceType: "both",
+        },
+        socialLinkCount: 10,
+        hasHours: true,
+        hasFullAddress: true,
+      })
+    ).toBe(100);
   });
 });

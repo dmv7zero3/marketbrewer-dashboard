@@ -21,6 +21,8 @@ import {
   validateURL,
   validatePhone,
   validateEmail,
+  validateCity,
+  validateState,
 } from "../../lib/validation";
 import type {
   Business,
@@ -42,9 +44,13 @@ export const BusinessProfile: React.FC = () => {
   >({
     name: null,
     industry: null,
+    industry_type: null,
     website: null,
     phone: null,
     email: null,
+    gbp_url: null,
+    primary_city: null,
+    primary_state: null,
   });
 
   // Questionnaire form state
@@ -149,9 +155,13 @@ export const BusinessProfile: React.FC = () => {
     setValidationErrors({
       name: null,
       industry: null,
+      industry_type: null,
       website: null,
       phone: null,
       email: null,
+      gbp_url: null,
+      primary_city: null,
+      primary_state: null,
     });
 
     load();
@@ -205,12 +215,22 @@ export const BusinessProfile: React.FC = () => {
 
     // Validate business form
     if (businessDirty) {
+      const industryValue = business?.industry_type ?? business?.industry ?? "";
+
       const errors: Record<string, string | null> = {
         name: validateBusinessName(business?.name ?? ""),
-        industry: validateIndustry(business?.industry ?? ""),
+        industry_type: validateIndustry(industryValue),
+        industry: null, // legacy field kept for compatibility; surface errors via industry_type
         website: validateURL(business?.website ?? ""),
         phone: validatePhone(business?.phone ?? ""),
         email: validateEmail(business?.email ?? ""),
+        gbp_url: validateURL(business?.gbp_url ?? ""),
+        primary_city: business?.primary_city
+          ? validateCity(business.primary_city)
+          : null,
+        primary_state: business?.primary_state
+          ? validateState(business.primary_state)
+          : null,
       };
 
       Object.entries(errors).forEach(([field, msg]) => {
@@ -252,10 +272,14 @@ export const BusinessProfile: React.FC = () => {
             setSavingBiz(true);
             const payload = {
               name: business.name,
-              industry: business.industry,
+              industry: business.industry ?? business.industry_type ?? "",
+              industry_type: business.industry_type ?? business.industry,
               website: business.website ?? null,
               phone: business.phone ?? null,
               email: business.email ?? null,
+              gbp_url: business.gbp_url ?? null,
+              primary_city: business.primary_city ?? null,
+              primary_state: business.primary_state ?? null,
             };
             const { business: updated } = await updateBusiness(
               selectedBusiness,
@@ -335,9 +359,13 @@ export const BusinessProfile: React.FC = () => {
     setValidationErrors({
       name: null,
       industry: null,
+      industry_type: null,
       website: null,
       phone: null,
       email: null,
+      gbp_url: null,
+      primary_city: null,
+      primary_state: null,
     });
     // Note: QuestionnaireForm warnings are cleared internally when hasUnsavedChanges = false
   };

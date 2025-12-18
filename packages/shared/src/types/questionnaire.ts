@@ -1,6 +1,6 @@
 /**
  * Questionnaire data types for MarketBrewer SEO Platform
- * Represents structured business profile information for content generation
+ * V1 Business Profile Redesign (December 2025)
  */
 
 export enum SearchIntent {
@@ -26,19 +26,11 @@ export interface ServiceOffering {
 }
 
 export interface QuestionnaireDataStructure {
-  // Identity section
+  // Identity (simplified)
   identity: {
-    businessName: string;
-    industry: string;
     tagline: string;
     yearEstablished: string;
-    contactName: string;
-  };
-
-  // Location section
-  location: {
-    address: string;
-    serviceType: "onsite" | "mobile" | "both";
+    ownerName: string;
   };
 
   // Services section
@@ -46,79 +38,24 @@ export interface QuestionnaireDataStructure {
     offerings: ServiceOffering[];
   };
 
-  // Audience section
+  // Audience (simplified)
   audience: {
     targetDescription: string;
-    demographics: string;
-    painPoints: string;
     languages: string[];
   };
 
-  // Brand section
+  // Brand (simplified)
   brand: {
     voiceTone: BrandVoiceTone | string;
-    requiredPhrases: string[];
-    forbiddenWords: string[];
+    forbiddenTerms: string[];
     callToAction: string;
   };
-}
 
-/**
- * Completeness tracking for each section
- * Helps track which sections have been filled out
- */
-export interface SectionCompleteness {
-  identity: boolean;
-  location: boolean;
-  services: boolean;
-  audience: boolean;
-  brand: boolean;
-}
+  // Service type (moved from old location section)
+  serviceType: "onsite" | "mobile" | "both";
 
-/**
- * Calculate overall completeness percentage
- */
-export function calculateCompleteness(
-  completeness: SectionCompleteness
-): number {
-  const sections = Object.values(completeness);
-  const complete = sections.filter((c) => c).length;
-  return Math.round((complete / sections.length) * 100);
-}
-
-/**
- * Check if section has required fields filled
- */
-export function isSectionComplete(
-  section: keyof QuestionnaireDataStructure,
-  data: QuestionnaireDataStructure
-): boolean {
-  switch (section) {
-    case "identity":
-      return !!(
-        data.identity.businessName &&
-        data.identity.industry &&
-        data.identity.contactName
-      );
-    case "location":
-      return !!(data.location.address && data.location.serviceType);
-    case "services":
-      return data.services.offerings.length > 0;
-    case "audience":
-      return !!(
-        data.audience.targetDescription &&
-        data.audience.demographics &&
-        data.audience.painPoints
-      );
-    case "brand":
-      return !!(
-        data.brand.voiceTone &&
-        data.brand.callToAction &&
-        data.brand.requiredPhrases.length > 0
-      );
-    default:
-      return false;
-  }
+  // Future: industry-specific data
+  industryData?: Record<string, unknown>;
 }
 
 /**
@@ -127,30 +64,114 @@ export function isSectionComplete(
 export function createEmptyQuestionnaire(): QuestionnaireDataStructure {
   return {
     identity: {
-      businessName: "",
-      industry: "",
       tagline: "",
-      yearEstablished: new Date().getFullYear().toString(),
-      contactName: "",
-    },
-    location: {
-      address: "",
-      serviceType: "onsite",
+      yearEstablished: "",
+      ownerName: "",
     },
     services: {
       offerings: [],
     },
     audience: {
       targetDescription: "",
-      demographics: "",
-      painPoints: "",
       languages: [],
     },
     brand: {
       voiceTone: BrandVoiceTone.PROFESSIONAL,
-      requiredPhrases: [],
-      forbiddenWords: [],
+      forbiddenTerms: [],
       callToAction: "",
     },
+    serviceType: "onsite",
   };
+}
+
+/**
+ * Best-effort normalization for legacy saved questionnaire payloads.
+ * Allows the UI/server to load older data without breaking.
+ */
+export function normalizeQuestionnaireData(
+  raw: unknown
+): QuestionnaireDataStructure {
+  const base = createEmptyQuestionnaire();
+
+  if (!raw || typeof raw !== "object") return base;
+  const obj = raw as Record<string, unknown>;
+
+  // Legacy V0 shape (identity/location/audience/brand)
+  const identity = (obj.identity ?? {}) as Record<string, unknown>;
+  const audience = (obj.audience ?? {}) as Record<string, unknown>;
+  const brand = (obj.brand ?? {}) as Record<string, unknown>;
+  const location = (obj.location ?? {}) as Record<string, unknown>;
+
+  const legacyOwnerName =
+    typeof identity.contactName === "string" ? identity.contactName : "";
+
+  const legacyServiceType =
+    typeof location.serviceType === "string" ? location.serviceType : undefined;
+
+  const legacyForbiddenWords = Array.isArray(brand.forbiddenWords)
+    ? (brand.forbiddenWords.filter((x) => typeof x === "string") as string[])
+    : [];
+
+  const next: QuestionnaireDataStructure = {
+    ...base,
+    identity: {
+      tagline:
+        typeof identity.tagline === "string"
+          ? identity.tagline
+          : base.identity.tagline,
+      yearEstablished:
+        typeof identity.yearEstablished === "string"
+          ? identity.yearEstablished
+          : base.identity.yearEstablished,
+      ownerName:
+        typeof identity.ownerName === "string"
+          ? identity.ownerName
+          : legacyOwnerName,
+    },
+    services:
+      obj.services && typeof obj.services === "object"
+        ? (obj.services as QuestionnaireDataStructure["services"])
+        : base.services,
+    audience: {
+      targetDescription:
+        typeof audience.targetDescription === "string"
+          ? audience.targetDescription
+          : base.audience.targetDescription,
+      languages: Array.isArray(audience.languages)
+        ? (audience.languages.filter((x) => typeof x === "string") as string[])
+        : base.audience.languages,
+    },
+    brand: {
+      voiceTone:
+        typeof brand.voiceTone === "string"
+          ? brand.voiceTone
+          : base.brand.voiceTone,
+      callToAction:
+        typeof brand.callToAction === "string"
+          ? brand.callToAction
+          : base.brand.callToAction,
+      forbiddenTerms: Array.isArray(brand.forbiddenTerms)
+        ? (brand.forbiddenTerms.filter(
+            (x) => typeof x === "string"
+          ) as string[])
+        : legacyForbiddenWords,
+    },
+    serviceType:
+      legacyServiceType === "onsite" ||
+      legacyServiceType === "mobile" ||
+      legacyServiceType === "both"
+        ? legacyServiceType
+        : typeof obj.serviceType === "string" &&
+          (obj.serviceType === "onsite" ||
+            obj.serviceType === "mobile" ||
+            obj.serviceType === "both")
+        ? obj.serviceType
+        : base.serviceType,
+    industryData:
+      obj.industryData && typeof obj.industryData === "object"
+        ? (obj.industryData as Record<string, unknown>)
+        : base.industryData,
+  };
+
+  return next;
 }

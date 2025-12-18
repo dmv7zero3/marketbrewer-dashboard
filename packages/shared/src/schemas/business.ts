@@ -4,20 +4,31 @@
 
 import { z } from "zod";
 
-export const CreateBusinessSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  industry: z.string().min(1, "Industry is required"),
-  website: z.string().url().nullable().optional(),
-  phone: z.string().nullable().optional(),
-  email: z.string().email().nullable().optional(),
-});
+export const CreateBusinessSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    // Backward compatible: accept either legacy industry label or new schema.org subtype
+    industry: z.string().min(1).optional(),
+    industry_type: z.string().min(1).optional(),
+    website: z.string().url().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    email: z.string().email().nullable().optional(),
+    gbp_url: z.string().url().nullable().optional(),
+  })
+  .refine((v) => !!v.industry || !!v.industry_type, {
+    message: "Industry is required",
+  });
 
 export const UpdateBusinessSchema = z.object({
   name: z.string().min(1).optional(),
   industry: z.string().min(1).optional(),
+  industry_type: z.string().min(1).optional(),
   website: z.string().url().nullable().optional(),
   phone: z.string().nullable().optional(),
   email: z.string().email().nullable().optional(),
+  gbp_url: z.string().url().nullable().optional(),
+  primary_city: z.string().min(1).nullable().optional(),
+  primary_state: z.string().min(1).nullable().optional(),
 });
 
 export const CreateKeywordSchema = z.object({

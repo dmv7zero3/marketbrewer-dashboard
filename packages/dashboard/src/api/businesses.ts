@@ -49,9 +49,11 @@ export async function getBusiness(
 export async function createBusiness(data: {
   name: string;
   industry: string;
+  industry_type?: string;
   website?: string;
   phone?: string;
   email?: string;
+  gbp_url?: string;
 }): Promise<BusinessResponse> {
   const response = await apiClient.post<BusinessResponse>(
     "/api/businesses",
@@ -78,7 +80,18 @@ export async function getQuestionnaire(
 export async function updateBusiness(
   businessId: string,
   data: Partial<
-    Pick<Business, "name" | "industry" | "website" | "phone" | "email">
+    Pick<
+      Business,
+      | "name"
+      | "industry"
+      | "industry_type"
+      | "website"
+      | "phone"
+      | "email"
+      | "gbp_url"
+      | "primary_city"
+      | "primary_state"
+    >
   >
 ): Promise<BusinessResponse> {
   const response = await apiClient.put<BusinessResponse>(
