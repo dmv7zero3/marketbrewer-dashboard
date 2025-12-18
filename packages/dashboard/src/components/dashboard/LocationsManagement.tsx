@@ -96,36 +96,64 @@ export const LocationsManagement: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const triggerRefresh = React.useCallback(() => {
+    setRefreshToken((token) => token + 1);
+  }, []);
 
   useEffect(() => {
-    if (selectedBusiness) {
-      loadLocations();
-      loadStats();
-    }
-  }, [selectedBusiness]);
-
-  const loadLocations = async () => {
-    if (!selectedBusiness) return;
-    try {
-      setLoading(true);
-      const { locations: data } = await getLocations(selectedBusiness);
-      setLocations(data);
-    } catch (error) {
-      addToast("Failed to load locations", "error");
-    } finally {
+    if (!selectedBusiness) {
+      setLocations([]);
+      setStats(null);
       setLoading(false);
+      return;
     }
-  };
 
-  const loadStats = async () => {
-    if (!selectedBusiness) return;
-    try {
-      const { stats: data } = await getLocationStats(selectedBusiness);
-      setStats(data);
-    } catch (error) {
-      console.error("Failed to load stats:", error);
-    }
-  };
+    let cancelled = false;
+    setLoading(true);
+    setLocations([]);
+    setStats(null);
+
+    const fetchData = async () => {
+      const [locationsResult, statsResult] = await Promise.allSettled([
+        getLocations(selectedBusiness),
+        getLocationStats(selectedBusiness),
+      ]);
+
+      if (cancelled) return;
+
+      if (locationsResult.status === "fulfilled") {
+        setLocations(locationsResult.value.locations);
+      } else {
+        console.error(
+          "[LocationsManagement] Failed to load locations:",
+          locationsResult.reason
+        );
+        addToast("Failed to load locations", "error");
+        setLocations([]);
+      }
+
+      if (statsResult.status === "fulfilled") {
+        setStats(statsResult.value.stats);
+      } else {
+        console.error(
+          "[LocationsManagement] Failed to load stats:",
+          statsResult.reason
+        );
+        setStats(null);
+      }
+
+      if (!cancelled) {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBusiness, refreshToken, addToast]);
 
   // TODO: Implement handler for adding new locations via modal
   const handleAddLocation = async (data: LocationFormData) => {
@@ -133,8 +161,7 @@ export const LocationsManagement: React.FC = () => {
     try {
       await createLocation(selectedBusiness, data);
       addToast("Location added successfully", "success");
-      loadLocations();
-      loadStats();
+      triggerRefresh();
       setShowAddModal(false);
     } catch (error) {
       addToast("Failed to add location", "error");
@@ -145,36 +172,31 @@ export const LocationsManagement: React.FC = () => {
   const handleUpdateLocation = async (data: LocationFormData) => {
     if (!selectedBusiness || !editingLocation) return;
     try {
-      // Clean up the data: remove empty strings and undefined values for optional fields
       const cleanedData: Partial<LocationFormData> = {};
 
+      const requiredFields = new Set([
+        "name",
+        "city",
+        "state",
+        "country",
+        "status",
+      ]);
+
       Object.entries(data).forEach(([key, value]) => {
-        // Always include required fields and non-empty values
         if (
-          key === "name" ||
-          key === "city" ||
-          key === "state" ||
-          key === "country" ||
-          key === "status"
+          requiredFields.has(key) ||
+          typeof value === "boolean" ||
+          typeof value === "number"
         ) {
-          // Required fields - always include
-          cleanedData[key as keyof LocationFormData] = value as any;
-        } else if (typeof value === "boolean" || typeof value === "number") {
-          // Booleans and numbers - always include (even if 0 or false)
-          cleanedData[key as keyof LocationFormData] = value as any;
+          (cleanedData as Record<string, unknown>)[key] = value;
         } else if (value !== "" && value !== undefined && value !== null) {
-          // Optional string fields - only include if not empty
-          cleanedData[key as keyof LocationFormData] = value as any;
+          (cleanedData as Record<string, unknown>)[key] = value;
         }
       });
 
-      console.log("[handleUpdateLocation] Original data:", data);
-      console.log("[handleUpdateLocation] Cleaned data:", cleanedData);
-
       await updateLocation(selectedBusiness, editingLocation.id, cleanedData);
       addToast("Location updated successfully", "success");
-      loadLocations();
-      loadStats();
+      triggerRefresh();
       setEditingLocation(null);
     } catch (error) {
       addToast("Failed to update location", "error");
@@ -208,8 +230,7 @@ export const LocationsManagement: React.FC = () => {
         );
       }
 
-      loadLocations();
-      loadStats();
+      triggerRefresh();
       setShowImportModal(false);
     } catch (error) {
       addToast("Failed to import locations", "error");
@@ -224,8 +245,7 @@ export const LocationsManagement: React.FC = () => {
     try {
       await deleteLocation(selectedBusiness, locationId);
       addToast("Location deleted successfully", "success");
-      loadLocations();
-      loadStats();
+      triggerRefresh();
     } catch (error) {
       addToast("Failed to delete location", "error");
     }

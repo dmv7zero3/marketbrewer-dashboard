@@ -3,6 +3,7 @@
 ## Context
 
 This is a handoff for the **MarketBrewer SEO Platform** project. Previous work completed:
+
 - ✅ Locations management fully implemented with CRUD operations
 - ✅ Edit/create/delete/bulk import modals working
 - ✅ 10/10 smoke tests passing for locations API
@@ -16,6 +17,7 @@ This is a handoff for the **MarketBrewer SEO Platform** project. Previous work c
 User reports: **"i dont see any business available"** when trying to use the locations management page.
 
 **Symptoms observed:**
+
 1. Dashboard shows "No business selected" message
 2. Business dropdown is empty
 3. Console shows multiple errors:
@@ -24,6 +26,7 @@ User reports: **"i dont see any business available"** when trying to use the loc
    - `Access to XMLHttpRequest at 'http://localhost:3001/api/businesses' from origin 'http://localhost:3002' has been blocked by CORS policy`
 
 **Screenshot Analysis:**
+
 - Shows dashboard with empty business selector
 - Browser DevTools console shows ~15 messages
 - 6 errors (red)
@@ -51,20 +54,24 @@ User reports: **"i dont see any business available"** when trying to use the loc
 ## Files to Investigate
 
 ### Priority 1: CORS Configuration
+
 - [ ] [packages/server/src/middleware/cors.ts](packages/server/src/middleware/cors.ts) - CORS middleware
 - [ ] [packages/server/src/index.ts](packages/server/src/index.ts) - Server setup with CORS
 - [ ] [docs/api/CORS.md](docs/api/CORS.md) - CORS documentation
 
 ### Priority 2: API Client
+
 - [ ] [packages/dashboard/src/api/client.ts](packages/dashboard/src/api/client.ts) - Axios config
 - [ ] [packages/dashboard/src/api/businesses.ts](packages/dashboard/src/api/businesses.ts) - Business API calls
 - [ ] [packages/dashboard/webpack.config.js](packages/dashboard/webpack.config.js) - Dev server proxy config
 
 ### Priority 3: Business Context
+
 - [ ] [packages/dashboard/src/contexts/BusinessContext.tsx](packages/dashboard/src/contexts/BusinessContext.tsx) - Business state management
 - [ ] [packages/dashboard/src/components/dashboard/BusinessSelector.tsx](packages/dashboard/src/components/dashboard/BusinessSelector.tsx) - Dropdown component
 
 ### Priority 4: Server Environment
+
 - [ ] Check if server is running with `NODE_ENV=development`
 - [ ] Verify server listening on correct port (3001)
 - [ ] Check for rate limiting middleware that's too aggressive
@@ -72,6 +79,7 @@ User reports: **"i dont see any business available"** when trying to use the loc
 ## Debugging Steps
 
 ### 1. Verify Server is Running Correctly
+
 ```bash
 # Check if server process is running
 lsof -i:3001
@@ -84,6 +92,7 @@ curl -H "Authorization: Bearer local-dev-token" http://localhost:3001/api/busine
 ```
 
 ### 2. Check Database
+
 ```bash
 # Verify businesses exist in database
 cd /Users/george/MatrizInc/MarketBrewer/Clients/marketbrewer-seo-platform
@@ -93,6 +102,7 @@ sqlite3 data/seo-platform.db "SELECT id, name FROM businesses;"
 ```
 
 ### 3. Test CORS Headers
+
 ```bash
 # Test CORS preflight
 curl -X OPTIONS \
@@ -104,6 +114,7 @@ curl -X OPTIONS \
 ```
 
 ### 4. Check Dashboard Console
+
 - Open browser DevTools
 - Look for API request logs (should see `[API Request] GET http://localhost:3001/api/businesses`)
 - Check if requests are being made or failing silently
@@ -112,31 +123,31 @@ curl -X OPTIONS \
 ## Known Working Configuration
 
 **Server CORS Settings (from docs/api/CORS.md):**
+
 ```typescript
 // Development
-const allowedOrigins = [
-  'http://localhost:3002',
-  'http://localhost:3000'
-];
+const allowedOrigins = ["http://localhost:3002", "http://localhost:3000"];
 
 // Must include credentials: true for cookie-based auth
 ```
 
 **API Client Config:**
+
 ```typescript
 // packages/dashboard/src/api/client.ts
 const apiClient = axios.create({
-  baseURL: process.env.API_URL || 'http://localhost:3001',
+  baseURL: process.env.API_URL || "http://localhost:3001",
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer local-dev-token'
-  }
+    "Content-Type": "application/json",
+    Authorization: "Bearer local-dev-token",
+  },
 });
 ```
 
 ## Rate Limiting Issue
 
 The `429 Too Many Requests` errors suggest the server has aggressive rate limiting. Check:
+
 1. [packages/server/src/middleware/rate-limit.ts](packages/server/src/middleware/rate-limit.ts) - Rate limit config
 2. May need to disable or increase limits for development
 3. OR wait 60 seconds for rate limit to reset
@@ -144,6 +155,7 @@ The `429 Too Many Requests` errors suggest the server has aggressive rate limiti
 ## Expected Behavior
 
 Once fixed, the dashboard should:
+
 1. Load businesses from `/api/businesses` endpoint
 2. Show "Nash & Smashed" in the business dropdown
 3. Allow selecting the business
@@ -174,6 +186,7 @@ npm run test:locations-api  # Should show 10/10 passing
 ## Previous Work Reference
 
 All implementation details are in:
+
 - [docs/LOCATIONS-IMPLEMENTATION.md](docs/LOCATIONS-IMPLEMENTATION.md) - Complete feature documentation
 - [docs/LOCATIONS-TEST-SUMMARY.md](docs/LOCATIONS-TEST-SUMMARY.md) - Testing overview
 - [docs/CONVENTIONS.md](docs/CONVENTIONS.md) - Code style guide
@@ -190,6 +203,7 @@ All implementation details are in:
 **Primary Goal:** Fix the CORS/connection issues so the business dropdown loads data from the API.
 
 **Success Criteria:**
+
 1. Dashboard loads without CORS errors
 2. Business dropdown shows "Nash & Smashed"
 3. Can select business and see locations page
@@ -197,6 +211,7 @@ All implementation details are in:
 5. All existing smoke tests still pass (10/10)
 
 **Approach:**
+
 1. Start by checking if server is running with correct NODE_ENV
 2. Verify CORS configuration allows `localhost:3002`
 3. Check rate limiting is not too aggressive for development
