@@ -1,7 +1,12 @@
 import React, { ReactNode } from "react";
 import { DashboardLayout } from "../DashboardLayout";
 
-export type ProfileSection = "essentials" | "hours" | "social" | "content";
+export type ProfileSection =
+  | "essentials"
+  | "hours"
+  | "social"
+  | "services"
+  | "content";
 
 interface SectionItem {
   id: string;
@@ -26,9 +31,15 @@ const PROFILE_SECTIONS: Record<ProfileSection, SectionItem[]> = {
       section: "essentials",
     },
     {
-      id: "gbp",
+      id: "primary-location",
+      label: "Primary Location",
+      description: "City, state for local SEO",
+      section: "essentials",
+    },
+    {
+      id: "google-business-profile",
       label: "Google Business Profile",
-      description: "GBP URL, primary location",
+      description: "GBP URL for verification",
       section: "essentials",
     },
   ],
@@ -48,17 +59,19 @@ const PROFILE_SECTIONS: Record<ProfileSection, SectionItem[]> = {
       section: "social",
     },
   ],
+  services: [
+    {
+      id: "service-offerings",
+      label: "Service Offerings",
+      description: "Products and services",
+      section: "services",
+    },
+  ],
   content: [
     {
       id: "identity",
       label: "Identity",
       description: "Tagline, owner, history",
-      section: "content",
-    },
-    {
-      id: "services",
-      label: "Services",
-      description: "Offerings & descriptions",
       section: "content",
     },
     {
@@ -84,6 +97,7 @@ const SECTION_GROUPS: Array<{
   { name: "essentials", label: "Essentials", icon: "📋" },
   { name: "hours", label: "Business Hours", icon: "🕐" },
   { name: "social", label: "Social & Links", icon: "🔗" },
+  { name: "services", label: "Services", icon: "🛠️" },
   { name: "content", label: "Content Profile", icon: "✍️" },
 ];
 

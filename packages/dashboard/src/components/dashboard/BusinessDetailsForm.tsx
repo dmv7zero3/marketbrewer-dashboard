@@ -22,6 +22,8 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
       onChange({ ...business, [field]: value });
     };
 
+    // Core business identity fields only
+    // gbp_url, primary_city, primary_state removed (now in EssentialsTab GBP section)
     const fields = [
       {
         key: "name",
@@ -29,13 +31,7 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         required: true,
         placeholder: "Your business name",
         value: business.name ?? "",
-      },
-      {
-        key: "gbp_url",
-        label: "Google Business Profile URL",
-        required: false,
-        placeholder: "https://business.google.com/...",
-        value: business.gbp_url ?? "",
+        type: "text",
       },
       {
         key: "website",
@@ -43,6 +39,7 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         required: false,
         placeholder: "https://example.com",
         value: business.website ?? "",
+        type: "url",
       },
       {
         key: "phone",
@@ -50,6 +47,7 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         required: false,
         placeholder: "(555) 123-4567",
         value: business.phone ?? "",
+        type: "tel",
       },
       {
         key: "email",
@@ -57,20 +55,7 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
         required: false,
         placeholder: "contact@example.com",
         value: business.email ?? "",
-      },
-      {
-        key: "primary_city",
-        label: "Primary City",
-        required: false,
-        placeholder: "Arlington",
-        value: business.primary_city ?? "",
-      },
-      {
-        key: "primary_state",
-        label: "Primary State",
-        required: false,
-        placeholder: "VA",
-        value: business.primary_state ?? "",
+        type: "email",
       },
     ] as const;
 
@@ -106,7 +91,7 @@ export const BusinessDetailsForm = memo<BusinessDetailsFormProps>(
                 )}
               </label>
               <input
-                type={field.key === "email" ? "email" : "text"}
+                type={field.type}
                 disabled={disabled}
                 className={`w-full px-3 py-2 border rounded-md transition-colors ${
                   hasError

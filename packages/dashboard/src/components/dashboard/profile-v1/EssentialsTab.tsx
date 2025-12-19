@@ -1,6 +1,8 @@
 import React from "react";
 import { Business } from "@marketbrewer/shared";
 import { BusinessDetailsForm } from "../BusinessDetailsForm";
+import { PrimaryLocationCard } from "./PrimaryLocationCard";
+import { GoogleBusinessProfileCard } from "./GoogleBusinessProfileCard";
 
 interface EssentialsTabProps {
   business: Business | null;
@@ -16,14 +18,20 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
   disabled,
 }) => {
   if (!business) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-gray-500">Loading business details...</div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-8">
-      {/* Business Details Section */}
-      <section>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      {/* ============================================ */}
+      {/* SECTION 1: Business Details (Core Identity) */}
+      {/* ============================================ */}
+      <section id="business-details">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Business Details
         </h3>
         <p className="text-sm text-gray-600 mb-6">
@@ -38,79 +46,41 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
         />
       </section>
 
-      {/* Google Business Profile Section */}
-      <section className="border-t pt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      {/* ============================================ */}
+      {/* SECTION 2: Primary Location */}
+      {/* ============================================ */}
+      <section id="primary-location" className="border-t pt-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Primary Location
+        </h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Your main business location used for local SEO targeting.
+        </p>
+        <PrimaryLocationCard
+          business={business}
+          validationErrors={validationErrors}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      </section>
+
+      {/* ============================================ */}
+      {/* SECTION 3: Google Business Profile */}
+      {/* ============================================ */}
+      <section id="google-business-profile" className="border-t pt-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Google Business Profile
         </h3>
         <p className="text-sm text-gray-600 mb-6">
-          Link to your Google Business Profile to enhance local SEO visibility.
+          Link your Google Business Profile for verification and local SEO
+          benefits.
         </p>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            GBP URL
-          </label>
-          <input
-            type="url"
-            value={business.gbp_url || ""}
-            onChange={(e) => onChange({ ...business, gbp_url: e.target.value })}
-            disabled={disabled}
-            className="w-full border rounded-lg px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
-            placeholder="https://www.google.com/maps/place/..."
-          />
-          {validationErrors.gbp_url && (
-            <p className="text-red-600 text-xs mt-1">
-              {validationErrors.gbp_url}
-            </p>
-          )}
-          <p className="text-xs text-gray-500 mt-2">
-            Your Google Business Profile URL for verification and local SEO
-            benefits.
-          </p>
-        </div>
-
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Primary City
-          </label>
-          <input
-            type="text"
-            value={business.primary_city || ""}
-            onChange={(e) =>
-              onChange({ ...business, primary_city: e.target.value })
-            }
-            disabled={disabled}
-            className="w-full border rounded-lg px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
-            placeholder="e.g., Nashville"
-          />
-          {validationErrors.primary_city && (
-            <p className="text-red-600 text-xs mt-1">
-              {validationErrors.primary_city}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Primary State
-          </label>
-          <input
-            type="text"
-            value={business.primary_state || ""}
-            onChange={(e) =>
-              onChange({ ...business, primary_state: e.target.value })
-            }
-            disabled={disabled}
-            className="w-full border rounded-lg px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
-            placeholder="e.g., TN"
-          />
-          {validationErrors.primary_state && (
-            <p className="text-red-600 text-xs mt-1">
-              {validationErrors.primary_state}
-            </p>
-          )}
-        </div>
+        <GoogleBusinessProfileCard
+          business={business}
+          validationErrors={validationErrors}
+          onChange={onChange}
+          disabled={disabled}
+        />
       </section>
     </div>
   );

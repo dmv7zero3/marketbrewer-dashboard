@@ -6,6 +6,7 @@ import {
 import { EssentialsTab } from "./profile-v1/EssentialsTab";
 import { LocationsAndHoursTab } from "./profile-v1/LocationsAndHoursTab";
 import { SocialLinksTab } from "./profile-v1/SocialLinksTab";
+import { ServicesTab } from "./profile-v1/ServicesTab";
 import { ContentProfileTab } from "./profile-v1/ContentProfileTab";
 import { ValidationSummary } from "./ValidationSummary";
 import { StickyFooter } from "./StickyFooter";
@@ -474,6 +475,15 @@ export const BusinessProfile: React.FC = () => {
 
             {activeSection === "social" && (
               <SocialLinksTab isSaving={isSavingAny} />
+            )}
+
+            {activeSection === "services" && (
+              <ServicesTab
+                data={questionnaireData}
+                onDataChange={handleQuestionnaireDataChange}
+                isSaving={savingQ}
+                isLoading={loading}
+              />
             )}
 
             {activeSection === "content" && (
