@@ -4,7 +4,7 @@
 
 import cors, { CorsOptions } from "cors";
 
-const DASHBOARD_URL = process.env.CORS_DASHBOARD_URL || "http://localhost:3000";
+const DASHBOARD_URL = process.env.CORS_DASHBOARD_URL || "http://localhost:3002";
 
 /**
  * Build list of allowed origins
@@ -13,7 +13,9 @@ function getAllowedOrigins(): (string | RegExp)[] {
   const origins: (string | RegExp)[] = [
     DASHBOARD_URL,
     "http://localhost:3000", // Local dev dashboard
+    "http://localhost:3002", // Local dev dashboard (webpack default)
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:3002",
   ];
 
   // Allow Tailscale origins in development
