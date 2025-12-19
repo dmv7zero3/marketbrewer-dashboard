@@ -31,13 +31,29 @@ console.log("🌱 Seeding additional businesses...\n");
 
 const now = new Date().toISOString();
 
-const businesses = [
+type SeedBusiness = {
+  id: string;
+  name: string;
+  industry: string;
+  primary_city: string;
+  primary_state: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  industry_type?: string;
+};
+
+const businesses: SeedBusiness[] = [
   {
     id: "street-lawyer-magic",
     name: "Street Lawyer Magic",
-    industry: "Law Office",
-    primary_city: "Fairfax",
-    primary_state: "VA",
+    industry: "Criminal Defense & Cannabis Advocacy",
+    industry_type: "Criminal Defense & Cannabis Advocacy",
+    website: "https://streetlawyermagic.com",
+    phone: "240-478-2189",
+    email: "lonny79@aol.com",
+    primary_city: "Washington",
+    primary_state: "DC",
   },
   {
     id: "the-babes-club",
@@ -62,9 +78,22 @@ const businesses = [
   },
 ];
 
-const insertStmt = db.prepare(`
-  INSERT OR REPLACE INTO businesses (id, name, industry, primary_city, primary_state, created_at, updated_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?)
+const upsertBusinessStmt = db.prepare(`
+  INSERT INTO businesses (
+    id, name, industry, website, phone, email, industry_type,
+    primary_city, primary_state, created_at, updated_at
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET
+    name = excluded.name,
+    industry = excluded.industry,
+    website = COALESCE(excluded.website, businesses.website),
+    phone = COALESCE(excluded.phone, businesses.phone),
+    email = COALESCE(excluded.email, businesses.email),
+    industry_type = COALESCE(excluded.industry_type, businesses.industry_type),
+    primary_city = excluded.primary_city,
+    primary_state = excluded.primary_state,
+    updated_at = excluded.updated_at
 `);
 
 let added = 0;
@@ -75,13 +104,17 @@ for (const business of businesses) {
     .prepare("SELECT id FROM businesses WHERE id = ?")
     .get(business.id);
 
-  insertStmt.run(
+  upsertBusinessStmt.run(
     business.id,
     business.name,
     business.industry,
+    business.website ?? null,
+    business.phone ?? null,
+    business.email ?? null,
+    business.industry_type ?? null,
     business.primary_city,
     business.primary_state,
-    now,
+    existing ? null : now,
     now
   );
 
@@ -93,6 +126,51 @@ for (const business of businesses) {
     console.log(`✓ Added: ${business.name}`);
   }
 }
+
+// Ensure Street Lawyer Magic has a headquarters location
+const upsertLocationStmt = db.prepare(`
+  INSERT INTO locations (
+    id, business_id, name, display_name, address, full_address,
+    city, state, zip_code, country, phone, email,
+    status, is_headquarters, priority, created_at, updated_at
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET
+    name = excluded.name,
+    display_name = excluded.display_name,
+    address = excluded.address,
+    full_address = excluded.full_address,
+    city = excluded.city,
+    state = excluded.state,
+    zip_code = excluded.zip_code,
+    country = excluded.country,
+    phone = excluded.phone,
+    email = excluded.email,
+    status = excluded.status,
+    is_headquarters = excluded.is_headquarters,
+    priority = excluded.priority,
+    updated_at = excluded.updated_at
+`);
+
+upsertLocationStmt.run(
+  "street-lawyer-magic-hq",
+  "street-lawyer-magic",
+  "Street Lawyer Magic - Main Office",
+  "Main Office",
+  "3400 Connecticut Avenue NW",
+  "3400 Connecticut Avenue NW, Washington, DC",
+  "Washington",
+  "DC",
+  null,
+  "USA",
+  "240-478-2189",
+  "lonny79@aol.com",
+  "active",
+  1,
+  1,
+  now,
+  now
+);
 
 console.log(`\n✅ Seeding complete!`);
 console.log(`   Added: ${added} businesses`);
