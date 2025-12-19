@@ -381,85 +381,71 @@ function seedQuestionnaires() {
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
-  // Sample questionnaire data for the new businesses
-  const sampleData = {
-    businessName: "Sample Business",
-    industry: "Marketing",
-    website: "https://example.com",
-    phone: "000-000-0000",
-    email: "contact@example.com",
-    description: "Professional business services",
-    address: "123 Main St",
-    hoursJson: JSON.stringify({
-      Monday: { open: "09:00", close: "17:00" },
-      Tuesday: { open: "09:00", close: "17:00" },
-      Wednesday: { open: "09:00", close: "17:00" },
-      Thursday: { open: "09:00", close: "17:00" },
-      Friday: { open: "09:00", close: "17:00" },
-      Saturday: { open: "10:00", close: "16:00" },
-      Sunday: { open: "closed", close: "closed" },
-    }),
-    socialProfiles: {
-      google: "",
-      facebook: "",
-      instagram: "",
-      linkedin: "",
-      twitter: "",
-    },
+  // Get all businesses from the database
+  const allBusinesses = db
+    .prepare(
+      "SELECT id, name, phone, website, primary_city, primary_state FROM businesses"
+    )
+    .all() as any[];
+
+  // Default hours for all businesses
+  const defaultHours = JSON.stringify({
+    Monday: { open: "09:00", close: "17:00" },
+    Tuesday: { open: "09:00", close: "17:00" },
+    Wednesday: { open: "09:00", close: "17:00" },
+    Thursday: { open: "09:00", close: "17:00" },
+    Friday: { open: "09:00", close: "17:00" },
+    Saturday: { open: "10:00", close: "16:00" },
+    Sunday: { open: "closed", close: "closed" },
+  });
+
+  const defaultSocialProfiles = {
+    google: "",
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+    twitter: "",
   };
 
-  const questionnaires = [
-    {
-      businessId: "the-babes-club",
-      data: {
-        ...sampleData,
-        businessName: "The Babes Club",
-        industry: "Entertainment",
-        website: "https://thebabesclub.com",
-        phone: "240-478-2189",
-        description: "Entertainment venue in Baltimore",
-        address: "3400 Connecticut Avenue NW, Baltimore, MD 21218",
-      },
-      score: 65,
-    },
-    {
-      businessId: "the-chronic-agency",
-      data: {
-        ...sampleData,
-        businessName: "The Chronic Agency",
-        industry: "Marketing",
-        website: "https://thechronicagency.com",
-        phone: "240-478-2189",
-        description: "Creative marketing agency based in Baltimore",
-        address: "3400 Connecticut Avenue NW, Baltimore, MD 21218",
-      },
-      score: 70,
-    },
-    {
-      businessId: "marketbrewer-va",
-      data: {
-        ...sampleData,
-        businessName: "MarketBrewer",
-        industry: "Local SEO",
-        website: "https://marketbrewer.com",
-        phone: "703-463-6323",
-        description: "Local SEO content generation platform",
-        address: "1900 Reston Metro Plaza, Reston, VA 20190",
-      },
-      score: 75,
-    },
-  ];
+  // Seed questionnaire for every business
+  for (const business of allBusinesses) {
+    // Get primary location for this business
+    const location = db
+      .prepare(
+        "SELECT address, city, state, zip_code FROM locations WHERE business_id = ? LIMIT 1"
+      )
+      .get(business.id) as any;
 
-  for (const questionnaire of questionnaires) {
+    const fullAddress = location
+      ? `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
+      : `${business.primary_city}, ${business.primary_state}`;
+
+    const questionnaire = {
+      businessName: business.name,
+      industry: business.name.includes("MarketBrewer")
+        ? "Local SEO"
+        : "Entertainment",
+      website: business.website || "https://example.com",
+      phone: business.phone || "000-000-0000",
+      email: "",
+      description: `Professional business services in ${business.primary_city}, ${business.primary_state}`,
+      address: fullAddress,
+      hoursJson: defaultHours,
+      socialProfiles: defaultSocialProfiles,
+    };
+
+    // Determine completeness score based on data filled in
+    const score = business.website && business.phone ? 70 : 50;
+
     insertQuestionnaire.run(
       generateId(),
-      questionnaire.businessId,
-      JSON.stringify(questionnaire.data),
-      questionnaire.score,
+      business.id,
+      JSON.stringify(questionnaire),
+      score,
       now,
       now
     );
-    console.log(`  ✅ Questionnaire for ${questionnaire.data.businessName}`);
+    console.log(`  ✅ Questionnaire for ${business.name}`);
   }
 }
 
