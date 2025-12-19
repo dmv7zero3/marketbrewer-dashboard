@@ -34,6 +34,9 @@ export const KeywordsManagement: React.FC = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [languageFilter, setLanguageFilter] = useState<"all" | "en" | "es">(
+    "all"
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -243,70 +246,132 @@ export const KeywordsManagement: React.FC = () => {
     }
   };
 
-  const renderManageTab = () => (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <select
-          className="border rounded px-2 py-1"
-          value={newLanguage}
-          onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
-          aria-label="Keyword language"
-        >
-          <option value="en">EN</option>
-          <option value="es">ES</option>
-        </select>
-        <input
-          className={`border rounded px-2 py-1 flex-1 ${
-            inputError ? "border-red-500" : ""
-          }`}
-          placeholder="Add keyword"
-          value={newKeyword}
-          onChange={(e) => {
-            setNewKeyword(e.target.value);
-            setInputError(null);
-          }}
-        />
-        <button
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
-          onClick={handleAdd}
-          disabled={loading}
-        >
-          Add
-        </button>
-      </div>
-      {inputError && <p className="text-red-600 text-sm">{inputError}</p>}
-      {error && <p className="text-red-600">{error}</p>}
-      {loading ? (
-        <p className="text-gray-500">Loading keywords...</p>
-      ) : (
-        <ul className="space-y-2">
-          {keywords.map((k) => (
-            <li
-              key={k.id}
-              className="flex items-center justify-between border rounded p-2 bg-white"
-            >
-              <div>
-                <p className="text-gray-800">
-                  <span className="text-xs font-semibold text-gray-500 mr-2">
-                    {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
-                  </span>
-                  {k.keyword}
-                </p>
-                <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
-              </div>
-              <button
-                className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                onClick={() => handleDelete(k.id)}
-                disabled={deletingIds.has(k.id)}
+  const renderManageTab = () => {
+    const filteredKeywords = keywords.filter((k) => {
+      if (languageFilter === "all") return true;
+      return k.language === languageFilter;
+    });
+
+    const enCount = keywords.filter((k) => k.language === "en").length;
+    const esCount = keywords.filter((k) => k.language === "es").length;
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <select
+            className="border rounded px-2 py-1"
+            value={newLanguage}
+            onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
+            aria-label="Keyword language"
+          >
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+          </select>
+          <input
+            className={`border rounded px-2 py-1 flex-1 ${
+              inputError ? "border-red-500" : ""
+            }`}
+            placeholder="Add keyword"
+            value={newKeyword}
+            onChange={(e) => {
+              setNewKeyword(e.target.value);
+              setInputError(null);
+            }}
+          />
+          <button
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+            onClick={handleAdd}
+            disabled={loading}
+          >
+            Add
+          </button>
+        </div>
+        {inputError && <p className="text-red-600 text-sm">{inputError}</p>}
+
+        {/* Language Filter */}
+        <div className="flex items-center gap-2 py-2">
+          <span className="text-sm font-medium text-gray-700">Filter:</span>
+          <button
+            onClick={() => setLanguageFilter("all")}
+            className={`px-3 py-1 text-sm rounded ${
+              languageFilter === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            All ({keywords.length})
+          </button>
+          <button
+            onClick={() => setLanguageFilter("en")}
+            className={`px-3 py-1 text-sm rounded ${
+              languageFilter === "en"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            English ({enCount})
+          </button>
+          <button
+            onClick={() => setLanguageFilter("es")}
+            className={`px-3 py-1 text-sm rounded ${
+              languageFilter === "es"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Spanish ({esCount})
+          </button>
+        </div>
+
+        {error && <p className="text-red-600">{error}</p>}
+        {loading ? (
+          <p className="text-gray-500">Loading keywords...</p>
+        ) : filteredKeywords.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">
+            No{" "}
+            {languageFilter === "all"
+              ? ""
+              : languageFilter === "en"
+              ? "English"
+              : "Spanish"}{" "}
+            keywords found.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {filteredKeywords.map((k) => (
+              <li
+                key={k.id}
+                className="flex items-center justify-between border rounded p-2 bg-white"
               >
-                {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+                <div className="flex-1">
+                  <p className="text-gray-800">
+                    <span
+                      className={`inline-block text-xs font-bold px-2 py-0.5 rounded mr-2 ${
+                        k.language === "es"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
+                    </span>
+                    {k.keyword}
+                  </p>
+                  <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
+                </div>
+                <button
+                  className="text-red-600 hover:text-red-800 disabled:opacity-50 ml-4"
+                  onClick={() => handleDelete(k.id)}
+                  disabled={deletingIds.has(k.id)}
+                >
+                  {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
 
   const renderBulkAddTab = () => (
     <div className="space-y-4">
