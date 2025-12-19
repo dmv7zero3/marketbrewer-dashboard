@@ -31,13 +31,13 @@ dashboard-tests/
 
 ## Test Coverage Summary
 
-| Test File | Tests | Description |
-|-----------|-------|-------------|
-| `business-selection.test.tsx` | 8 | Business dropdown → location loading |
-| `business-context.test.tsx` | 10 | Context state management & propagation |
-| `error-handling.test.tsx` | 12 | Error boundaries & graceful degradation |
-| `location-mutations.test.tsx` | 10 | Add/edit/delete with refresh |
-| **Total** | **40** | |
+| Test File                     | Tests  | Description                             |
+| ----------------------------- | ------ | --------------------------------------- |
+| `business-selection.test.tsx` | 8      | Business dropdown → location loading    |
+| `business-context.test.tsx`   | 10     | Context state management & propagation  |
+| `error-handling.test.tsx`     | 12     | Error boundaries & graceful degradation |
+| `location-mutations.test.tsx` | 10     | Add/edit/delete with refresh            |
+| **Total**                     | **40** |                                         |
 
 ## Key Test Scenarios
 
@@ -165,15 +165,15 @@ The test utilities provide realistic mock data:
 test("handles rapid business selection", async () => {
   const businessAPromise = createControllablePromise();
   const businessBPromise = createControllablePromise();
-  
+
   // Select A, then immediately B
   await user.selectOptions(dropdown, "business-a");
   await user.selectOptions(dropdown, "business-b");
-  
+
   // Resolve B first, then A
   businessBPromise.resolve({ locations: bLocations });
   businessAPromise.resolve({ locations: aLocations });
-  
+
   // Only B's data should be displayed
   expect(screen.getByText("Business B Location")).toBeInTheDocument();
   expect(screen.queryByText("Business A Location")).not.toBeInTheDocument();
@@ -189,7 +189,7 @@ test("catches errors without crashing", () => {
       <ThrowingComponent />
     </ErrorBoundary>
   );
-  
+
   expect(screen.getByTestId("error-fallback")).toBeInTheDocument();
   expect(screen.queryByTestId("throwing-component")).not.toBeInTheDocument();
 });
@@ -201,16 +201,18 @@ test("catches errors without crashing", () => {
 test("single provider prevents isolation", async () => {
   render(
     <BusinessProvider>
-      <Sidebar />        {/* Updates context */}
-      <Locations />      {/* Reads context */}
+      <Sidebar /> {/* Updates context */}
+      <Locations /> {/* Reads context */}
     </BusinessProvider>
   );
-  
+
   // Select in Sidebar
   await user.selectOptions(dropdown, "nash-and-smashed");
-  
+
   // Locations immediately receives update
-  expect(screen.getByTestId("selected-display")).toHaveTextContent("nash-and-smashed");
+  expect(screen.getByTestId("selected-display")).toHaveTextContent(
+    "nash-and-smashed"
+  );
 });
 ```
 
@@ -218,12 +220,12 @@ test("single provider prevents isolation", async () => {
 
 These tests directly validate the fix documented in `FIX-NESTED-BUSINESS-PROVIDER.md`:
 
-| Bug | Test |
-|-----|------|
-| Nested provider isolation | `business-context.test.tsx` - "does not create context isolation" |
-| Stale data on rapid selection | `business-selection.test.tsx` - "handles rapid business selection" |
-| Dashboard crash on component error | `error-handling.test.tsx` - "does not crash dashboard" |
-| Mutations not refreshing | `location-mutations.test.tsx` - all refresh tests |
+| Bug                                | Test                                                               |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| Nested provider isolation          | `business-context.test.tsx` - "does not create context isolation"  |
+| Stale data on rapid selection      | `business-selection.test.tsx` - "handles rapid business selection" |
+| Dashboard crash on component error | `error-handling.test.tsx` - "does not crash dashboard"             |
+| Mutations not refreshing           | `location-mutations.test.tsx` - all refresh tests                  |
 
 ## CI/CD Integration
 
