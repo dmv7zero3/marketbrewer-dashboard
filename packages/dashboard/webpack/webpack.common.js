@@ -2,6 +2,8 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const ReactRefreshTypeScript = require("react-refresh-typescript");
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -16,11 +18,22 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
   },
+  cache: {
+    type: "filesystem",
+  },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: {
+          loader: "ts-loader",
+          options: {
+            transpileOnly: true,
+            getCustomTransformers: () => ({
+              before: [isDev && ReactRefreshTypeScript()].filter(Boolean),
+            }),
+          },
+        },
         exclude: /node_modules/,
       },
       {
@@ -48,5 +61,6 @@ module.exports = {
         process.env.REACT_APP_API_TOKEN || ""
       ),
     }),
+    ...(isDev ? [new ForkTsCheckerWebpackPlugin()] : []),
   ],
 };
