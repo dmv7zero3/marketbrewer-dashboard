@@ -10,9 +10,9 @@
     "packages/worker"
   ],
   "scripts": {
-    "start": "API_TOKEN=local-dev-token REACT_APP_API_TOKEN=local-dev-token CORS_DASHBOARD_URL=http://localhost:3002 DASHBOARD_PORT=3002 npm run dev:server & npm run dev:dashboard",
+    "start": "NODE_ENV=development API_TOKEN=local-dev-token REACT_APP_API_TOKEN=local-dev-token CORS_DASHBOARD_URL=http://localhost:3002 DASHBOARD_PORT=3002 npm run dev:server & npm run dev:dashboard",
     "dev:dashboard": "REACT_APP_API_TOKEN=${REACT_APP_API_TOKEN:-local-dev-token} DASHBOARD_PORT=${DASHBOARD_PORT:-3002} npm run dev --workspace=packages/dashboard",
-    "dev:server": "API_TOKEN=${API_TOKEN:-local-dev-token} CORS_DASHBOARD_URL=${CORS_DASHBOARD_URL:-http://localhost:3002} npm run dev --workspace=packages/server",
+    "dev:server": "NODE_ENV=development API_TOKEN=${API_TOKEN:-local-dev-token} CORS_DASHBOARD_URL=${CORS_DASHBOARD_URL:-http://localhost:3002} npm run dev --workspace=packages/server",
     "dev:worker": "npm run dev --workspace=packages/worker",
     "build": "npm run build --workspaces",
     "build:shared": "npm run build --workspace=packages/shared",
