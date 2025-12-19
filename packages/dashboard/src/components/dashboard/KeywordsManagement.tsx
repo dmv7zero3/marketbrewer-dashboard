@@ -280,25 +280,6 @@ export const KeywordsManagement: React.FC = () => {
     );
   };
 
-  const handleDelete = async (id: string) => {
-    if (!selectedBusiness || deletingIds.has(id)) return;
-    setDeletingIds((prev) => new Set(prev).add(id));
-    try {
-      await deleteKeyword(selectedBusiness, id);
-      setKeywords((prev) => prev.filter((k) => k.id !== id));
-      addToast("Keyword deleted successfully", "success");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to delete keyword";
-      addToast(msg, "error", 5000);
-    } finally {
-      setDeletingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
-
   const parseBulkKeywords = (text: string) => {
     return text
       .split(/\r?\n/)
