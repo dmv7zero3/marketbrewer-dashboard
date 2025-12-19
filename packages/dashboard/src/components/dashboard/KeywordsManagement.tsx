@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -11,6 +11,18 @@ import {
 import { validateKeyword } from "../../lib/validation";
 import { toSlug } from "@marketbrewer/shared";
 import type { Keyword } from "@marketbrewer/shared";
+import { EmptyState, EmptyStateIcons, StatsCards } from "../ui";
+import { useConfirmDialog } from "../../hooks";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
+
+type KeywordPair = {
+  id: string; // Combined ID for the pair
+  slug: string; // URL-ready slug (same for both)
+  displayName: string; // Human-readable combined name
+  en: Keyword | null;
+  es: Keyword | null;
+  isPaired: boolean;
+};
 
 type TabName = "manage" | "bulk-add" | "instructions";
 
@@ -44,6 +56,60 @@ export const KeywordsManagement: React.FC = () => {
   const [addingTranslationFor, setAddingTranslationFor] = useState<
     string | null
   >(null);
+  const { confirm, dialogProps } = useConfirmDialog();
+
+  // Group keywords into pairs
+  const keywordPairs = useMemo(() => {
+    const pairs: KeywordPair[] = [];
+    const processed = new Set<string>();
+
+    keywords.forEach((kw) => {
+      if (processed.has(kw.id)) return;
+
+      const enKeyword = kw.language === "en" ? kw : null;
+      const esKeyword = kw.language === "es" ? kw : null;
+
+      // Find matching translation
+      const translation = keywords.find(
+        (k) =>
+          k.id !== kw.id &&
+          k.slug === kw.slug &&
+          k.language !== kw.language &&
+          !processed.has(k.id)
+      );
+
+      if (translation) {
+        processed.add(kw.id);
+        processed.add(translation.id);
+        pairs.push({
+          id: `pair-${kw.slug}`,
+          slug: kw.slug,
+          displayName: kw.language === "en" ? kw.keyword : translation.keyword,
+          en: kw.language === "en" ? kw : translation,
+          es: kw.language === "es" ? kw : translation,
+          isPaired: true,
+        });
+      } else {
+        processed.add(kw.id);
+        pairs.push({
+          id: `single-${kw.id}`,
+          slug: kw.slug,
+          displayName: kw.keyword,
+          en: kw.language === "en" ? kw : null,
+          es: kw.language === "es" ? kw : null,
+          isPaired: false,
+        });
+      }
+    });
+
+    return pairs.sort((a, b) => {
+      // Paired keywords first
+      if (a.isPaired && !b.isPaired) return -1;
+      if (!a.isPaired && b.isPaired) return 1;
+      // Then alphabetically by display name
+      return a.displayName.localeCompare(b.displayName);
+    });
+  }, [keywords]);
 
   useEffect(() => {
     let mounted = true;
@@ -215,6 +281,53 @@ export const KeywordsManagement: React.FC = () => {
         const next = new Set(prev);
         next.delete(id);
         return next;
+      });
+    }
+  };
+
+  const handleDeletePair = async (pair: KeywordPair) => {
+    if (!selectedBusiness) return;
+
+    const confirmed = await confirm({
+      title: pair.isPaired ? "Delete keyword pair?" : "Delete keyword?",
+      message: pair.isPaired
+        ? `This will delete both the English and Spanish versions of "${pair.displayName}". This action cannot be undone.`
+        : `Delete "${pair.displayName}"? This action cannot be undone.`,
+      variant: "danger",
+      confirmLabel: "Delete",
+    });
+
+    if (!confirmed) return;
+
+    const idsToDelete = [pair.en?.id, pair.es?.id].filter(
+      (id): id is string => !!id
+    );
+
+    try {
+      for (const id of idsToDelete) {
+        setDeletingIds((prev) => new Set([...prev, id]));
+      }
+
+      await Promise.all(
+        idsToDelete.map((id) => deleteKeyword(selectedBusiness, id))
+      );
+
+      setKeywords((prev) => prev.filter((k) => !idsToDelete.includes(k.id)));
+
+      addToast(
+        pair.isPaired ? "Keyword pair deleted" : "Keyword deleted",
+        "success"
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to delete keyword";
+      addToast(msg, "error", 5000);
+    } finally {
+      idsToDelete.forEach((id) => {
+        setDeletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       });
     }
   };
@@ -598,268 +711,477 @@ export const KeywordsManagement: React.FC = () => {
   };
 
   const renderManageTab = () => {
-    // Debug logging
-    console.log("🔍 Keywords Management Debug:");
-    console.log("  Total keywords:", keywords.length);
-    console.log("  Language filter:", languageFilter);
-    console.log(
-      "  EN count:",
-      keywords.filter((k) => k.language === "en").length
-    );
-    console.log(
-      "  ES count:",
-      keywords.filter((k) => k.language === "es").length
-    );
-    console.log(
-      "  Undefined language:",
-      keywords.filter((k) => !k.language).length
-    );
-
-    const filteredKeywords = keywords.filter((k) => {
+    const filteredPairs = keywordPairs.filter((pair) => {
       if (languageFilter === "all") return true;
-      return k.language === languageFilter;
+      if (languageFilter === "en") return pair.en !== null;
+      if (languageFilter === "es") return pair.es !== null;
+      return true;
     });
 
-    console.log("  Filtered count:", filteredKeywords.length);
-
-    const enCount = keywords.filter((k) => k.language === "en").length;
-    const esCount = keywords.filter((k) => k.language === "es").length;
+    const stats = [
+      {
+        label: "Total Pairs",
+        value: keywordPairs.filter((p) => p.isPaired).length,
+        color: "blue" as const,
+      },
+      {
+        label: "English Only",
+        value: keywordPairs.filter((p) => p.en && !p.es).length,
+        color: "blue" as const,
+      },
+      {
+        label: "Spanish Only",
+        value: keywordPairs.filter((p) => p.es && !p.en).length,
+        color: "green" as const,
+      },
+      {
+        label: "Total Keywords",
+        value: keywords.length,
+        color: "gray" as const,
+      },
+    ];
 
     return (
-      <div className="space-y-3">
-        {/* Bilingual Toggle */}
-        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded border">
-          <input
-            type="checkbox"
-            id="bilingual-toggle"
-            checked={createBilingual}
-            onChange={(e) => setCreateBilingual(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <label
-            htmlFor="bilingual-toggle"
-            className="text-sm font-medium text-gray-700 cursor-pointer"
-          >
-            Create bilingual pair (EN + ES)
-          </label>
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <StatsCards stats={stats} loading={loading} />
+
+        {/* Add Keywords Section */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Add New Keywords
+          </h3>
+
+          {/* Bilingual Toggle */}
+          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={createBilingual}
+                onChange={(e) => setCreateBilingual(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-blue-800">
+                Create bilingual pair (EN + ES)
+              </span>
+            </label>
+            <span className="text-xs text-blue-600">
+              {createBilingual
+                ? "Recommended: Creates both languages at once"
+                : "Creates single language only"}
+            </span>
+          </div>
+
+          {createBilingual ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    English Keyword
+                  </label>
+                  <input
+                    className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      inputError && inputError.includes("English")
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="e.g., criminal defense attorney DC"
+                    value={newKeyword}
+                    onChange={(e) => {
+                      setNewKeyword(e.target.value);
+                      setInputError(null);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Spanish Keyword
+                  </label>
+                  <input
+                    className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      inputError && inputError.includes("Spanish")
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="e.g., abogado de defensa criminal DC"
+                    value={newKeywordEs}
+                    onChange={(e) => {
+                      setNewKeywordEs(e.target.value);
+                      setInputError(null);
+                    }}
+                  />
+                </div>
+              </div>
+              <button
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                onClick={handleAdd}
+                disabled={loading}
+              >
+                Add Bilingual Pair
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <select
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={newLanguage}
+                onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
+                aria-label="Keyword language"
+              >
+                <option value="en">English (EN)</option>
+                <option value="es">Spanish (ES)</option>
+              </select>
+              <input
+                className={`border rounded-lg px-3 py-2 flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  inputError ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Add keyword"
+                value={newKeyword}
+                onChange={(e) => {
+                  setNewKeyword(e.target.value);
+                  setInputError(null);
+                }}
+              />
+              <button
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                onClick={handleAdd}
+                disabled={loading}
+              >
+                Add
+              </button>
+            </div>
+          )}
+          {inputError && (
+            <p className="text-red-600 text-sm flex items-center gap-1">
+              <span>⚠</span> {inputError}
+            </p>
+          )}
         </div>
 
-        {/* Add Keyword Form */}
-        {createBilingual ? (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  English
-                </label>
-                <input
-                  className={`border rounded px-2 py-1 w-full ${
-                    inputError && inputError.includes("English")
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                  placeholder="e.g., criminal defense attorney"
-                  value={newKeyword}
-                  onChange={(e) => {
-                    setNewKeyword(e.target.value);
-                    setInputError(null);
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Spanish
-                </label>
-                <input
-                  className={`border rounded px-2 py-1 w-full ${
-                    inputError && inputError.includes("Spanish")
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                  placeholder="e.g., abogado de defensa criminal"
-                  value={newKeywordEs}
-                  onChange={(e) => {
-                    setNewKeywordEs(e.target.value);
-                    setInputError(null);
-                  }}
-                />
-              </div>
-            </div>
-            <button
-              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 disabled:opacity-50 w-full"
-              onClick={handleAdd}
-              disabled={loading}
-            >
-              Add Bilingual Pair
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <select
-              className="border rounded px-2 py-1"
-              value={newLanguage}
-              onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
-              aria-label="Keyword language"
-            >
-              <option value="en">EN</option>
-              <option value="es">ES</option>
-            </select>
-            <input
-              className={`border rounded px-2 py-1 flex-1 ${
-                inputError ? "border-red-500" : ""
-              }`}
-              placeholder="Add keyword"
-              value={newKeyword}
-              onChange={(e) => {
-                setNewKeyword(e.target.value);
-                setInputError(null);
-              }}
-            />
-            <button
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
-              onClick={handleAdd}
-              disabled={loading}
-            >
-              Add
-            </button>
-          </div>
-        )}
-        {inputError && <p className="text-red-600 text-sm">{inputError}</p>}
-
-        {/* Language Filter */}
-        <div className="flex items-center gap-2 py-2">
-          <span className="text-sm font-medium text-gray-700">Filter:</span>
+        {/* Filter Section */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">View:</span>
           <button
             onClick={() => setLanguageFilter("all")}
-            className={`px-3 py-1 text-sm rounded ${
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
               languageFilter === "all"
                 ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            All ({keywords.length})
+            All Keywords
           </button>
           <button
             onClick={() => setLanguageFilter("en")}
-            className={`px-3 py-1 text-sm rounded ${
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
               languageFilter === "en"
                 ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            English ({enCount})
+            English
           </button>
           <button
             onClick={() => setLanguageFilter("es")}
-            className={`px-3 py-1 text-sm rounded ${
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
               languageFilter === "es"
                 ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Spanish ({esCount})
+            Spanish
           </button>
         </div>
 
-        {error && <p className="text-red-600">{error}</p>}
+        {/* Keywords List */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+            {error}
+          </div>
+        )}
+
         {loading ? (
-          <p className="text-gray-500">Loading keywords...</p>
-        ) : filteredKeywords.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">
-            No{" "}
-            {languageFilter === "all"
-              ? ""
-              : languageFilter === "en"
-              ? "English"
-              : "Spanish"}{" "}
-            keywords found.
-          </p>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">Loading keywords...</span>
+          </div>
+        ) : filteredPairs.length === 0 ? (
+          <EmptyState
+            icon={EmptyStateIcons.keywords}
+            title="No keywords yet"
+            description={
+              languageFilter === "all"
+                ? "Add your first keyword pair to start generating SEO content"
+                : `No ${
+                    languageFilter === "en" ? "English" : "Spanish"
+                  } keywords found`
+            }
+            action={{
+              label: "Add Keywords",
+              onClick: () => {
+                setCreateBilingual(true);
+                document
+                  .querySelector<HTMLInputElement>(
+                    'input[placeholder*="English"]'
+                  )
+                  ?.focus();
+              },
+            }}
+          />
         ) : (
-          <ul className="space-y-2">
-            {filteredKeywords.map((k) => {
-              const translation = findTranslation(k);
-              const isAddingTranslation = addingTranslationFor === k.id;
+          <div className="space-y-3">
+            {filteredPairs.map((pair) => {
+              const hasEnTranslationMissing = pair.en && !pair.es;
+              const hasEsTranslationMissing = pair.es && !pair.en;
+              const isDeleting = !!(
+                (pair.en && deletingIds.has(pair.en.id)) ||
+                (pair.es && deletingIds.has(pair.es.id))
+              );
 
               return (
-                <li
-                  key={k.id}
-                  className={`border rounded p-2 bg-white ${
-                    translation ? "border-l-4 border-l-blue-400" : ""
+                <div
+                  key={pair.id}
+                  className={`bg-white border-2 rounded-lg p-4 transition-all hover:shadow-md ${
+                    pair.isPaired
+                      ? "border-blue-200 bg-blue-50/30"
+                      : "border-amber-200 bg-amber-50/30"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-gray-800">
-                        <span
-                          className={`inline-block text-xs font-bold px-2 py-0.5 rounded mr-2 ${
-                            k.language === "es"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
-                        </span>
-                        {k.keyword}
-                        {translation && (
-                          <span className="ml-2 text-xs text-gray-500">
-                            ↔️ paired
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      {/* Header */}
+                      <div className="flex items-center gap-2 mb-3">
+                        {pair.isPaired ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                              />
+                            </svg>
+                            PAIRED
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                              />
+                            </svg>
+                            UNPAIRED
                           </span>
                         )}
-                      </p>
-                      <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!translation && !isAddingTranslation && (
-                        <button
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                          onClick={() => setAddingTranslationFor(k.id)}
-                        >
-                          + Add {k.language === "en" ? "ES" : "EN"}
-                        </button>
-                      )}
-                      <button
-                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                        onClick={() => handleDelete(k.id)}
-                        disabled={deletingIds.has(k.id)}
-                      >
-                        {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </div>
+                        <h4 className="text-lg font-semibold text-gray-900 truncate">
+                          {pair.displayName}
+                        </h4>
+                      </div>
 
-                  {/* Inline translation add form */}
-                  {isAddingTranslation && (
-                    <div className="mt-2 flex items-center gap-2 p-2 bg-gray-50 rounded">
-                      <input
-                        className="border rounded px-2 py-1 flex-1 text-sm"
-                        placeholder={`Add ${
-                          k.language === "en" ? "Spanish" : "English"
-                        } translation`}
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            e.currentTarget.value.trim()
-                          ) {
-                            handleAddTranslation(k, e.currentTarget.value);
-                          } else if (e.key === "Escape") {
-                            setAddingTranslationFor(null);
-                          }
-                        }}
-                      />
-                      <button
-                        className="text-sm text-gray-600 hover:text-gray-800"
-                        onClick={() => setAddingTranslationFor(null)}
-                      >
-                        Cancel
-                      </button>
+                      {/* Keywords Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        {/* English Keyword */}
+                        <div
+                          className={`p-3 rounded-lg border-2 ${
+                            pair.en
+                              ? "bg-white border-blue-200"
+                              : "bg-gray-50 border-gray-200 border-dashed"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded">
+                              EN
+                            </span>
+                            {hasEnTranslationMissing && (
+                              <button
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                onClick={() =>
+                                  setAddingTranslationFor(pair.en!.id)
+                                }
+                              >
+                                + Add Spanish
+                              </button>
+                            )}
+                          </div>
+                          {pair.en ? (
+                            <>
+                              <p className="text-gray-900 font-medium">
+                                {pair.en.keyword}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                                /{pair.en.slug}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-gray-400 italic text-sm">
+                              No English version
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Spanish Keyword */}
+                        <div
+                          className={`p-3 rounded-lg border-2 ${
+                            pair.es
+                              ? "bg-white border-green-200"
+                              : "bg-gray-50 border-gray-200 border-dashed"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-bold rounded">
+                              ES
+                            </span>
+                            {hasEsTranslationMissing && (
+                              <button
+                                className="text-xs text-green-600 hover:text-green-800 font-medium"
+                                onClick={() =>
+                                  setAddingTranslationFor(pair.es!.id)
+                                }
+                              >
+                                + Add English
+                              </button>
+                            )}
+                          </div>
+                          {pair.es ? (
+                            <>
+                              <p className="text-gray-900 font-medium">
+                                {pair.es.keyword}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                                /{pair.es.slug}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-gray-400 italic text-sm">
+                              No Spanish version
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Inline Translation Form */}
+                      {addingTranslationFor &&
+                        (pair.en?.id === addingTranslationFor ||
+                          pair.es?.id === addingTranslationFor) && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Add{" "}
+                              {pair.en?.id === addingTranslationFor
+                                ? "Spanish"
+                                : "English"}{" "}
+                              translation:
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                className="border border-gray-300 rounded-lg px-3 py-2 flex-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder={`Enter ${
+                                  pair.en?.id === addingTranslationFor
+                                    ? "Spanish"
+                                    : "English"
+                                } keyword`}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (
+                                    e.key === "Enter" &&
+                                    e.currentTarget.value.trim()
+                                  ) {
+                                    const baseKeyword =
+                                      pair.en?.id === addingTranslationFor
+                                        ? pair.en
+                                        : pair.es!;
+                                    handleAddTranslation(
+                                      baseKeyword,
+                                      e.currentTarget.value
+                                    );
+                                  } else if (e.key === "Escape") {
+                                    setAddingTranslationFor(null);
+                                  }
+                                }}
+                              />
+                              <button
+                                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 font-medium"
+                                onClick={() => setAddingTranslationFor(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Press Enter to save, Escape to cancel
+                            </p>
+                          </div>
+                        )}
                     </div>
-                  )}
-                </li>
+
+                    {/* Actions */}
+                    <button
+                      onClick={() => handleDeletePair(pair)}
+                      disabled={isDeleting}
+                      className="flex-shrink-0 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                      aria-label={`Delete ${pair.displayName}`}
+                    >
+                      {isDeleting ? (
+                        <span className="flex items-center gap-1">
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Deleting...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                          Delete
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
+
+        <ConfirmDialog {...dialogProps} />
       </div>
     );
   };
