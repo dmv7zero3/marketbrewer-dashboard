@@ -146,12 +146,14 @@
 ### Language Badges
 
 **English Badge:**
+
 - Background: Light Blue (`bg-blue-100`)
 - Text: Dark Blue (`text-blue-800`)
 - Border: Rounded
 - Format: `EN`
 
 **Spanish Badge:**
+
 - Background: Light Green (`bg-green-100`)
 - Text: Dark Green (`text-green-800`)
 - Border: Rounded
@@ -160,11 +162,13 @@
 ### Filter Buttons
 
 **Active State:**
+
 - Background: Blue (`bg-blue-600`)
 - Text: White
 - Format: `English (19)` with count
 
 **Inactive State:**
+
 - Background: Light Gray (`bg-gray-200`)
 - Text: Dark Gray (`text-gray-700`)
 - Hover: Darker Gray (`hover:bg-gray-300`)
@@ -174,22 +178,26 @@
 ## Key Features
 
 1. **Language Selector for New Keywords**
+
    - Dropdown (EN/ES) next to input
    - Sets language for newly added keywords
    - Defaults to English
 
 2. **Filter Buttons**
+
    - Three buttons: All, English, Spanish
    - Show keyword counts per language
    - One-click filtering
    - Visual active state
 
 3. **Color-Coded Badges**
+
    - Blue for English (EN)
    - Green for Spanish (ES)
    - Clear visual distinction
 
 4. **Accurate State**
+
    - Real-time counts
    - Filtered display matches selected language
    - Empty state when filter has no results
@@ -204,12 +212,14 @@
 ## Data Accuracy
 
 ### Database State
+
 - ✅ 19 English keywords with `language='en'`
 - ✅ 15 Spanish keywords with `language='es'`
 - ✅ All keywords properly slugged (diacritics stripped)
 - ✅ Original text preserved in `keyword` field
 
 ### UI State
+
 - ✅ All 34 keywords loaded from API
 - ✅ Filter counts accurate (19 EN + 15 ES)
 - ✅ Filtering logic correct
@@ -217,6 +227,7 @@
 - ✅ Add keyword respects selected language
 
 ### Worker State
+
 - ✅ Job pages receive `keyword_language` field
 - ✅ Worker generates content in correct language
 - ✅ Spanish keywords → Spanish prompts
@@ -227,6 +238,7 @@
 ## User Workflow
 
 ### Adding English Keyword
+
 1. Select "EN" from dropdown
 2. Type keyword (e.g., "criminal defense DC")
 3. Click "Add"
@@ -234,6 +246,7 @@
 5. Counts update: English (20), All (35)
 
 ### Adding Spanish Keyword
+
 1. Select "ES" from dropdown
 2. Type keyword (e.g., "abogado defensa DC")
 3. Click "Add"
@@ -241,6 +254,7 @@
 5. Counts update: Spanish (16), All (35)
 
 ### Filtering Keywords
+
 1. Click "English (19)" button
 2. View only English keywords with blue badges
 3. Click "Spanish (15)" button
@@ -249,6 +263,7 @@
 6. View all keywords mixed
 
 ### Deleting Keyword
+
 1. Click "Delete" on any keyword
 2. Keyword removed from list
 3. Counts update automatically
