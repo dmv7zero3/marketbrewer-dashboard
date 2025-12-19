@@ -420,22 +420,99 @@ function seedQuestionnaires() {
       ? `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
       : `${business.primary_city}, ${business.primary_state}`;
 
-    const questionnaire = {
-      businessName: business.name,
-      industry: business.name.includes("MarketBrewer")
-        ? "Local SEO"
-        : "Entertainment",
-      website: business.website || "https://example.com",
-      phone: business.phone || "000-000-0000",
-      email: "",
-      description: `Professional business services in ${business.primary_city}, ${business.primary_state}`,
-      address: fullAddress,
-      hoursJson: defaultHours,
-      socialProfiles: defaultSocialProfiles,
-    };
+    let questionnaire: any;
+    let score: number;
 
-    // Determine completeness score based on data filled in
-    const score = business.website && business.phone ? 70 : 50;
+    // Special handling for Street Lawyer Magic with full business profile
+    if (business.id === "street-lawyer-magic") {
+      questionnaire = {
+        businessName: "Street Lawyer Magic",
+        industry: "Criminal Defense & Cannabis Advocacy",
+        website: "https://streetlawyermagic.com",
+        phone: "240-478-2189",
+        email: "lonny79@aol.com",
+        description:
+          "Street Lawyer Magic is Lonny Bramzon's high-profile criminal defense and cannabis advocacy practice serving the DMV with trial-tested strategy and human-rights driven counsel.",
+        tagline: "Trial Excellence • Compassionate Advocacy",
+        established: "2025",
+        businessType: ["Criminal Defense", "Cannabis Advocacy", "Law Firm"],
+        address: "3400 Connecticut Avenue NW, Washington, DC",
+        hoursJson: defaultHours,
+        socialProfiles: {
+          instagram: "https://www.instagram.com/lonnythestreetlawyer/",
+          linktree: "https://linktr.ee/lonnythestreetlawyer",
+          google: "",
+          facebook: "",
+          linkedin: "",
+          twitter: "",
+        },
+        practiceOverview: {
+          serviceOptions: [
+            "Criminal defense representation",
+            "Cannabis law advocacy",
+            "Trial preparation & investigation",
+            "Negotiation with prosecutors",
+            "Gun charge defense",
+            "Human rights-informed strategy",
+          ],
+          engagementTypes: [
+            "Consultation",
+            "Retainer-based defense",
+            "Courtroom trial advocacy",
+            "Appellate support",
+          ],
+        },
+        specialties: [
+          "Cannabis Charges",
+          "Violent Crime Defense",
+          "Drug Crime Trials",
+          "Wrongful Arrest Cases",
+          "Record Expungement Guidance",
+          "Human Rights Litigation",
+        ],
+        featuredServices: [
+          "Criminal Defense Retainer",
+          "Cannabis Advocacy Consultation",
+          "Trial Representation",
+          "Negotiated Resolutions",
+        ],
+        targetAudience: [
+          "DMV Residents",
+          "Cannabis Advocates",
+          "People Facing Criminal Charges",
+          "Families Seeking Tough Decriminalization Support",
+        ],
+        competitiveAdvantages: [
+          "Field-tested trial skills",
+          "More than 4,000 cases handled",
+          "Public defender background",
+          "Human rights law education",
+          "Cannabis advocacy expertise",
+          "Negotiation & trial prowess",
+        ],
+        logo: "/images/logo/street-lawyer-services-logo.png",
+        logoWebp: "/images/logo/street-lawyer-services-logo.webp",
+        ogImage: "/images/og-image/street-lawyer-magic-og.jpg",
+        specialNotices: ["Now serving clients across the DMV"],
+      };
+      score = 95; // High completeness score for full profile
+    } else {
+      // Default questionnaire for other businesses
+      questionnaire = {
+        businessName: business.name,
+        industry: business.name.includes("MarketBrewer")
+          ? "Local SEO"
+          : "Entertainment",
+        website: business.website || "https://example.com",
+        phone: business.phone || "000-000-0000",
+        email: "",
+        description: `Professional business services in ${business.primary_city}, ${business.primary_state}`,
+        address: fullAddress,
+        hoursJson: defaultHours,
+        socialProfiles: defaultSocialProfiles,
+      };
+      score = business.website && business.phone ? 70 : 50;
+    }
 
     insertQuestionnaire.run(
       generateId(),
