@@ -28,6 +28,8 @@ export const KeywordsManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
+  const [newKeywordEs, setNewKeywordEs] = useState("");
+  const [createBilingual, setCreateBilingual] = useState(true);
   const [newLanguage, setNewLanguage] = useState<"en" | "es">("en");
   const [bulkText, setBulkText] = useState("");
   const [bulkLanguage, setBulkLanguage] = useState<"en" | "es">("en");
@@ -37,6 +39,9 @@ export const KeywordsManagement: React.FC = () => {
   const [languageFilter, setLanguageFilter] = useState<"all" | "en" | "es">(
     "all"
   );
+  const [addingTranslationFor, setAddingTranslationFor] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     let mounted = true;
@@ -82,38 +87,197 @@ export const KeywordsManagement: React.FC = () => {
   }, [selectedBusiness]);
 
   const handleAdd = async () => {
-    if (!selectedBusiness || !newKeyword.trim()) return;
+    if (!selectedBusiness) return;
 
-    const validationError = validateKeyword(newKeyword);
+    if (createBilingual) {
+      // Creating bilingual pair
+      if (!newKeyword.trim() || !newKeywordEs.trim()) {
+        const error = "Both English and Spanish keywords are required";
+        setInputError(error);
+        addToast(error, "error", 5000);
+        return;
+      }
+
+      const validationErrorEn = validateKeyword(newKeyword);
+      const validationErrorEs = validateKeyword(newKeywordEs);
+
+      if (validationErrorEn) {
+        setInputError(`English: ${validationErrorEn}`);
+        addToast(`English: ${validationErrorEn}`, "error", 5000);
+        return;
+      }
+
+      if (validationErrorEs) {
+        setInputError(`Spanish: ${validationErrorEs}`);
+        addToast(`Spanish: ${validationErrorEs}`, "error", 5000);
+        return;
+      }
+
+      // Check for duplicates
+      const existsEn = keywords.some(
+        (k) =>
+          k.keyword.toLowerCase() === newKeyword.trim().toLowerCase() &&
+          k.language === "en"
+      );
+      const existsEs = keywords.some(
+        (k) =>
+          k.keyword.toLowerCase() === newKeywordEs.trim().toLowerCase() &&
+          k.language === "es"
+      );
+
+      if (existsEn) {
+        setInputError("English keyword already exists");
+        addToast("English keyword already exists", "error", 5000);
+        return;
+      }
+
+      if (existsEs) {
+        setInputError("Spanish keyword already exists");
+        addToast("Spanish keyword already exists", "error", 5000);
+        return;
+      }
+
+      try {
+        setInputError(null);
+
+        // Create both keywords
+        const { keyword: keywordEn } = await createKeyword(selectedBusiness, {
+          keyword: newKeyword.trim(),
+          language: "en",
+        });
+
+        const { keyword: keywordEs } = await createKeyword(selectedBusiness, {
+          keyword: newKeywordEs.trim(),
+          language: "es",
+        });
+
+        setKeywords((prev) => [keywordEn, keywordEs, ...prev]);
+        setNewKeyword("");
+        setNewKeywordEs("");
+        addToast("Bilingual keyword pair added successfully", "success");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to add keywords";
+        addToast(msg, "error", 5000);
+      }
+    } else {
+      // Creating single language keyword
+      if (!newKeyword.trim()) return;
+
+      const validationError = validateKeyword(newKeyword);
+      if (validationError) {
+        setInputError(validationError);
+        addToast(validationError, "error", 5000);
+        return;
+      }
+
+      // Check for duplicates
+      const exists = keywords.some(
+        (k) =>
+          k.keyword.toLowerCase() === newKeyword.trim().toLowerCase() &&
+          k.language === newLanguage
+      );
+      if (exists) {
+        setInputError("This keyword already exists");
+        addToast("This keyword already exists", "error", 5000);
+        return;
+      }
+
+      try {
+        setInputError(null);
+        const { keyword } = await createKeyword(selectedBusiness, {
+          keyword: newKeyword.trim(),
+          language: newLanguage,
+        });
+        setKeywords((prev) => [keyword, ...prev]);
+        setNewKeyword("");
+        addToast("Keyword added successfully", "success");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to add keyword";
+        addToast(msg, "error", 5000);
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!selectedBusiness) return;
+    try {
+      setDeletingIds((prev) => new Set([...prev, id]));
+      await deleteKeyword(selectedBusiness, id);
+      setKeywords((prev) => prev.filter((k) => k.id !== id));
+      addToast("Keyword deleted", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to delete keyword";
+      addToast(msg, "error", 5000);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const handleAddTranslation = async (
+    baseKeyword: Keyword,
+    translationText: string
+  ) => {
+    if (!selectedBusiness || !translationText.trim()) return;
+
+    const targetLanguage = baseKeyword.language === "en" ? "es" : "en";
+
+    const validationError = validateKeyword(translationText);
     if (validationError) {
-      setInputError(validationError);
       addToast(validationError, "error", 5000);
       return;
     }
 
     // Check for duplicates
     const exists = keywords.some(
-      (k) => k.keyword.toLowerCase() === newKeyword.trim().toLowerCase()
+      (k) =>
+        k.keyword.toLowerCase() === translationText.trim().toLowerCase() &&
+        k.language === targetLanguage
     );
     if (exists) {
-      setInputError("This keyword already exists");
       addToast("This keyword already exists", "error", 5000);
       return;
     }
 
     try {
-      setInputError(null);
       const { keyword } = await createKeyword(selectedBusiness, {
-        keyword: newKeyword.trim(),
-        language: newLanguage,
+        keyword: translationText.trim(),
+        language: targetLanguage,
       });
       setKeywords((prev) => [keyword, ...prev]);
-      setNewKeyword("");
-      addToast("Keyword added successfully", "success");
+      setAddingTranslationFor(null);
+      addToast(
+        `${targetLanguage === "es" ? "Spanish" : "English"} translation added`,
+        "success"
+      );
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to add keyword";
+      const msg = e instanceof Error ? e.message : "Failed to add translation";
       addToast(msg, "error", 5000);
     }
+  };
+
+  // Helper to find if a keyword has a translation pair
+  const findTranslation = (keyword: Keyword): Keyword | undefined => {
+    const targetLanguage = keyword.language === "en" ? "es" : "en";
+    // Look for same base keyword in other language (simplified matching by keyword text root)
+    return keywords.find(
+      (k) =>
+        k.language === targetLanguage &&
+        k.keyword.toLowerCase().replace(/[áéíóúñ]/g, (m) => {
+          const map: Record<string, string> = {
+            á: "a",
+            é: "e",
+            í: "i",
+            ó: "o",
+            ú: "u",
+            ñ: "n",
+          };
+          return map[m] || m;
+        }) === keyword.keyword.toLowerCase()
+    );
   };
 
   const handleDelete = async (id: string) => {
@@ -295,35 +459,103 @@ export const KeywordsManagement: React.FC = () => {
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <select
-            className="border rounded px-2 py-1"
-            value={newLanguage}
-            onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
-            aria-label="Keyword language"
-          >
-            <option value="en">EN</option>
-            <option value="es">ES</option>
-          </select>
+        {/* Bilingual Toggle */}
+        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded border">
           <input
-            className={`border rounded px-2 py-1 flex-1 ${
-              inputError ? "border-red-500" : ""
-            }`}
-            placeholder="Add keyword"
-            value={newKeyword}
-            onChange={(e) => {
-              setNewKeyword(e.target.value);
-              setInputError(null);
-            }}
+            type="checkbox"
+            id="bilingual-toggle"
+            checked={createBilingual}
+            onChange={(e) => setCreateBilingual(e.target.checked)}
+            className="w-4 h-4"
           />
-          <button
-            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
-            onClick={handleAdd}
-            disabled={loading}
+          <label
+            htmlFor="bilingual-toggle"
+            className="text-sm font-medium text-gray-700 cursor-pointer"
           >
-            Add
-          </button>
+            Create bilingual pair (EN + ES)
+          </label>
         </div>
+
+        {/* Add Keyword Form */}
+        {createBilingual ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  English
+                </label>
+                <input
+                  className={`border rounded px-2 py-1 w-full ${
+                    inputError && inputError.includes("English")
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                  placeholder="e.g., criminal defense attorney"
+                  value={newKeyword}
+                  onChange={(e) => {
+                    setNewKeyword(e.target.value);
+                    setInputError(null);
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Spanish
+                </label>
+                <input
+                  className={`border rounded px-2 py-1 w-full ${
+                    inputError && inputError.includes("Spanish")
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                  placeholder="e.g., abogado de defensa criminal"
+                  value={newKeywordEs}
+                  onChange={(e) => {
+                    setNewKeywordEs(e.target.value);
+                    setInputError(null);
+                  }}
+                />
+              </div>
+            </div>
+            <button
+              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 disabled:opacity-50 w-full"
+              onClick={handleAdd}
+              disabled={loading}
+            >
+              Add Bilingual Pair
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <select
+              className="border rounded px-2 py-1"
+              value={newLanguage}
+              onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
+              aria-label="Keyword language"
+            >
+              <option value="en">EN</option>
+              <option value="es">ES</option>
+            </select>
+            <input
+              className={`border rounded px-2 py-1 flex-1 ${
+                inputError ? "border-red-500" : ""
+              }`}
+              placeholder="Add keyword"
+              value={newKeyword}
+              onChange={(e) => {
+                setNewKeyword(e.target.value);
+                setInputError(null);
+              }}
+            />
+            <button
+              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+              onClick={handleAdd}
+              disabled={loading}
+            >
+              Add
+            </button>
+          </div>
+        )}
         {inputError && <p className="text-red-600 text-sm">{inputError}</p>}
 
         {/* Language Filter */}
@@ -376,35 +608,88 @@ export const KeywordsManagement: React.FC = () => {
           </p>
         ) : (
           <ul className="space-y-2">
-            {filteredKeywords.map((k) => (
-              <li
-                key={k.id}
-                className="flex items-center justify-between border rounded p-2 bg-white"
-              >
-                <div className="flex-1">
-                  <p className="text-gray-800">
-                    <span
-                      className={`inline-block text-xs font-bold px-2 py-0.5 rounded mr-2 ${
-                        k.language === "es"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
-                    </span>
-                    {k.keyword}
-                  </p>
-                  <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
-                </div>
-                <button
-                  className="text-red-600 hover:text-red-800 disabled:opacity-50 ml-4"
-                  onClick={() => handleDelete(k.id)}
-                  disabled={deletingIds.has(k.id)}
+            {filteredKeywords.map((k) => {
+              const translation = findTranslation(k);
+              const isAddingTranslation = addingTranslationFor === k.id;
+
+              return (
+                <li
+                  key={k.id}
+                  className={`border rounded p-2 bg-white ${
+                    translation ? "border-l-4 border-l-blue-400" : ""
+                  }`}
                 >
-                  {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
-                </button>
-              </li>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-gray-800">
+                        <span
+                          className={`inline-block text-xs font-bold px-2 py-0.5 rounded mr-2 ${
+                            k.language === "es"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
+                        </span>
+                        {k.keyword}
+                        {translation && (
+                          <span className="ml-2 text-xs text-gray-500">
+                            ↔️ paired
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!translation && !isAddingTranslation && (
+                        <button
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                          onClick={() => setAddingTranslationFor(k.id)}
+                        >
+                          + Add {k.language === "en" ? "ES" : "EN"}
+                        </button>
+                      )}
+                      <button
+                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                        onClick={() => handleDelete(k.id)}
+                        disabled={deletingIds.has(k.id)}
+                      >
+                        {deletingIds.has(k.id) ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Inline translation add form */}
+                  {isAddingTranslation && (
+                    <div className="mt-2 flex items-center gap-2 p-2 bg-gray-50 rounded">
+                      <input
+                        className="border rounded px-2 py-1 flex-1 text-sm"
+                        placeholder={`Add ${
+                          k.language === "en" ? "Spanish" : "English"
+                        } translation`}
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === "Enter" &&
+                            e.currentTarget.value.trim()
+                          ) {
+                            handleAddTranslation(k, e.currentTarget.value);
+                          } else if (e.key === "Escape") {
+                            setAddingTranslationFor(null);
+                          }
+                        }}
+                      />
+                      <button
+                        className="text-sm text-gray-600 hover:text-gray-800"
+                        onClick={() => setAddingTranslationFor(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
