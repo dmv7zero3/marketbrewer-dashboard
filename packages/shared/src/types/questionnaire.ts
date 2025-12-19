@@ -54,6 +54,17 @@ export interface QuestionnaireDataStructure {
   // Service type (moved from old location section)
   serviceType: "onsite" | "mobile" | "both";
 
+  // Social media profiles
+  socialProfiles?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    google?: string;
+    linktree?: string;
+    [key: string]: string | undefined;
+  };
+
   // Future: industry-specific data
   industryData?: Record<string, unknown>;
 }
@@ -81,6 +92,14 @@ export function createEmptyQuestionnaire(): QuestionnaireDataStructure {
       callToAction: "",
     },
     serviceType: "onsite",
+    socialProfiles: {
+      instagram: "",
+      facebook: "",
+      twitter: "",
+      linkedin: "",
+      google: "",
+      linktree: "",
+    },
   };
 }
 
@@ -167,6 +186,10 @@ export function normalizeQuestionnaireData(
             obj.serviceType === "both")
         ? obj.serviceType
         : base.serviceType,
+    socialProfiles:
+      obj.socialProfiles && typeof obj.socialProfiles === "object"
+        ? (obj.socialProfiles as QuestionnaireDataStructure["socialProfiles"])
+        : base.socialProfiles,
     industryData:
       obj.industryData && typeof obj.industryData === "object"
         ? (obj.industryData as Record<string, unknown>)
