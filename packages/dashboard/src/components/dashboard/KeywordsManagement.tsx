@@ -1047,9 +1047,7 @@ traffic ticket lawyer`}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={handleBulkAdd}
           disabled={
-            bulkLoading ||
-            !hasContent ||
-            (bulkBilingual && !linesMatch)
+            bulkLoading || !hasContent || (bulkBilingual && !linesMatch)
           }
         >
           {bulkLoading
@@ -1064,7 +1062,9 @@ traffic ticket lawyer`}
           <p className="font-medium text-gray-700">Notes:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Duplicate keywords are automatically skipped</li>
-            <li>Maximum 100 {bulkBilingual ? "pairs" : "keywords"} per operation</li>
+            <li>
+              Maximum 100 {bulkBilingual ? "pairs" : "keywords"} per operation
+            </li>
             {bulkBilingual && (
               <li>
                 If either keyword in a pair already exists, the entire pair is
@@ -1090,8 +1090,8 @@ traffic ticket lawyer`}
           <p>
             This platform supports <strong>bilingual keyword pairs</strong> for
             English and Spanish content generation. Paired keywords ensure your
-            SEO pages are generated consistently in both languages, targeting the
-            same services for both English and Spanish-speaking audiences.
+            SEO pages are generated consistently in both languages, targeting
+            the same services for both English and Spanish-speaking audiences.
           </p>
           <p>
             When keywords are paired, the system can generate matching landing
@@ -1170,7 +1170,8 @@ traffic ticket lawyer`}
           </h3>
           <ol className="list-decimal pl-5 text-sm text-amber-800 space-y-1">
             <li>
-              Find a keyword without a pair (no "↔️ paired" indicator in the list)
+              Find a keyword without a pair (no "↔️ paired" indicator in the
+              list)
             </li>
             <li>Click the "+ Add ES" or "+ Add EN" button next to it</li>
             <li>Enter the translation in the inline input</li>
@@ -1220,7 +1221,10 @@ traffic ticket lawyer`}
           </div>
           <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
             <li>One keyword per line</li>
-            <li>Line 1 EN pairs with Line 1 ES, Line 2 EN pairs with Line 2 ES, etc.</li>
+            <li>
+              Line 1 EN pairs with Line 1 ES, Line 2 EN pairs with Line 2 ES,
+              etc.
+            </li>
             <li>Both columns must have the same number of lines</li>
             <li>Creates paired keywords automatically</li>
           </ul>
@@ -1254,10 +1258,14 @@ traffic ticket lawyer`}
           Keyword Format Guidelines
         </h2>
         <div className="text-sm text-gray-700 space-y-2">
-          <p>Write keywords as descriptive phrases that match how users search:</p>
+          <p>
+            Write keywords as descriptive phrases that match how users search:
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-50 border border-green-200 rounded p-3">
-              <p className="font-medium text-green-800 mb-2">✅ Good Examples</p>
+              <p className="font-medium text-green-800 mb-2">
+                ✅ Good Examples
+              </p>
               <ul className="text-green-700 space-y-1">
                 <li>• criminal defense attorney DC</li>
                 <li>• abogado criminalista en Washington</li>
@@ -1276,8 +1284,8 @@ traffic ticket lawyer`}
             </div>
           </div>
           <p className="text-gray-600">
-            Short, generic terms have too much competition. Use specific, long-tail
-            keywords with location modifiers for better SEO results.
+            Short, generic terms have too much competition. Use specific,
+            long-tail keywords with location modifiers for better SEO results.
           </p>
         </div>
       </section>
@@ -1296,8 +1304,8 @@ traffic ticket lawyer`}
           </li>
           <li>
             <strong>Use natural language in both languages.</strong> Don't just
-            translate word-for-word. "Criminal defense attorney" becomes "abogado
-            de defensa criminal," not "abogado defensa criminal."
+            translate word-for-word. "Criminal defense attorney" becomes
+            "abogado de defensa criminal," not "abogado defensa criminal."
           </li>
           <li>
             <strong>Include location-specific terms</strong> like city names,
@@ -1312,8 +1320,8 @@ traffic ticket lawyer`}
             your content strategy. Quality over quantity.
           </li>
           <li>
-            <strong>Delete underperforming keywords</strong> and add new ones based
-            on search analytics.
+            <strong>Delete underperforming keywords</strong> and add new ones
+            based on search analytics.
           </li>
         </ol>
       </section>
@@ -1328,7 +1336,9 @@ traffic ticket lawyer`}
           <table className="w-full text-sm">
             <tbody>
               <tr className="border-b">
-                <td className="py-2 font-medium text-gray-700">Slug Generation</td>
+                <td className="py-2 font-medium text-gray-700">
+                  Slug Generation
+                </td>
                 <td className="py-2 text-gray-600">
                   Derived from keyword using <code>toSlug()</code>; used for
                   de-duplication
