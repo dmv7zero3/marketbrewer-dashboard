@@ -7,6 +7,7 @@ import Database from "better-sqlite3";
 import * as fs from "fs";
 import * as path from "path";
 import { randomUUID } from "crypto";
+import { toSlug } from "@marketbrewer/shared";
 
 /**
  * Generate a unique ID (UUID v4)
@@ -102,11 +103,19 @@ export function seedTestKeywords(
   const keywordList = keywords || defaultKeywords;
 
   const stmt = db.prepare(
-    `INSERT INTO keywords (business_id, keyword, priority) VALUES (?, ?, ?)`
+    `INSERT INTO keywords (id, business_id, slug, keyword, search_intent, language, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
   );
 
-  keywordList.forEach((keyword, index) => {
-    stmt.run(businessId, keyword, 10 - index);
+  keywordList.forEach((keyword) => {
+    stmt.run(
+      generateId(),
+      businessId,
+      toSlug(keyword),
+      keyword,
+      null,
+      "en",
+      new Date().toISOString()
+    );
   });
 }
 
@@ -163,19 +172,30 @@ export function seedTestJob(
 export function seedTestJobPages(
   db: Database.Database,
   jobId: string,
+  businessId: string,
   count?: number
 ): string[] {
   const pageCount = count || 3;
   const pageIds: string[] = [];
 
   const stmt = db.prepare(
-    `INSERT INTO job_pages (id, job_id, keyword_id, service_area_id, status) VALUES (?, ?, ?, ?, ?)`
+    `INSERT INTO job_pages (id, job_id, business_id, keyword_slug, keyword_text, keyword_language, service_area_slug, url_path, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
 
   for (let i = 0; i < pageCount; i++) {
     const pageId = generateId();
-    // Use NULL for keyword/area for now (can be joined later in tests)
-    stmt.run(pageId, jobId, null, null, "pending");
+    stmt.run(
+      pageId,
+      jobId,
+      businessId,
+      null,
+      null,
+      "en",
+      "test-city-va",
+      `/services/test-city-va`,
+      "queued",
+      new Date().toISOString()
+    );
     pageIds.push(pageId);
   }
 

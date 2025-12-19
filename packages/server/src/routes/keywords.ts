@@ -44,20 +44,32 @@ router.post(
       if (!business) {
         throw new HttpError(404, "Business not found", "NOT_FOUND");
       }
-      const { keyword, search_intent } = req.body as {
+      const { keyword, search_intent, language } = req.body as {
         keyword: string;
         search_intent?: string | null;
+        language?: "en" | "es";
       };
       if (!keyword || typeof keyword !== "string") {
         throw new HttpError(400, "Keyword is required", "VALIDATION_ERROR");
+      }
+      if (language !== undefined && language !== "en" && language !== "es") {
+        throw new HttpError(400, "Invalid language", "VALIDATION_ERROR");
       }
       const id = generateId();
       const slug = toSlug(keyword);
       const now = new Date().toISOString();
       dbRun(
-        `INSERT INTO keywords (id, business_id, slug, keyword, search_intent, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, businessId, slug, keyword, search_intent ?? null, now]
+        `INSERT INTO keywords (id, business_id, slug, keyword, search_intent, language, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          businessId,
+          slug,
+          keyword,
+          search_intent ?? null,
+          language ?? "en",
+          now,
+        ]
       );
       const created = dbGet<Keyword>("SELECT * FROM keywords WHERE id = ?", [
         id,
@@ -84,9 +96,10 @@ router.put(
       if (!existing) {
         throw new HttpError(404, "Keyword not found", "NOT_FOUND");
       }
-      const { keyword, search_intent } = req.body as {
+      const { keyword, search_intent, language } = req.body as {
         keyword?: string;
         search_intent?: string | null;
+        language?: "en" | "es";
       };
       const updates: string[] = [];
       const values: unknown[] = [];
@@ -99,6 +112,13 @@ router.put(
       if (search_intent !== undefined) {
         updates.push("search_intent = ?");
         values.push(search_intent ?? null);
+      }
+      if (language !== undefined) {
+        if (language !== "en" && language !== "es") {
+          throw new HttpError(400, "Invalid language", "VALIDATION_ERROR");
+        }
+        updates.push("language = ?");
+        values.push(language);
       }
       if (updates.length === 0) {
         res.json({ keyword: existing });

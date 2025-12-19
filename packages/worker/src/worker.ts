@@ -149,7 +149,9 @@ export class Worker {
   private async generateContent(page: JobPage): Promise<GeneratedContent> {
     const [city = "", ...stateParts] = page.service_area_slug.split("-");
     const state = stateParts.join("-").toUpperCase() || "US";
-    const keyword = page.keyword_slug?.replace(/-/g, " ") || "services";
+    const keyword =
+      page.keyword_text || page.keyword_slug?.replace(/-/g, " ") || "services";
+    const language = page.keyword_language === "es" ? "es" : "en";
 
     const prompt = this.buildPrompt({
       business_name: "Nash Smashed",
@@ -157,6 +159,7 @@ export class Worker {
       city,
       state,
       keyword,
+      language,
       url_path: page.url_path,
     });
 
@@ -180,11 +183,18 @@ export class Worker {
     city: string;
     state: string;
     keyword: string;
+    language: "en" | "es";
     url_path: string;
   }): string {
     // Determine emphasis based on keyword (lead with chicken unless keyword mentions burgers)
     const lowerKw = vars.keyword.toLowerCase();
     const leadWithBurgers = /burger|burgers/.test(lowerKw);
+
+    const outputLanguage = vars.language === "es" ? "Spanish" : "English";
+    const languageGuidance =
+      vars.language === "es"
+        ? "Write everything in Spanish. Do not include any English except proper nouns (business name, place names)."
+        : "Write everything in English.";
 
     return `You are writing SEO-optimized content for ${
       vars.business_name
@@ -199,6 +209,10 @@ BRAND FACTS (always include):
 LOCATION: ${vars.city}, ${vars.state}
 KEYWORD: ${vars.keyword}
 URL: ${vars.url_path}
+OUTPUT LANGUAGE: ${outputLanguage}
+
+Language rule:
+- ${languageGuidance}
 
 Guidelines:
 1. Naturally incorporate the keyword "${

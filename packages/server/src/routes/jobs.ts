@@ -62,7 +62,7 @@ router.post(
 
       // Get keywords and service areas for the business
       const keywords = dbAll<Keyword>(
-        "SELECT * FROM keywords WHERE business_id = ? ORDER BY priority DESC",
+        "SELECT * FROM keywords WHERE business_id = ? ORDER BY created_at DESC, keyword ASC",
         [businessId]
       );
 
@@ -95,6 +95,8 @@ router.post(
         job_id: string;
         business_id: string;
         keyword_slug: string | null;
+        keyword_text: string | null;
+        keyword_language: "en" | "es";
         service_area_slug: string;
         url_path: string;
         status: string;
@@ -119,6 +121,8 @@ router.post(
               job_id: jobId,
               business_id: businessId,
               keyword_slug: keyword.slug,
+              keyword_text: keyword.keyword,
+              keyword_language: keyword.language ?? "en",
               service_area_slug: locationSlug,
               url_path: urlPath,
               status: "queued",
@@ -139,6 +143,8 @@ router.post(
               job_id: jobId,
               business_id: businessId,
               keyword_slug: keyword.slug,
+              keyword_text: keyword.keyword,
+              keyword_language: keyword.language ?? "en",
               service_area_slug: serviceAreaSlug,
               url_path: urlPath,
               status: "queued",
@@ -172,13 +178,13 @@ router.post(
       // Using named parameters for maintainability (P0 fix)
       const insertStmt = db.prepare(
         `INSERT INTO job_pages (
-          id, job_id, business_id, keyword_slug, service_area_slug, 
+          id, job_id, business_id, keyword_slug, keyword_text, keyword_language, service_area_slug, 
           url_path, status, worker_id, attempts, claimed_at, 
           completed_at, content, error_message, section_count, 
           model_name, prompt_version, generation_duration_ms, 
           word_count, created_at
         ) VALUES (
-          @id, @job_id, @business_id, @keyword_slug, @service_area_slug,
+          @id, @job_id, @business_id, @keyword_slug, @keyword_text, @keyword_language, @service_area_slug,
           @url_path, @status, @worker_id, @attempts, @claimed_at,
           @completed_at, @content, @error_message, @section_count,
           @model_name, @prompt_version, @generation_duration_ms,
@@ -193,6 +199,8 @@ router.post(
             job_id: string;
             business_id: string;
             keyword_slug: string | null;
+            keyword_text: string | null;
+            keyword_language: "en" | "es";
             service_area_slug: string;
             url_path: string;
             status: string;
@@ -205,6 +213,8 @@ router.post(
               job_id: page.job_id,
               business_id: page.business_id,
               keyword_slug: page.keyword_slug,
+              keyword_text: page.keyword_text,
+              keyword_language: page.keyword_language,
               service_area_slug: page.service_area_slug,
               url_path: page.url_path,
               status: "queued",

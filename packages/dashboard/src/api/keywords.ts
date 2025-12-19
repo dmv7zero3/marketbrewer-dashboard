@@ -24,7 +24,11 @@ export async function listKeywords(
 
 export async function createKeyword(
   businessId: string,
-  data: { keyword: string; search_intent?: string | null; priority?: number }
+  data: {
+    keyword: string;
+    search_intent?: string | null;
+    language?: "en" | "es";
+  }
 ): Promise<KeywordResponse> {
   const res = await apiClient.post<KeywordResponse>(
     `/api/businesses/${businessId}/keywords`,
@@ -39,7 +43,7 @@ export async function updateKeyword(
   data: Partial<{
     keyword: string;
     search_intent: string | null;
-    priority: number;
+    language: "en" | "es";
   }>
 ): Promise<KeywordResponse> {
   const res = await apiClient.put<KeywordResponse>(

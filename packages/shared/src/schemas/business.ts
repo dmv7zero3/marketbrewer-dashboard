@@ -34,7 +34,7 @@ export const UpdateBusinessSchema = z.object({
 export const CreateKeywordSchema = z.object({
   keyword: z.string().min(1, "Keyword is required"),
   search_intent: z.string().nullable().optional(),
-  priority: z.number().int().min(1).max(10).default(5),
+  language: z.enum(["en", "es"]).optional(),
 });
 
 export const CreateServiceAreaSchema = z.object({

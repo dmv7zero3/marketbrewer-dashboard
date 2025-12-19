@@ -85,12 +85,11 @@ function main(): void {
   // Fetch current keywords for business
   const currentKeywords = db
     .prepare(
-      "SELECT slug, keyword, priority FROM keywords WHERE business_id = ? ORDER BY priority DESC"
+      "SELECT slug, keyword FROM keywords WHERE business_id = ? ORDER BY created_at DESC"
     )
     .all(businessId) as Array<{
     slug: string;
     keyword: string;
-    priority: number;
   }>;
 
   const contractKwSlugs = new Set(cfg.keywords.map((k) => toSlug(k.keyword)));
@@ -128,7 +127,7 @@ function main(): void {
   if (apply) {
     const now = new Date().toISOString();
     const insert = db.prepare(
-      "INSERT INTO keywords (id, business_id, slug, keyword, search_intent, priority, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO keywords (id, business_id, slug, keyword, search_intent, language, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
     const del = db.prepare(
       "DELETE FROM keywords WHERE business_id = ? AND slug = ?"
@@ -150,7 +149,7 @@ function main(): void {
           s,
           kw.keyword,
           null,
-          kw.priority ?? 5,
+          (kw as { language?: string }).language === "es" ? "es" : "en",
           now
         );
       }

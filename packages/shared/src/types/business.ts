@@ -328,7 +328,7 @@ export interface Keyword {
   slug: string;
   keyword: string;
   search_intent: string | null;
-  priority: number;
+  language: "en" | "es";
   created_at: string;
 }
 

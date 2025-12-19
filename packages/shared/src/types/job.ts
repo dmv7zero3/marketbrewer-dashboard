@@ -37,6 +37,8 @@ export interface JobPage {
   job_id: string;
   business_id: string;
   keyword_slug: string | null;
+  keyword_text: string | null;
+  keyword_language: "en" | "es";
   service_area_slug: string;
   url_path: string;
   status: PageStatus;

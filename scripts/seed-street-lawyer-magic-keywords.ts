@@ -33,6 +33,7 @@ type KeywordRow = {
   slug: string;
   keyword: string;
   search_intent: string;
+  language: "en" | "es";
 };
 
 // English keywords (19 total)
@@ -43,6 +44,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "criminal-defense-attorney-dc",
     keyword: "criminal defense attorney DC",
     search_intent: "Local Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-criminal-lawyer-washington-dc",
@@ -50,6 +52,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "criminal-lawyer-washington-dc",
     keyword: "criminal lawyer in Washington DC",
     search_intent: "Local Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-maryland-criminal-defense-lawyer",
@@ -57,6 +60,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "maryland-criminal-defense-lawyer",
     keyword: "Maryland criminal defense lawyer",
     search_intent: "Regional Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-virginia-criminal-defense-attorney",
@@ -64,6 +68,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "virginia-criminal-defense-attorney",
     keyword: "Virginia criminal defense attorney",
     search_intent: "Regional Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-best-criminal-attorney-near-me-dc",
@@ -71,6 +76,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "best-criminal-attorney-near-me-dc",
     keyword: "best criminal attorney near me DC",
     search_intent: "Proximity Search",
+    language: "en",
   },
   {
     id: "slm-kw-federal-criminal-defense-lawyer-dc",
@@ -78,6 +84,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "federal-criminal-defense-lawyer-dc",
     keyword: "federal criminal defense lawyer DC",
     search_intent: "Specialized Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-violent-crime-defense-attorney-maryland",
@@ -85,6 +92,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "violent-crime-defense-attorney-maryland",
     keyword: "violent crime defense attorney Maryland",
     search_intent: "Specialized Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-drug-distribution-lawyer-dc",
@@ -92,6 +100,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "drug-distribution-lawyer-dc",
     keyword: "drug distribution lawyer DC",
     search_intent: "Specialized Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-gun-charges-lawyer-washington-dc",
@@ -99,6 +108,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "gun-charges-lawyer-washington-dc",
     keyword: "gun charges lawyer in Washington DC",
     search_intent: "Specialized Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-cannabis-defense-lawyer-dc",
@@ -106,6 +116,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "cannabis-defense-lawyer-dc",
     keyword: "cannabis defense lawyer DC",
     search_intent: "Cannabis Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-marijuana-possession-lawyer-maryland",
@@ -113,6 +124,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "marijuana-possession-lawyer-maryland",
     keyword: "marijuana possession lawyer Maryland",
     search_intent: "Cannabis Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-cannabis-distribution-attorney-dc",
@@ -120,6 +132,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "cannabis-distribution-attorney-dc",
     keyword: "cannabis distribution attorney DC",
     search_intent: "Cannabis Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-weed-charge-attorney-silver-spring",
@@ -127,6 +140,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "weed-charge-attorney-silver-spring",
     keyword: "weed charge attorney Silver Spring",
     search_intent: "Cannabis Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-dc-cannabis-arrest-lawyer",
@@ -134,6 +148,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "dc-cannabis-arrest-lawyer",
     keyword: "DC cannabis arrest lawyer",
     search_intent: "Cannabis Legal Services",
+    language: "en",
   },
   {
     id: "slm-kw-top-trial-lawyer-washington-dc",
@@ -141,6 +156,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "top-trial-lawyer-washington-dc",
     keyword: "top trial lawyer in Washington DC",
     search_intent: "Quality/Reputation Search",
+    language: "en",
   },
   {
     id: "slm-kw-best-negotiation-attorney-criminal-cases-dc",
@@ -148,6 +164,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "best-negotiation-attorney-criminal-cases-dc",
     keyword: "best negotiation attorney for criminal cases DC",
     search_intent: "Quality/Reputation Search",
+    language: "en",
   },
   {
     id: "slm-kw-experienced-criminal-trial-lawyer-maryland",
@@ -155,6 +172,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "experienced-criminal-trial-lawyer-maryland",
     keyword: "experienced criminal trial lawyer Maryland",
     search_intent: "Quality/Reputation Search",
+    language: "en",
   },
   {
     id: "slm-kw-high-profile-criminal-defense-attorney-dc",
@@ -162,6 +180,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "high-profile-criminal-defense-attorney-dc",
     keyword: "high profile criminal defense attorney DC",
     search_intent: "Quality/Reputation Search",
+    language: "en",
   },
   {
     id: "slm-kw-dmv-defense-attorney-proven-trial-success",
@@ -169,6 +188,7 @@ const englishKeywords: KeywordRow[] = [
     slug: "dmv-defense-attorney-proven-trial-success",
     keyword: "DMV defense attorney with proven trial success",
     search_intent: "Quality/Reputation Search",
+    language: "en",
   },
 ];
 
@@ -180,6 +200,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-defensa-criminal-washington-dc",
     keyword: "abogado de defensa criminal en Washington DC",
     search_intent: "Servicios Legales Locales",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-criminalista-dc",
@@ -187,6 +208,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-criminalista-dc",
     keyword: "abogado criminalista en DC",
     search_intent: "Servicios Legales Locales",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-defensa-penal-maryland",
@@ -194,6 +216,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-defensa-penal-maryland",
     keyword: "abogado de defensa penal en Maryland",
     search_intent: "Servicios Legales Regionales",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-penalista-virginia",
@@ -201,6 +224,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-penalista-virginia",
     keyword: "abogado penalista en Virginia",
     search_intent: "Servicios Legales Regionales",
+    language: "es",
   },
   {
     id: "slm-kw-es-mejor-abogado-criminal-cerca-dc",
@@ -208,6 +232,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "mejor-abogado-criminal-cerca-dc",
     keyword: "mejor abogado criminal cerca de mí DC",
     search_intent: "Búsqueda de Proximidad",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-federal-defensa-criminal-dc",
@@ -215,6 +240,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-federal-defensa-criminal-dc",
     keyword: "abogado federal de defensa criminal DC",
     search_intent: "Servicios Legales Especializados",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-casos-violencia-maryland",
@@ -222,6 +248,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-casos-violencia-maryland",
     keyword: "abogado para casos de violencia en Maryland",
     search_intent: "Servicios Legales Especializados",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-distribucion-drogas-dc",
@@ -229,6 +256,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-distribucion-drogas-dc",
     keyword: "abogado de distribución de drogas en DC",
     search_intent: "Servicios Legales Especializados",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-cargos-armas-washington-dc",
@@ -236,6 +264,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-cargos-armas-washington-dc",
     keyword: "abogado de cargos de armas en Washington DC",
     search_intent: "Servicios Legales Especializados",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-defensa-cannabis-dc",
@@ -243,6 +272,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-defensa-cannabis-dc",
     keyword: "abogado de defensa de cannabis en DC",
     search_intent: "Servicios Legales Cannabis",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-posesion-marihuana-maryland",
@@ -250,6 +280,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-posesion-marihuana-maryland",
     keyword: "abogado por posesión de marihuana en Maryland",
     search_intent: "Servicios Legales Cannabis",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-distribucion-cannabis-dc",
@@ -257,6 +288,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-distribucion-cannabis-dc",
     keyword: "abogado por distribución de cannabis en DC",
     search_intent: "Servicios Legales Cannabis",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-cargos-marihuana-silver-spring",
@@ -264,6 +296,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-cargos-marihuana-silver-spring",
     keyword: "abogado para cargos de marihuana en Silver Spring",
     search_intent: "Servicios Legales Cannabis",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-arrestos-cannabis-dc",
@@ -271,6 +304,7 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-arrestos-cannabis-dc",
     keyword: "abogado para arrestos por cannabis en DC",
     search_intent: "Servicios Legales Cannabis",
+    language: "es",
   },
   {
     id: "slm-kw-es-abogado-juicios-penales-alta-experiencia-dmv",
@@ -278,17 +312,19 @@ const spanishKeywords: KeywordRow[] = [
     slug: "abogado-juicios-penales-alta-experiencia-dmv",
     keyword: "abogado de juicios penales con alta experiencia en el DMV",
     search_intent: "Búsqueda de Calidad/Reputación",
+    language: "es",
   },
 ];
 
 // Prepare upsert statement
 const upsertKeyword = db.prepare(`
-  INSERT INTO keywords (id, business_id, slug, keyword, search_intent, created_at)
-  VALUES (?, ?, ?, ?, ?, ?)
+  INSERT INTO keywords (id, business_id, slug, keyword, search_intent, language, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     slug = excluded.slug,
     keyword = excluded.keyword,
-    search_intent = excluded.search_intent
+    search_intent = excluded.search_intent,
+    language = excluded.language
 `);
 
 let added = 0;
@@ -307,6 +343,7 @@ for (const kw of englishKeywords) {
     kw.slug,
     kw.keyword,
     kw.search_intent,
+    kw.language,
     now
   );
 
@@ -332,6 +369,7 @@ for (const kw of spanishKeywords) {
     kw.slug,
     kw.keyword,
     kw.search_intent,
+    kw.language,
     now
   );
 

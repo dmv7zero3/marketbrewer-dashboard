@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS keywords (
   slug TEXT NOT NULL,
   keyword TEXT NOT NULL,
   search_intent TEXT,
+  language TEXT NOT NULL DEFAULT 'en',
   priority INTEGER DEFAULT 5,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(business_id, slug)
@@ -77,6 +78,8 @@ CREATE TABLE IF NOT EXISTS job_pages (
   job_id TEXT NOT NULL REFERENCES generation_jobs(id),
   business_id TEXT NOT NULL REFERENCES businesses(id),
   keyword_slug TEXT,
+  keyword_text TEXT,
+  keyword_language TEXT NOT NULL DEFAULT 'en',
   service_area_slug TEXT NOT NULL,
   url_path TEXT NOT NULL,
   status TEXT DEFAULT 'queued',

@@ -28,7 +28,9 @@ export const KeywordsManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
+  const [newLanguage, setNewLanguage] = useState<"en" | "es">("en");
   const [bulkText, setBulkText] = useState("");
+  const [bulkLanguage, setBulkLanguage] = useState<"en" | "es">("en");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
@@ -81,6 +83,7 @@ export const KeywordsManagement: React.FC = () => {
       setInputError(null);
       const { keyword } = await createKeyword(selectedBusiness, {
         keyword: newKeyword.trim(),
+        language: newLanguage,
       });
       setKeywords((prev) => [keyword, ...prev]);
       setNewKeyword("");
@@ -143,7 +146,7 @@ export const KeywordsManagement: React.FC = () => {
     }
     if (parsed.length === 0) {
       addToast(
-        "No valid keyword lines found. Use 'keyword[, intent][, priority]' format.",
+        "No valid keyword lines found. Use 'keyword[, intent]' format.",
         "error",
         4000
       );
@@ -199,6 +202,7 @@ export const KeywordsManagement: React.FC = () => {
           await createKeyword(selectedBusiness, {
             keyword: kw.keyword,
             search_intent: kw.search_intent ?? null,
+            language: bulkLanguage,
           });
           results.success.push(kw);
         } catch (e) {
@@ -242,6 +246,15 @@ export const KeywordsManagement: React.FC = () => {
   const renderManageTab = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
+        <select
+          className="border rounded px-2 py-1"
+          value={newLanguage}
+          onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
+          aria-label="Keyword language"
+        >
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+        </select>
         <input
           className={`border rounded px-2 py-1 flex-1 ${
             inputError ? "border-red-500" : ""
@@ -273,7 +286,12 @@ export const KeywordsManagement: React.FC = () => {
               className="flex items-center justify-between border rounded p-2 bg-white"
             >
               <div>
-                <p className="text-gray-800">{k.keyword}</p>
+                <p className="text-gray-800">
+                  <span className="text-xs font-semibold text-gray-500 mr-2">
+                    {k.language?.toUpperCase() === "ES" ? "ES" : "EN"}
+                  </span>
+                  {k.keyword}
+                </p>
                 <p className="text-gray-600 text-sm">Slug: {k.slug}</p>
               </div>
               <button
@@ -292,6 +310,17 @@ export const KeywordsManagement: React.FC = () => {
 
   const renderBulkAddTab = () => (
     <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-gray-700">Language</label>
+        <select
+          className="border rounded px-2 py-1"
+          value={bulkLanguage}
+          onChange={(e) => setBulkLanguage(e.target.value as "en" | "es")}
+        >
+          <option value="en">English (EN)</option>
+          <option value="es">Spanish (ES)</option>
+        </select>
+      </div>
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
           Paste keywords (one per line)
@@ -335,6 +364,10 @@ export const KeywordsManagement: React.FC = () => {
             string (e.g., "informational", "commercial", "transactional")
           </li>
           <li>
+            <span className="font-medium">Language</span> — required; "en" or
+            "es" (used to generate English/Spanish pages)
+          </li>
+          <li>
             <span className="font-medium">Slug</span> — derived from keyword
             using `toKeywordSlug()`; used for de-duplication
           </li>
@@ -359,10 +392,6 @@ export const KeywordsManagement: React.FC = () => {
             "nashville hot chicken near me" vs "chicken")
           </li>
           <li>
-            Use `priority` to influence content generation order (e.g., 100 for
-            money keywords, 10 for informational)
-          </li>
-          <li>
             Include search intent when known to help with content optimization
           </li>
         </ul>
@@ -374,7 +403,6 @@ export const KeywordsManagement: React.FC = () => {
         <div className="p-3 text-sm border rounded bg-gray-50">
           <p>keyword</p>
           <p>keyword, intent</p>
-          <p>keyword, intent, priority</p>
         </div>
         <ul className="pl-6 text-gray-800 list-disc">
           <li>
@@ -390,10 +418,6 @@ export const KeywordsManagement: React.FC = () => {
         <ul className="pl-6 text-gray-800 list-disc">
           <li>Keyword must be non-empty and pass basic validation.</li>
           <li>Search intent is optional and stored as-is.</li>
-          <li>
-            Priority must be a number if provided; non-numeric values are
-            ignored.
-          </li>
           <li>
             Duplicate slugs are rejected to prevent multiple entries for the
             same keyword.
@@ -431,7 +455,7 @@ export const KeywordsManagement: React.FC = () => {
             Keywords drive keyword-location pair generation for SEO pages.
           </li>
           <li>
-            Priorities help schedule generation jobs and order content in UIs.
+            Language determines whether generated content is English or Spanish.
           </li>
           <li>
             Use the Bulk Add tab for quick imports; manage fine-tuning in the
