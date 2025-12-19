@@ -109,49 +109,74 @@ export const LocationsManagement: React.FC = () => {
       return;
     }
 
-    let cancelled = false;
+    // AbortController prevents race condition when rapidly switching businesses
+    const controller = new AbortController();
     setLoading(true);
     setLocations([]);
     setStats(null);
 
     const fetchData = async () => {
-      const [locationsResult, statsResult] = await Promise.allSettled([
-        getLocations(selectedBusiness),
-        getLocationStats(selectedBusiness),
-      ]);
+      try {
+        const [locationsResult, statsResult] = await Promise.allSettled([
+          getLocations(selectedBusiness, undefined, {
+            signal: controller.signal,
+          }),
+          getLocationStats(selectedBusiness, { signal: controller.signal }),
+        ]);
 
-      if (cancelled) return;
+        // Don't update state if request was aborted
+        if (controller.signal.aborted) return;
 
-      if (locationsResult.status === "fulfilled") {
-        setLocations(locationsResult.value.locations);
-      } else {
-        console.error(
-          "[LocationsManagement] Failed to load locations:",
-          locationsResult.reason
-        );
-        addToast("Failed to load locations", "error");
-        setLocations([]);
-      }
+        if (locationsResult.status === "fulfilled") {
+          setLocations(locationsResult.value.locations);
+        } else {
+          // Ignore abort errors
+          if (
+            locationsResult.reason?.name !== "CanceledError" &&
+            locationsResult.reason?.name !== "AbortError"
+          ) {
+            console.error(
+              "[LocationsManagement] Failed to load locations:",
+              locationsResult.reason
+            );
+            addToast("Failed to load locations", "error");
+          }
+          setLocations([]);
+        }
 
-      if (statsResult.status === "fulfilled") {
-        setStats(statsResult.value.stats);
-      } else {
-        console.error(
-          "[LocationsManagement] Failed to load stats:",
-          statsResult.reason
-        );
-        setStats(null);
-      }
+        if (statsResult.status === "fulfilled") {
+          setStats(statsResult.value.stats);
+        } else {
+          // Ignore abort errors
+          if (
+            statsResult.reason?.name !== "CanceledError" &&
+            statsResult.reason?.name !== "AbortError"
+          ) {
+            console.error(
+              "[LocationsManagement] Failed to load stats:",
+              statsResult.reason
+            );
+          }
+          setStats(null);
+        }
 
-      if (!cancelled) {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        // Catch any unexpected errors
+        if (!controller.signal.aborted) {
+          console.error("[LocationsManagement] Unexpected error:", error);
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
 
+    // Cleanup: abort in-flight requests on unmount or business change
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [selectedBusiness, refreshToken, addToast]);
 

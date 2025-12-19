@@ -7,22 +7,28 @@ import type { Location, LocationStats } from "@marketbrewer/shared";
 
 export async function getLocations(
   businessId: string,
-  filters?: { status?: string; state?: string; country?: string }
+  filters?: { status?: string; state?: string; country?: string },
+  options?: { signal?: AbortSignal }
 ): Promise<{ locations: Location[] }> {
   const { data } = await apiClient.get(
     `/api/businesses/seo/${businessId}/locations`,
     {
       params: filters,
+      signal: options?.signal,
     }
   );
   return data;
 }
 
 export async function getLocationStats(
-  businessId: string
+  businessId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<{ stats: LocationStats }> {
   const { data } = await apiClient.get(
-    `/api/businesses/seo/${businessId}/locations/stats`
+    `/api/businesses/seo/${businessId}/locations/stats`,
+    {
+      signal: options?.signal,
+    }
   );
   return data;
 }
