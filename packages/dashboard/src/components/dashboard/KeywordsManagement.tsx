@@ -46,6 +46,25 @@ export const KeywordsManagement: React.FC = () => {
         setLoading(true);
         setError(null);
         const { keywords } = await listKeywords(selectedBusiness);
+
+        // Debug logging
+        console.log("🔍 Fetched keywords from API:", keywords.length);
+        console.log(
+          "  EN keywords:",
+          keywords.filter((k) => k.language === "en").length
+        );
+        console.log(
+          "  ES keywords:",
+          keywords.filter((k) => k.language === "es").length
+        );
+        console.log(
+          "  First 3 keywords:",
+          keywords.slice(0, 3).map((k) => ({
+            keyword: k.keyword,
+            language: k.language,
+          }))
+        );
+
         if (!mounted) return;
         setKeywords(keywords);
       } catch (e) {
@@ -247,10 +266,29 @@ export const KeywordsManagement: React.FC = () => {
   };
 
   const renderManageTab = () => {
+    // Debug logging
+    console.log("🔍 Keywords Management Debug:");
+    console.log("  Total keywords:", keywords.length);
+    console.log("  Language filter:", languageFilter);
+    console.log(
+      "  EN count:",
+      keywords.filter((k) => k.language === "en").length
+    );
+    console.log(
+      "  ES count:",
+      keywords.filter((k) => k.language === "es").length
+    );
+    console.log(
+      "  Undefined language:",
+      keywords.filter((k) => !k.language).length
+    );
+
     const filteredKeywords = keywords.filter((k) => {
       if (languageFilter === "all") return true;
       return k.language === languageFilter;
     });
+
+    console.log("  Filtered count:", filteredKeywords.length);
 
     const enCount = keywords.filter((k) => k.language === "en").length;
     const esCount = keywords.filter((k) => k.language === "es").length;
