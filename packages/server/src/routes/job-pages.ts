@@ -5,7 +5,13 @@
 import { Router, Request, Response, NextFunction } from "express";
 import db, { dbRun, dbGet, dbAll } from "../db/connection";
 import { ClaimPageSchema, CompletePageSchema } from "@marketbrewer/shared";
-import type { JobPage, GenerationJob } from "@marketbrewer/shared";
+import type {
+  JobPage,
+  GenerationJob,
+  Business,
+  Questionnaire,
+  PromptTemplate,
+} from "@marketbrewer/shared";
 import { HttpError } from "../middleware/error-handler";
 
 const router = Router();
@@ -87,7 +93,68 @@ router.post(
         return;
       }
 
-      res.json({ page: claimedPage });
+      // Fetch business profile for variable substitution
+      const business = dbGet<Business>(
+        "SELECT * FROM businesses WHERE id = ?",
+        [claimedPage.business_id]
+      );
+
+      // Fetch questionnaire data
+      const questionnaire = dbGet<Questionnaire>(
+        "SELECT * FROM questionnaires WHERE business_id = ?",
+        [claimedPage.business_id]
+      );
+
+      // Fetch the active template for this page type
+      const template = dbGet<PromptTemplate>(
+        `SELECT * FROM prompt_templates
+         WHERE business_id = ? AND page_type = ? AND is_active = 1
+         ORDER BY version DESC LIMIT 1`,
+        [claimedPage.business_id, job.page_type]
+      );
+
+      // Parse questionnaire data safely
+      let questionnaireData: Record<string, unknown> = {};
+      if (questionnaire?.data) {
+        try {
+          questionnaireData =
+            typeof questionnaire.data === "string"
+              ? JSON.parse(questionnaire.data)
+              : questionnaire.data;
+        } catch {
+          questionnaireData = {};
+        }
+      }
+
+      res.json({
+        page: claimedPage,
+        business: business
+          ? {
+              id: business.id,
+              name: business.name,
+              industry: business.industry,
+              industry_type: business.industry_type,
+              phone: business.phone,
+              email: business.email,
+              website: business.website,
+              primary_city: business.primary_city,
+              primary_state: business.primary_state,
+              gbp_url: business.gbp_url,
+            }
+          : null,
+        questionnaire: questionnaireData,
+        template: template
+          ? {
+              id: template.id,
+              page_type: template.page_type,
+              version: template.version,
+              template: template.template,
+              required_variables: template.required_variables,
+              optional_variables: template.optional_variables,
+              word_count_target: template.word_count_target,
+            }
+          : null,
+      });
     } catch (error) {
       next(error);
     }

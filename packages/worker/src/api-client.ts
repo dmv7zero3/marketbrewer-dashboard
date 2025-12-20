@@ -5,8 +5,34 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { JobPage, GenerationJob } from '@marketbrewer/shared';
 
+export interface BusinessData {
+  id: string;
+  name: string;
+  industry: string;
+  industry_type?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  primary_city?: string | null;
+  primary_state?: string | null;
+  gbp_url?: string | null;
+}
+
+export interface TemplateData {
+  id: string;
+  page_type: string;
+  version: number;
+  template: string;
+  required_variables: string | null;
+  optional_variables: string | null;
+  word_count_target: number;
+}
+
 export interface ClaimPageResponse {
   page: JobPage;
+  business: BusinessData | null;
+  questionnaire: Record<string, unknown>;
+  template: TemplateData | null;
 }
 
 export interface CompletePageRequest {
@@ -42,18 +68,19 @@ export class ApiClient {
 
   /**
    * Claim a page from the job queue
+   * Returns the full claim response with business data, questionnaire, and template
    */
-  async claimPage(jobId: string, workerId: string): Promise<JobPage | null> {
+  async claimPage(jobId: string, workerId: string): Promise<ClaimPageResponse | null> {
     try {
       const response = await this.client.post<ClaimPageResponse>(
         `/api/jobs/${jobId}/claim`,
         { worker_id: workerId }
       );
-      return response.data.page;
+      return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ApiError>;
-        
+
         // 409 means no pages available - not an error
         if (axiosError.response?.status === 409) {
           const code = axiosError.response.data?.code;
@@ -61,7 +88,7 @@ export class ApiClient {
             return null;
           }
         }
-        
+
         console.error('API Error:', axiosError.response?.data || axiosError.message);
       }
       throw error;
