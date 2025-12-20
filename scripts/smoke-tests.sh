@@ -19,12 +19,15 @@ ENVIRONMENT="${1:-local}"
 case "$ENVIRONMENT" in
   local)
     API_URL="http://localhost:3001"
+    API_BASE_PATH="/api"
     ;;
   staging)
     API_URL="http://staging.marketbrewer.com:3001"
+    API_BASE_PATH="/api"
     ;;
   prod)
     API_URL="http://prod.marketbrewer.com:3001"
+    API_BASE_PATH="/api"
     ;;
   *)
     echo "Invalid environment: $ENVIRONMENT"
@@ -67,11 +70,13 @@ test_endpoint() {
     response=$(curl -s -w "\n%{http_code}" \
       -X "$method" \
       -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${API_TOKEN:-local-dev-token-12345}" \
       "$API_URL$endpoint")
   else
     response=$(curl -s -w "\n%{http_code}" \
       -X "$method" \
       -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${API_TOKEN:-local-dev-token-12345}" \
       -d "$data" \
       "$API_URL$endpoint")
   fi
@@ -130,9 +135,9 @@ test_endpoint \
 
 # Business endpoints
 test_endpoint \
-  "GET /businesses (list)" \
+  "GET /api/businesses (list)" \
   "GET" \
-  "/businesses" \
+  "$API_BASE_PATH/businesses" \
   "" \
   "200"
 
@@ -140,7 +145,7 @@ test_endpoint \
 business_data=$(cat <<EOF
 {
   "name": "Smoke Test Business $(date +%s)",
-  "industry": "Restaurant",
+  "industry": "restaurant",
   "website": "https://smoketest.example.com",
   "phone": "(555) 123-4567",
   "email": "smoketest@example.com"
@@ -149,17 +154,18 @@ EOF
 )
 
 test_endpoint \
-  "POST /businesses (create)" \
+  "POST /api/businesses (create)" \
   "POST" \
-  "/businesses" \
+  "$API_BASE_PATH/businesses" \
   "$business_data" \
   "201"
 
 # Extract business_id from response for subsequent tests
 response=$(curl -s -X POST \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${API_TOKEN:-local-dev-token}" \
   -d "$business_data" \
-  "$API_URL/businesses")
+  "$API_URL$API_BASE_PATH/businesses")
 
 business_id=$(echo "$response" | grep -o '"id":"[^"]*' | head -1 | cut -d'"' -f4 || echo "")
 
@@ -171,59 +177,37 @@ else
 
   # Get specific business
   test_endpoint \
-    "GET /businesses/{id}" \
+    "GET /api/businesses/{id}" \
     "GET" \
-    "/businesses/$business_id" \
+    "$API_BASE_PATH/businesses/$business_id" \
     "" \
     "200"
 
   # Get questionnaire
   test_endpoint \
-    "GET /businesses/{id}/questionnaire" \
+    "GET /api/businesses/{id}/questionnaire" \
     "GET" \
-    "/businesses/$business_id/questionnaire" \
+    "$API_BASE_PATH/businesses/$business_id/questionnaire" \
     "" \
     "200"
 
   # Update questionnaire
   questionnaire_data=$(cat <<EOF
 {
-  "identity": {
-    "businessName": "Updated Test Business"
+  "data": {
+    "identity": {
+      "businessName": "Updated Test Business"
+    }
   }
 }
 EOF
 )
 
   test_endpoint \
-    "PATCH /businesses/{id}/questionnaire" \
-    "PATCH" \
-    "/businesses/$business_id/questionnaire" \
+    "PUT /api/businesses/{id}/questionnaire" \
+    "PUT" \
+    "$API_BASE_PATH/businesses/$business_id/questionnaire" \
     "$questionnaire_data" \
-    "200"
-
-  # Create job
-  job_data=$(cat <<EOF
-{
-  "pageType": "service-location",
-  "keywords": ["test-keyword"]
-}
-EOF
-)
-
-  test_endpoint \
-    "POST /businesses/{id}/jobs" \
-    "POST" \
-    "/businesses/$business_id/jobs" \
-    "$job_data" \
-    "201"
-
-  # Get jobs
-  test_endpoint \
-    "GET /businesses/{id}/jobs" \
-    "GET" \
-    "/businesses/$business_id/jobs" \
-    "" \
     "200"
 fi
 

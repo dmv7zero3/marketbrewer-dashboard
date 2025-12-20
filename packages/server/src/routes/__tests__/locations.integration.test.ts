@@ -21,7 +21,7 @@ import request from "supertest";
 import { expect } from "@jest/globals";
 
 const API_BASE = process.env.API_BASE || "http://localhost:3001";
-const API_TOKEN = process.env.API_TOKEN || "local-dev-token";
+const API_TOKEN = process.env.API_TOKEN || "local-dev-token-12345";
 
 // Helper function to make authenticated requests
 const apiRequest = (

@@ -19,7 +19,7 @@ router.get(
     try {
       const businessId = req.params.id;
       const areas = dbAll<ServiceArea>(
-        "SELECT * FROM service_areas WHERE business_id = ? ORDER BY priority DESC, created_at DESC",
+        "SELECT * FROM service_areas WHERE business_id = ? ORDER BY priority DESC, updated_at DESC",
         [businessId]
       );
       res.json({ service_areas: areas });
@@ -44,11 +44,12 @@ router.post(
       if (!business) {
         throw new HttpError(404, "Business not found", "NOT_FOUND");
       }
-      const { city, state, county, priority } = req.body as {
+      const { city, state, county, priority, country } = req.body as {
         city: string;
         state: string;
         county?: string | null;
         priority?: number;
+        country?: string;
       };
       if (!city || !state) {
         throw new HttpError(
@@ -60,10 +61,22 @@ router.post(
       const id = generateId();
       const slug = toCityStateSlug(city, state);
       const now = new Date().toISOString();
+      const normalizedCountry = country?.trim() || "USA";
       dbRun(
-        `INSERT INTO service_areas (id, business_id, slug, city, state, county, priority, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, businessId, slug, city, state, county ?? null, priority ?? 0, now]
+        `INSERT INTO service_areas (id, business_id, slug, city, state, county, priority, country, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          businessId,
+          slug,
+          city,
+          state,
+          county ?? null,
+          priority ?? 0,
+          normalizedCountry,
+          now,
+          now,
+        ]
       );
       const created = dbGet<ServiceArea>(
         "SELECT * FROM service_areas WHERE id = ?",
@@ -91,11 +104,12 @@ router.put(
       if (!existing) {
         throw new HttpError(404, "Service area not found", "NOT_FOUND");
       }
-      const { city, state, county, priority } = req.body as {
+      const { city, state, county, priority, country } = req.body as {
         city?: string;
         state?: string;
         county?: string | null;
         priority?: number;
+        country?: string;
       };
       const updates: string[] = [];
       const values: unknown[] = [];
@@ -120,6 +134,10 @@ router.put(
         updates.push("priority = ?");
         values.push(priority);
       }
+      if (country !== undefined) {
+        updates.push("country = ?");
+        values.push(country);
+      }
       if (city !== undefined || state !== undefined) {
         updates.push("slug = ?");
         values.push(toCityStateSlug(newCity, newState));
@@ -128,6 +146,8 @@ router.put(
         res.json({ service_area: existing });
         return;
       }
+      updates.push("updated_at = ?");
+      values.push(new Date().toISOString());
       values.push(areaId);
       dbRun(
         `UPDATE service_areas SET ${updates.join(", ")} WHERE id = ?`,

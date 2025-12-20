@@ -143,32 +143,50 @@ Content-Type: application/json
 ### List Keywords
 
 ```
-GET /businesses/:id/keywords
+GET /api/businesses/:id/keywords
+```
+
+Response:
+
+```json
+{
+  "keywords": [
+    {
+      "id": "kw-123",
+      "slug": "halal-fried-chicken",
+      "keyword": "halal fried chicken",
+      "language": "en",
+      "search_intent": "Find halal-certified fried chicken restaurants"
+    }
+  ]
+}
 ```
 
 ### Create Keyword
 
 ```
-POST /businesses/:id/keywords
+POST /api/businesses/:id/keywords
 Content-Type: application/json
 
 {
   "keyword": "halal fried chicken",
   "searchIntent": "Find halal-certified fried chicken restaurants",
-  "priority": 8
+  "language": "en"
 }
 ```
+
+Note: Keywords support bilingual pairs (EN/ES) with shared slugs.
 
 ### Update Keyword
 
 ```
-PUT /businesses/:id/keywords/:slug
+PUT /api/businesses/:id/keywords/:slug
 ```
 
 ### Delete Keyword
 
 ```
-DELETE /businesses/:id/keywords/:slug
+DELETE /api/businesses/:id/keywords/:slug
 ```
 
 ---
@@ -178,19 +196,40 @@ DELETE /businesses/:id/keywords/:slug
 ### List Service Areas
 
 ```
-GET /businesses/:id/service-areas
+GET /api/businesses/:id/service-areas
+```
+
+Response (sorted by priority DESC, updated_at DESC):
+
+```json
+{
+  "service_areas": [
+    {
+      "id": "sa-123",
+      "slug": "sterling-va",
+      "city": "Sterling",
+      "state": "VA",
+      "county": "Loudoun",
+      "country": "USA",
+      "priority": 10,
+      "location_id": null,
+      "updated_at": "2024-12-20T10:30:00Z"
+    }
+  ]
+}
 ```
 
 ### Create Service Area
 
 ```
-POST /businesses/:id/service-areas
+POST /api/businesses/:id/service-areas
 Content-Type: application/json
 
 {
   "city": "Sterling",
   "state": "VA",
   "county": "Loudoun",
+  "country": "USA",
   "priority": 10
 }
 ```
@@ -198,13 +237,54 @@ Content-Type: application/json
 ### Update Service Area
 
 ```
-PUT /businesses/:id/service-areas/:slug
+PUT /api/businesses/:id/service-areas/:slug
 ```
 
 ### Delete Service Area
 
 ```
-DELETE /businesses/:id/service-areas/:slug
+DELETE /api/businesses/:id/service-areas/:slug
+```
+
+---
+
+## Locations
+
+Physical store locations (linked to service areas).
+
+### List Locations
+
+```
+GET /api/businesses/seo/:id/locations
+```
+
+Query params: `?status=active`, `?state=VA`
+
+### Create Location
+
+```
+POST /api/businesses/seo/:id/locations
+Content-Type: application/json
+
+{
+  "name": "Sterling Store",
+  "city": "Sterling",
+  "state": "VA",
+  "country": "USA",
+  "status": "active"
+}
+```
+
+### Bulk Import
+
+```
+POST /api/businesses/seo/:id/locations/bulk-import
+Content-Type: application/json
+
+{
+  "locations": [...],
+  "auto_create_service_areas": true
+}
 ```
 
 ---
@@ -306,7 +386,7 @@ Response:
 ### Claim Page
 
 ```
-POST /jobs/:jobId/claim
+POST /api/jobs/:jobId/claim
 Content-Type: application/json
 
 {
@@ -314,16 +394,34 @@ Content-Type: application/json
 }
 ```
 
-Response (success):
+Response (success) — enriched with business, questionnaire, and template data:
 
 ```json
 {
   "page": {
     "id": "page-789",
-    "jobId": "job-456",
-    "keywordSlug": "halal-fried-chicken",
-    "serviceAreaSlug": "sterling-va",
-    "urlPath": "/halal-fried-chicken/sterling-va"
+    "job_id": "job-456",
+    "keyword_slug": "halal-fried-chicken",
+    "keyword_text": "halal fried chicken",
+    "keyword_language": "en",
+    "service_area_slug": "sterling-va",
+    "url_path": "/halal-fried-chicken/sterling-va"
+  },
+  "business": {
+    "id": "bus-123",
+    "name": "Nash & Smashed",
+    "industry": "restaurant",
+    "phone": "703-555-1234"
+  },
+  "questionnaire": {
+    "identity": { "tagline": "..." },
+    "audience": { "target": "..." }
+  },
+  "template": {
+    "id": "tpl-456",
+    "page_type": "service-area",
+    "version": 1,
+    "template": "Write a page for {{business_name}} in {{city}}, {{state}}..."
   }
 }
 ```

@@ -20,6 +20,7 @@ router.use("/businesses", jobsRouter); // /businesses/:id/jobs routes
 router.use("/jobs", jobPagesRouter); // /jobs/:jobId/claim, /jobs/:jobId/pages/:pageId/complete
 router.use("/businesses", keywordsRouter);
 router.use("/businesses", serviceAreasRouter);
+router.use("/businesses/seo", serviceAreasRouter);
 router.use("/businesses", promptsRouter); // /businesses/:id/prompts routes
 router.use("/businesses", businessProfileRouter); // /businesses/:id/locations, /hours, /social
 

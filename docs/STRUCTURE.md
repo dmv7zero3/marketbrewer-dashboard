@@ -70,24 +70,25 @@ Express API with SQLite.
 server/
 ├── src/
 │   ├── routes/                   # Route handlers
+│   │   ├── index.ts              # Route mounting (incl. /businesses/seo)
 │   │   ├── businesses.ts
+│   │   ├── business-profile.ts
+│   │   ├── locations.ts          # Physical store locations
 │   │   ├── keywords.ts
 │   │   ├── service-areas.ts
 │   │   ├── prompts.ts
 │   │   ├── jobs.ts
-│   │   ├── job-pages.ts
-│   │   └── workers.ts
+│   │   ├── job-pages.ts          # Worker claim endpoint
+│   │   └── __tests__/            # Integration tests
 │   ├── db/
-│   │   ├── connection.ts         # SQLite setup
-│   │   ├── schema.sql            # Table definitions
-│   │   └── queries/              # SQL query functions
+│   │   └── connection.ts         # SQLite setup
 │   ├── services/                 # Business logic
 │   ├── middleware/
 │   │   ├── auth.ts               # Bearer token validation
-│   │   ├── cors.ts               # CORS configuration
-│   │   └── error-handler.ts
+│   │   └── cors.ts               # CORS configuration
 │   └── index.ts                  # Server entry point
-├── migrations/                   # SQL migrations
+├── migrations/                   # SQL migrations (001-014)
+├── data/                         # Local database files
 ├── package.json
 └── tsconfig.json
 ```
@@ -102,14 +103,19 @@ Job processor for content generation.
 worker/
 ├── src/
 │   ├── index.ts                  # Entry point
-│   ├── worker.ts                 # Main worker class
-│   ├── ollama-client.ts          # Ollama API wrapper
-│   ├── api-client.ts             # Server API client
-│   └── utils/
-│       └── logger.ts
+│   ├── worker.ts                 # Main worker class (template substitution)
+│   ├── api-client.ts             # Server API client (enriched claim)
+│   └── ollama/                   # Ollama integration
 ├── package.json
 └── tsconfig.json
 ```
+
+Worker flow:
+1. Claim page via `POST /api/jobs/:jobId/claim`
+2. Receive enriched response: `{ page, business, questionnaire, template }`
+3. Substitute `{{variables}}` in template
+4. Call Ollama for generation
+5. Complete via `PUT /api/jobs/:jobId/pages/:pageId/complete`
 
 ---
 

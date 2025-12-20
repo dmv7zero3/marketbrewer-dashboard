@@ -347,9 +347,11 @@ export interface ServiceArea {
   slug: string;
   city: string;
   state: string;
+  country: string;
   county: string | null;
   priority: number;
   created_at: string;
+  updated_at: string;
   location_id?: string | null; // Optional: link to nearest physical location
 }
 

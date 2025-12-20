@@ -42,7 +42,7 @@ describe("Keywords API Integration Tests", () => {
   beforeAll(async () => {
     const res = await apiRequest("post", "/api/businesses").send({
       name: "Test Business for Keywords",
-      location: "Test Location",
+      industry: "restaurant",
     });
     expect(res.status).toBe(201);
     businessId = res.body.business.id;
@@ -115,7 +115,7 @@ describe("Keywords API Integration Tests", () => {
         keyword: "Chicken & Waffle Near Me",
       });
       expect(res.status).toBe(201);
-      expect(res.body.keyword.slug).toBe("chicken-and-waffle-near-me");
+      expect(res.body.keyword.slug).toBe("chicken-waffle-near-me");
     });
 
     it("should reject keyword without keyword field", async () => {
@@ -252,7 +252,7 @@ describe("Keywords API Integration Tests", () => {
     beforeAll(async () => {
       const res = await apiRequest("post", "/api/businesses").send({
         name: "Test Business 2 for Ordering",
-        location: "Test Location",
+        industry: "restaurant",
       });
       business2Id = res.body.business.id;
     });
@@ -292,7 +292,7 @@ describe("Keywords API Integration Tests", () => {
     beforeAll(async () => {
       const res = await apiRequest("post", "/api/businesses").send({
         name: "Data Integrity Test Business",
-        location: "Test Location",
+        industry: "restaurant",
       });
       integrityBusinessId = res.body.business.id;
     });

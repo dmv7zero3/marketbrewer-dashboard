@@ -18,6 +18,9 @@ npm run dev:server
 
 # Start worker
 npm run dev:worker
+
+# Run smoke tests (requires server running)
+./scripts/smoke-tests.sh local
 ```
 
 ---
@@ -27,8 +30,8 @@ npm run dev:worker
 ```
 packages/
 ├── dashboard/    # React 18 + Webpack 5 + Tailwind
-├── server/       # Express + SQLite
-├── worker/       # Ollama job processor
+├── server/       # Express + SQLite (14 migrations)
+├── worker/       # Ollama job processor with template substitution
 └── shared/       # Shared TypeScript types
 ```
 
@@ -45,7 +48,7 @@ All documentation lives in `docs/`:
 | [docs/README.md](./docs/README.md)           | Documentation index |
 | [docs/STRUCTURE.md](./docs/STRUCTURE.md)     | File layout         |
 | [docs/CONVENTIONS.md](./docs/CONVENTIONS.md) | Code style          |
-| [docs/QUESTIONS.md](./docs/QUESTIONS.md)     | Running questions   |
+| [docs/api/ENDPOINTS.md](./docs/api/ENDPOINTS.md) | REST API reference |
 
 ---
 
@@ -60,52 +63,51 @@ All documentation lives in `docs/`:
 
 ---
 
-## Current Status (Dec 16, 2024)
+## Current Status (Dec 20, 2024)
 
 **✅ Working:**
 
 - ✅ API Server (Express + SQLite on :3001)
-- ✅ Worker (Ollama integration with llama3.2:latest)
-- ✅ Content Generation (tested end-to-end)
-- ✅ Database seeded (26 locations, 50 keywords, 1,300 pages)
-- ⚠️ Dashboard (partial - webpack config pending)
+- ✅ Dashboard (React 18, all management UIs)
+- ✅ Worker (Ollama + template-based content generation)
+- ✅ Bilingual support (EN/ES with shared slugs)
+- ✅ Prompt template system with 25+ variables
+- ✅ Integration tests passing (37/37 locations, 6/6 smoke tests)
 
 **Test Data:**
 
-- Business: Nash & Smashed
-- Locations: 26 cities (VA, MD, DC, SC, NY)
-- Keywords: 50 SEO terms
-- Sample output: `/best-food-near-me/fairfax-county-va`
+- Business: Nash & Smashed (26 locations, 50+ bilingual keywords)
+- Business: Street Lawyer Magic (17 bilingual services)
 
 ## V1 Scope
 
 **Included:**
 
-- Page types: `service-location`, `keyword-location`
+- Page types: `location-keyword`, `service-area`
 - Ollama only (no cloud LLM)
-- 2+ laptop workers via Tailscale
-- SQLite database
+- Bilingual support (EN/ES)
+- SQLite database with 14 migrations
 - JSON output for Webpack
 
 **Deferred to Phase 2:**
 
 - AWS Lambda/DynamoDB/SQS
 - Cloud LLM fallback
-- Multi-language support
+- Additional languages
 
 ---
 
 ## Launch Clients
 
-| Client              | Locations | Keywords | Pages  | Status    |
-| ------------------- | --------- | -------- | ------ | --------- |
-| Nash & Smashed      | 26        | 50       | 1,300  | ✅ Seeded |
-| Street Lawyer Magic | TBD       | TBD      | ~2,925 | Pending   |
-| MarketBrewer        | TBD       | TBD      | ~200   | Pending   |
+| Client              | Locations | Keywords | Status      |
+| ------------------- | --------- | -------- | ----------- |
+| Nash & Smashed      | 26        | 50+      | ✅ Ready    |
+| Street Lawyer Magic | TBD       | 17       | ✅ Seeded   |
+| MarketBrewer        | TBD       | TBD      | Pending     |
 
 ---
 
 ## Contact
 
-Jorge Giraldez, CEO  
+Jorge Giraldez, CEO
 j@marketbrewer.com | 703-463-6323

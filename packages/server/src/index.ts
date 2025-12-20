@@ -40,7 +40,9 @@ const limiter = rateLimit({
 // Security middleware
 app.use(helmet()); // Security headers
 app.use(express.json({ limit: "1mb" })); // Request size limit to prevent DoS
-app.use(limiter); // Rate limiting
+if (process.env.NODE_ENV === "production") {
+  app.use(limiter); // Rate limiting
+}
 
 // Application middleware
 app.use(corsMiddleware);

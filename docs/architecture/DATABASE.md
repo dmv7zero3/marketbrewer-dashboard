@@ -51,11 +51,13 @@ CREATE TABLE keywords (
   slug TEXT NOT NULL,
   keyword TEXT NOT NULL,
   search_intent TEXT,
-  priority INTEGER DEFAULT 5,
+  language TEXT NOT NULL DEFAULT 'en',  -- 'en' or 'es'
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(business_id, slug)
 );
 ```
+
+Note: Keywords support bilingual pairs (EN/ES) with shared slugs.
 
 ### service_areas
 
@@ -67,10 +69,16 @@ CREATE TABLE service_areas (
   city TEXT NOT NULL,
   state TEXT NOT NULL,
   county TEXT,
+  country TEXT NOT NULL DEFAULT 'USA',
   priority INTEGER DEFAULT 5,
+  location_id TEXT,  -- Link to locations table
+  updated_at TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(business_id, slug)
 );
+
+CREATE INDEX idx_service_areas_priority_updated
+ON service_areas(business_id, priority DESC, updated_at DESC);
 ```
 
 ### prompt_templates
@@ -118,6 +126,8 @@ CREATE TABLE job_pages (
   job_id TEXT NOT NULL REFERENCES generation_jobs(id),
   business_id TEXT NOT NULL REFERENCES businesses(id),
   keyword_slug TEXT,
+  keyword_text TEXT,
+  keyword_language TEXT NOT NULL DEFAULT 'en',
   service_area_slug TEXT NOT NULL,
   url_path TEXT NOT NULL,
   status TEXT DEFAULT 'queued',  -- queued | processing | completed | failed
@@ -127,11 +137,17 @@ CREATE TABLE job_pages (
   completed_at TEXT,
   content TEXT,  -- JSON blob with generated content
   error_message TEXT,
+  section_count INTEGER DEFAULT 3,
+  model_name TEXT,
+  prompt_version TEXT,
+  generation_duration_ms INTEGER,
+  word_count INTEGER,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_job_pages_status ON job_pages(job_id, status);
 CREATE INDEX idx_job_pages_worker ON job_pages(worker_id, status);
+CREATE INDEX idx_job_pages_claimable ON job_pages(job_id, status, attempts);
 ```
 
 ### workers
@@ -204,14 +220,25 @@ Store in `packages/server/migrations/`:
 ```
 migrations/
 ├── 001_initial_schema.sql
-├── 002_add_workers_table.sql
-└── ...
+├── 002_add_locations.sql
+├── 003_business_profile_v1_redesign.sql
+├── 004_simplify_location_status.sql
+├── 005_add_location_details.sql
+├── 006_add_business_metadata.sql
+├── 007_remove_keyword_priority.sql
+├── 008_add_keyword_language.sql
+├── 009_add_job_pages_keyword_text.sql
+├── 010_add_job_pages_keyword_language.sql
+├── 011_restore_location_integration_columns.sql
+├── 012_add_service_areas_country.sql
+├── 013_add_service_areas_updated_at.sql
+└── 014_add_service_areas_ordering_index.sql
 ```
 
 Run with:
 
 ```bash
-sqlite3 ./data/seo-platform.db < migrations/001_initial_schema.sql
+sqlite3 ./packages/server/data/seo-platform.db < packages/server/migrations/001_initial_schema.sql
 ```
 
 ---
