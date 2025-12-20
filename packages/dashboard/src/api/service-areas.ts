@@ -30,7 +30,6 @@ export async function createServiceArea(
     city: string;
     state: string;
     county?: string | null;
-    priority?: number;
   },
   options?: { signal?: AbortSignal }
 ): Promise<ServiceAreaResponse> {
@@ -49,7 +48,6 @@ export async function updateServiceArea(
     city: string;
     state: string;
     county: string | null;
-    priority: number;
   }>,
   options?: { signal?: AbortSignal }
 ): Promise<ServiceAreaResponse> {
