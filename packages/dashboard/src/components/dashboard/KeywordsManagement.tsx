@@ -14,6 +14,7 @@ import type { Keyword } from "@marketbrewer/shared";
 import { EmptyState, EmptyStateIcons, StatsCards } from "../ui";
 import { useConfirmDialog } from "../../hooks";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { KeywordsSettings, loadBilingualDefault } from "./KeywordsSettings";
 
 type KeywordPair = {
   id: string; // Combined ID for the pair
@@ -24,12 +25,13 @@ type KeywordPair = {
   isPaired: boolean;
 };
 
-type TabName = "manage" | "bulk-add" | "instructions";
+type TabName = "manage" | "bulk-add" | "instructions" | "settings";
 
 const TABS: { name: TabName; label: string }[] = [
   { name: "manage", label: "Manage" },
   { name: "bulk-add", label: "Bulk Add" },
   { name: "instructions", label: "Instructions" },
+  { name: "settings", label: "Settings" },
 ];
 
 export const KeywordsManagement: React.FC = () => {
@@ -41,7 +43,10 @@ export const KeywordsManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
   const [newKeywordEs, setNewKeywordEs] = useState("");
-  const [createBilingual, setCreateBilingual] = useState(true);
+  // Bilingual default from localStorage setting (controlled via Settings tab)
+  const [createBilingualDefault, setCreateBilingualDefault] = useState(() =>
+    loadBilingualDefault()
+  );
   const [newLanguage, setNewLanguage] = useState<"en" | "es">("en");
   const [bulkText, setBulkText] = useState("");
   const [bulkTextEs, setBulkTextEs] = useState("");
@@ -157,7 +162,7 @@ export const KeywordsManagement: React.FC = () => {
   const handleAdd = async () => {
     if (!selectedBusiness) return;
 
-    if (createBilingual) {
+    if (createBilingualDefault) {
       // Creating bilingual pair
       if (!newKeyword.trim() || !newKeywordEs.trim()) {
         const error = "Both English and Spanish keywords are required";
@@ -752,27 +757,7 @@ export const KeywordsManagement: React.FC = () => {
             Add New Keywords
           </h3>
 
-          {/* Bilingual Toggle */}
-          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={createBilingual}
-                onChange={(e) => setCreateBilingual(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-blue-800">
-                Create bilingual pair (EN + ES)
-              </span>
-            </label>
-            <span className="text-xs text-blue-600">
-              {createBilingual
-                ? "Recommended: Creates both languages at once"
-                : "Creates single language only"}
-            </span>
-          </div>
-
-          {createBilingual ? (
+          {createBilingualDefault ? (
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -919,12 +904,11 @@ export const KeywordsManagement: React.FC = () => {
             action={{
               label: "Add Keywords",
               onClick: () => {
-                setCreateBilingual(true);
-                document
-                  .querySelector<HTMLInputElement>(
-                    'input[placeholder*="English"]'
-                  )
-                  ?.focus();
+                // Focus on the appropriate input based on bilingual setting
+                const selector = createBilingualDefault
+                  ? 'input[placeholder*="English"]'
+                  : 'input[placeholder="Add keyword"]';
+                document.querySelector<HTMLInputElement>(selector)?.focus();
               },
             }}
           />
@@ -1400,6 +1384,15 @@ traffic ticket lawyer`}
     );
   };
 
+  const renderSettingsTab = (): JSX.Element => {
+    return (
+      <KeywordsSettings
+        createBilingualDefault={createBilingualDefault}
+        onCreateBilingualDefaultChange={setCreateBilingualDefault}
+      />
+    );
+  };
+
   const renderInstructionsTab = (): JSX.Element => (
     <div className="space-y-8 max-w-4xl">
       {/* Section 1: Bilingual Keyword Management */}
@@ -1762,6 +1755,7 @@ traffic ticket lawyer`}
               {activeTab === "manage" && renderManageTab()}
               {activeTab === "bulk-add" && renderBulkAddTab()}
               {activeTab === "instructions" && renderInstructionsTab()}
+              {activeTab === "settings" && renderSettingsTab()}
             </div>
           </>
         )}

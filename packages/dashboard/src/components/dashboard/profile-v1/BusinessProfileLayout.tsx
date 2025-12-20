@@ -1,12 +1,7 @@
 import React, { ReactNode } from "react";
 import { DashboardLayout } from "../DashboardLayout";
 
-export type ProfileSection =
-  | "essentials"
-  | "hours"
-  | "social"
-  | "services"
-  | "content";
+export type ProfileSection = "essentials" | "hours" | "social" | "content";
 
 interface SectionItem {
   id: string;
@@ -59,14 +54,6 @@ const PROFILE_SECTIONS: Record<ProfileSection, SectionItem[]> = {
       section: "social",
     },
   ],
-  services: [
-    {
-      id: "service-offerings",
-      label: "Service Offerings",
-      description: "Products and services",
-      section: "services",
-    },
-  ],
   content: [
     {
       id: "identity",
@@ -97,7 +84,6 @@ const SECTION_GROUPS: Array<{
   { name: "essentials", label: "Essentials", icon: "📋" },
   { name: "hours", label: "Business Hours", icon: "🕐" },
   { name: "social", label: "Social & Links", icon: "🔗" },
-  { name: "services", label: "Services", icon: "🛠️" },
   { name: "content", label: "Content Profile", icon: "✍️" },
 ];
 

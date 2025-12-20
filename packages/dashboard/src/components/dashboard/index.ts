@@ -11,6 +11,7 @@ export { CompletenessRing } from "./CompletenessRing";
 export { StickyFooter } from "./StickyFooter";
 export { PromptsManagement } from "./PromptsManagement";
 export { KeywordsManagement } from "./KeywordsManagement";
+export { ServicesManagement } from "./ServicesManagement";
 export { ServiceAreas } from "./ServiceAreas";
 export { LocationsManagement } from "./LocationsManagement";
 export { PageContentGeneration } from "./PageContentGeneration";

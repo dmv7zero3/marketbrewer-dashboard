@@ -13,6 +13,7 @@ import {
   BusinessProfile,
   PromptsManagement,
   KeywordsManagement,
+  ServicesManagement,
   ServiceAreas,
   PageContentGeneration,
   LocationsManagement,
@@ -81,6 +82,10 @@ const App: React.FC = () => (
             <Route
               path="/dashboard/keywords"
               element={<KeywordsManagement />}
+            />
+            <Route
+              path="/dashboard/services"
+              element={<ServicesManagement />}
             />
             <Route path="/dashboard/service-areas" element={<ServiceAreas />} />
             <Route
