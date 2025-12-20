@@ -17,10 +17,12 @@ export interface PromptTemplateResponse {
  * List all prompt templates for a business
  */
 export async function listPromptTemplates(
-  businessId: string
+  businessId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<PromptTemplatesListResponse> {
   const res = await apiClient.get<PromptTemplatesListResponse>(
-    `/api/businesses/${businessId}/prompts`
+    `/api/businesses/${businessId}/prompts`,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -30,10 +32,12 @@ export async function listPromptTemplates(
  */
 export async function getPromptTemplate(
   businessId: string,
-  templateId: string
+  templateId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<PromptTemplateResponse> {
   const res = await apiClient.get<PromptTemplateResponse>(
-    `/api/businesses/${businessId}/prompts/${templateId}`
+    `/api/businesses/${businessId}/prompts/${templateId}`,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -51,11 +55,13 @@ export async function createPromptTemplate(
     optional_variables?: string[];
     word_count_target: number;
     is_active?: boolean;
-  }
+  },
+  options?: { signal?: AbortSignal }
 ): Promise<PromptTemplateResponse> {
   const res = await apiClient.post<PromptTemplateResponse>(
     `/api/businesses/${businessId}/prompts`,
-    data
+    data,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -67,18 +73,18 @@ export async function updatePromptTemplate(
   businessId: string,
   templateId: string,
   data: Partial<{
-    page_type: "location-keyword" | "service-area";
-    version: number;
     template: string;
     required_variables: string[];
     optional_variables: string[];
     word_count_target: number;
     is_active: boolean;
-  }>
+  }>,
+  options?: { signal?: AbortSignal }
 ): Promise<PromptTemplateResponse> {
   const res = await apiClient.put<PromptTemplateResponse>(
     `/api/businesses/${businessId}/prompts/${templateId}`,
-    data
+    data,
+    { signal: options?.signal }
   );
   return res.data;
 }
@@ -88,9 +94,11 @@ export async function updatePromptTemplate(
  */
 export async function deletePromptTemplate(
   businessId: string,
-  templateId: string
+  templateId: string,
+  options?: { signal?: AbortSignal }
 ): Promise<void> {
   await apiClient.delete<void>(
-    `/api/businesses/${businessId}/prompts/${templateId}`
+    `/api/businesses/${businessId}/prompts/${templateId}`,
+    { signal: options?.signal }
   );
 }

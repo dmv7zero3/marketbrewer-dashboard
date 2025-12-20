@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from "react";
+/**
+ * PromptsManagement - Manage prompt templates for content generation
+ */
+
+import React, { useEffect, useState, useCallback } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -9,28 +13,29 @@ import {
   deletePromptTemplate,
 } from "../../api/prompts";
 import type { PromptTemplate } from "@marketbrewer/shared";
+import { EmptyState, EmptyStateIcons } from "../ui/EmptyState";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import {
+  PromptEditor,
+  PromptPreview,
+  VariableReference,
+  type PromptEditorFormData,
+} from "./prompts";
 
-type TabName = "templates" | "variables" | "instructions";
+type TabName = "templates" | "editor" | "preview" | "variables" | "instructions";
 
 const TABS: { name: TabName; label: string }[] = [
   { name: "templates", label: "Templates" },
+  { name: "editor", label: "Editor" },
+  { name: "preview", label: "Preview" },
   { name: "variables", label: "Variables" },
   { name: "instructions", label: "Instructions" },
 ];
 
 type PageType = "location-keyword" | "service-area";
 
-interface TemplateFormData {
-  page_type: PageType;
-  version: number;
-  template: string;
-  required_variables: string;
-  optional_variables: string;
-  word_count_target: number;
-  is_active: boolean;
-}
-
-const EMPTY_FORM: TemplateFormData = {
+const EMPTY_FORM: PromptEditorFormData = {
   page_type: "location-keyword",
   version: 1,
   template: "",
@@ -41,8 +46,11 @@ const EMPTY_FORM: TemplateFormData = {
 };
 
 export const PromptsManagement: React.FC = () => {
-  const { selectedBusiness } = useBusiness();
+  const { selectedBusiness, businesses } = useBusiness();
   const { addToast } = useToast();
+
+  // Get business details from the businesses array
+  const businessDetails = businesses.find((b) => b.id === selectedBusiness);
   const [activeTab, setActiveTab] = useState<TabName>("templates");
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,40 +59,49 @@ export const PromptsManagement: React.FC = () => {
   // Editing/creating state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState<TemplateFormData>(EMPTY_FORM);
+  const [formData, setFormData] = useState<PromptEditorFormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  // Delete tracking
+  // Preview state
+  const [selectedPreviewId, setSelectedPreviewId] = useState<string | null>(null);
+
+  // Delete confirmation
+  const { confirm, dialogProps, setIsLoading } = useConfirmDialog();
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   // Load templates when business changes
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
+
     const load = async () => {
       if (!selectedBusiness) return;
       try {
         setLoading(true);
         setError(null);
         const { prompt_templates } = await listPromptTemplates(
-          selectedBusiness
+          selectedBusiness,
+          { signal: controller.signal }
         );
-        if (!mounted) return;
         setTemplates(prompt_templates);
       } catch (e) {
+        if ((e as Error).name === "AbortError") return;
         const msg =
           e instanceof Error ? e.message : "Failed to load prompt templates";
         setError(msg);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
+
     setTemplates([]);
     setEditingId(null);
     setIsCreating(false);
+    setSelectedPreviewId(null);
     load();
-    return () => {
-      mounted = false;
-    };
+
+    return () => controller.abort();
   }, [selectedBusiness]);
 
   // Parse JSON array stored as string, or comma-separated input to array
@@ -112,9 +129,16 @@ export const PromptsManagement: React.FC = () => {
   };
 
   const handleStartCreate = () => {
+    // Calculate next version number for default page type
+    const existingVersions = templates
+      .filter((t) => t.page_type === "location-keyword")
+      .map((t) => t.version);
+    const nextVersion = existingVersions.length > 0 ? Math.max(...existingVersions) + 1 : 1;
+
     setIsCreating(true);
     setEditingId(null);
-    setFormData(EMPTY_FORM);
+    setFormData({ ...EMPTY_FORM, version: nextVersion });
+    setActiveTab("editor");
   };
 
   const handleStartEdit = (template: PromptTemplate) => {
@@ -129,12 +153,14 @@ export const PromptsManagement: React.FC = () => {
       word_count_target: template.word_count_target,
       is_active: template.is_active === 1,
     });
+    setActiveTab("editor");
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setIsCreating(false);
     setFormData(EMPTY_FORM);
+    setActiveTab("templates");
   };
 
   const handleSave = async () => {
@@ -149,8 +175,8 @@ export const PromptsManagement: React.FC = () => {
       addToast("Version must be at least 1", "error", 4000);
       return;
     }
-    if (formData.word_count_target < 1) {
-      addToast("Word count target must be at least 1", "error", 4000);
+    if (formData.word_count_target < 100 || formData.word_count_target > 10000) {
+      addToast("Word count target must be between 100 and 10,000", "error", 4000);
       return;
     }
 
@@ -180,8 +206,6 @@ export const PromptsManagement: React.FC = () => {
           selectedBusiness,
           editingId,
           {
-            page_type: formData.page_type,
-            version: formData.version,
             template: formData.template,
             required_variables: reqVars,
             optional_variables: optVars,
@@ -204,223 +228,118 @@ export const PromptsManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!selectedBusiness || deletingIds.has(id)) return;
+  const handleDelete = useCallback(
+    async (id: string, pageType: string, version: number) => {
+      if (!selectedBusiness || deletingIds.has(id)) return;
 
-    if (!window.confirm("Are you sure you want to delete this template?")) {
-      return;
-    }
-
-    setDeletingIds((prev) => new Set(prev).add(id));
-    try {
-      await deletePromptTemplate(selectedBusiness, id);
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
-      addToast("Template deleted successfully", "success");
-      if (editingId === id) {
-        handleCancel();
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to delete template";
-      addToast(msg, "error", 5000);
-    } finally {
-      setDeletingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
+      const confirmed = await confirm({
+        title: "Delete Template?",
+        message: `Are you sure you want to delete the ${pageType} v${version} template? This action cannot be undone.`,
+        confirmLabel: "Delete",
+        variant: "danger",
       });
-    }
+
+      if (!confirmed) return;
+
+      setDeletingIds((prev) => new Set(prev).add(id));
+      setIsLoading(true);
+
+      try {
+        await deletePromptTemplate(selectedBusiness, id);
+        setTemplates((prev) => prev.filter((t) => t.id !== id));
+        addToast("Template deleted successfully", "success");
+        if (editingId === id) {
+          handleCancel();
+        }
+        if (selectedPreviewId === id) {
+          setSelectedPreviewId(null);
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to delete template";
+        addToast(msg, "error", 5000);
+      } finally {
+        setDeletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        setIsLoading(false);
+      }
+    },
+    [selectedBusiness, deletingIds, confirm, editingId, selectedPreviewId, addToast, setIsLoading]
+  );
+
+  const handlePreview = (template: PromptTemplate) => {
+    setSelectedPreviewId(template.id);
+    setActiveTab("preview");
   };
 
-  const renderTemplateForm = () => (
-    <div className="space-y-4 p-4 border rounded bg-gray-50">
-      <h3 className="font-semibold text-lg">
-        {isCreating ? "New Template" : "Edit Template"}
-      </h3>
+  // Stats
+  const totalTemplates = templates.length;
+  const activeTemplates = templates.filter((t) => t.is_active).length;
+  const locationKeywordTemplates = templates.filter(
+    (t) => t.page_type === "location-keyword"
+  ).length;
+  const serviceAreaTemplates = templates.filter(
+    (t) => t.page_type === "service-area"
+  ).length;
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Page Type
-          </label>
-          <select
-            className="border rounded px-2 py-1 w-full"
-            value={formData.page_type}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                page_type: e.target.value as PageType,
-              }))
-            }
-            disabled={saving}
-          >
-            <option value="location-keyword">location-keyword</option>
-            <option value="service-area">service-area</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Version
-          </label>
-          <input
-            type="number"
-            className="border rounded px-2 py-1 w-full"
-            value={formData.version}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                version: parseInt(e.target.value || "1", 10),
-              }))
-            }
-            min={1}
-            disabled={saving}
-          />
-        </div>
+  const renderStatsCards = () => (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-white border rounded-lg p-4">
+        <div className="text-2xl font-bold text-gray-900">{totalTemplates}</div>
+        <div className="text-sm text-gray-600">Total Templates</div>
       </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Template Content
-        </label>
-        <textarea
-          className="border rounded p-2 w-full font-mono text-sm"
-          rows={20}
-          value={formData.template}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, template: e.target.value }))
-          }
-          placeholder="Enter your prompt template here...&#10;&#10;Use {{variable_name}} for dynamic content."
-          disabled={saving}
-        />
+      <div className="bg-white border rounded-lg p-4">
+        <div className="text-2xl font-bold text-green-600">{activeTemplates}</div>
+        <div className="text-sm text-gray-600">Active</div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Required Variables (comma-separated)
-          </label>
-          <input
-            type="text"
-            className="border rounded px-2 py-1 w-full"
-            value={formData.required_variables}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                required_variables: e.target.value,
-              }))
-            }
-            placeholder="business_name, city, state, phone"
-            disabled={saving}
-          />
+      <div className="bg-white border rounded-lg p-4">
+        <div className="text-2xl font-bold text-purple-600">
+          {locationKeywordTemplates}
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Optional Variables (comma-separated)
-          </label>
-          <input
-            type="text"
-            className="border rounded px-2 py-1 w-full"
-            value={formData.optional_variables}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                optional_variables: e.target.value,
-              }))
-            }
-            placeholder="years_experience, differentiators, tone"
-            disabled={saving}
-          />
-        </div>
+        <div className="text-sm text-gray-600">Location-Keyword</div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Word Count Target
-          </label>
-          <input
-            type="number"
-            className="border rounded px-2 py-1 w-full"
-            value={formData.word_count_target}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                word_count_target: parseInt(e.target.value || "400", 10),
-              }))
-            }
-            min={1}
-            disabled={saving}
-          />
+      <div className="bg-white border rounded-lg p-4">
+        <div className="text-2xl font-bold text-green-600">
+          {serviceAreaTemplates}
         </div>
-
-        <div className="flex items-center pt-6">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.is_active}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_active: e.target.checked,
-                }))
-              }
-              disabled={saving}
-              className="w-4 h-4"
-            />
-            <span className="text-sm font-medium text-gray-700">Active</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="flex gap-2 pt-2">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Template"}
-        </button>
-        <button
-          className="border px-4 py-2 rounded hover:bg-gray-100 disabled:opacity-50"
-          onClick={handleCancel}
-          disabled={saving}
-        >
-          Cancel
-        </button>
+        <div className="text-sm text-gray-600">Service-Area</div>
       </div>
     </div>
   );
 
   const renderTemplatesTab = () => (
     <div className="space-y-4">
-      {!isCreating && !editingId && (
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={handleStartCreate}
-        >
-          + Add New Template
-        </button>
-      )}
+      {renderStatsCards()}
 
-      {(isCreating || editingId) && renderTemplateForm()}
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        onClick={handleStartCreate}
+      >
+        + Add New Template
+      </button>
 
       {error && <p className="text-red-600">{error}</p>}
 
       {loading ? (
         <p className="text-gray-500">Loading templates...</p>
-      ) : templates.length === 0 && !isCreating ? (
-        <p className="text-gray-500">
-          No prompt templates found. Create one to get started.
-        </p>
+      ) : templates.length === 0 ? (
+        <EmptyState
+          icon={EmptyStateIcons.prompts}
+          title="No prompt templates"
+          description="Create your first prompt template to start generating SEO content."
+          action={{
+            label: "Create Template",
+            onClick: handleStartCreate,
+          }}
+        />
       ) : (
         <ul className="space-y-3">
           {templates.map((t) => (
             <li
               key={t.id}
-              className={`border rounded p-4 bg-white ${
-                editingId === t.id ? "ring-2 ring-blue-500" : ""
-              }`}
+              className="border rounded p-4 bg-white hover:shadow-sm transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -472,18 +391,23 @@ export const PromptsManagement: React.FC = () => {
                 </div>
                 <div className="flex gap-2 ml-4">
                   <button
+                    className="text-gray-600 hover:text-gray-800 text-sm"
+                    onClick={() => handlePreview(t)}
+                  >
+                    Preview
+                  </button>
+                  <button
                     className="text-blue-600 hover:text-blue-800 text-sm"
                     onClick={() => handleStartEdit(t)}
-                    disabled={editingId !== null || isCreating}
                   >
                     Edit
                   </button>
                   <button
                     className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
-                    onClick={() => handleDelete(t.id)}
+                    onClick={() => handleDelete(t.id, t.page_type, t.version)}
                     disabled={deletingIds.has(t.id)}
                   >
-                    {deletingIds.has(t.id) ? "Deleting..." : "Delete"}
+                    {deletingIds.has(t.id) ? "..." : "Delete"}
                   </button>
                 </div>
               </div>
@@ -494,201 +418,78 @@ export const PromptsManagement: React.FC = () => {
     </div>
   );
 
-  const renderVariablesTab = () => (
-    <div className="space-y-6">
-      <section>
-        <h2 className="text-xl font-semibold mb-3">
-          Required Variables (All Templates)
-        </h2>
-        <p className="text-sm text-gray-600 mb-3">
-          These variables should be included in every template for consistent
-          output.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border rounded">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Variable
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Description
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Source
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{business_name}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Name of the business
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Business Profile
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{city}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">Target city name</td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Service Area
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{state}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  2-letter state code (e.g., VA)
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Service Area
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-sm">{"{{phone}}"}</td>
-                <td className="px-4 py-2 text-sm">Business phone number</td>
-                <td className="px-4 py-2 text-sm text-gray-600">
-                  Business Profile
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+  const renderEditorTab = () => {
+    if (!isCreating && !editingId) {
+      return (
+        <EmptyState
+          icon={EmptyStateIcons.prompts}
+          title="No template selected"
+          description="Create a new template or select an existing one to edit."
+          action={{
+            label: "Create New Template",
+            onClick: handleStartCreate,
+          }}
+          secondaryAction={{
+            label: "View Templates",
+            onClick: () => setActiveTab("templates"),
+          }}
+        />
+      );
+    }
 
-      <section>
-        <h2 className="text-xl font-semibold mb-3">
-          Optional Variables (Enhance Quality)
-        </h2>
-        <p className="text-sm text-gray-600 mb-3">
-          Use these to add more context and improve content quality.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border rounded">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Variable
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Description
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
-                  Source
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{years_experience}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Years in business
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Questionnaire
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{differentiators}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Unique selling points
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Questionnaire
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{target_audience}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Primary customer demographics
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Questionnaire
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{cta_text}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Call-to-action text
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Content Preferences
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{industry}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Business industry
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Business Profile
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{primary_service}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Main service offering
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Services
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{primary_keyword}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  Target SEO keyword
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Keyword
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b font-mono text-sm">
-                  {"{{search_intent}}"}
-                </td>
-                <td className="px-4 py-2 border-b text-sm">
-                  User search intent (informational, commercial, transactional)
-                </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
-                  Keyword
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-sm">{"{{tone}}"}</td>
-                <td className="px-4 py-2 text-sm">
-                  Writing tone (professional, friendly, casual)
-                </td>
-                <td className="px-4 py-2 text-sm text-gray-600">
-                  Content Preferences
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  );
+    return (
+      <PromptEditor
+        mode={isCreating ? "create" : "edit"}
+        formData={formData}
+        onChange={setFormData}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        saving={saving}
+        existingTemplates={templates}
+      />
+    );
+  };
+
+  const renderPreviewTab = () => {
+    const selectedTemplate = selectedPreviewId
+      ? templates.find((t) => t.id === selectedPreviewId)
+      : null;
+
+    return (
+      <div className="space-y-4">
+        {templates.length > 0 && (
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">
+              Select Template:
+            </label>
+            <select
+              className="border rounded px-3 py-1.5"
+              value={selectedPreviewId || ""}
+              onChange={(e) => setSelectedPreviewId(e.target.value || null)}
+            >
+              <option value="">-- Select a template --</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.page_type} v{t.version}
+                  {t.is_active ? " (Active)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <PromptPreview
+          template={selectedTemplate || null}
+          businessName={businessDetails?.name}
+          businessPhone={businessDetails?.phone || undefined}
+          primaryCity={businessDetails?.primary_city || undefined}
+          primaryState={businessDetails?.primary_state || undefined}
+        />
+      </div>
+    );
+  };
+
+  const renderVariablesTab = () => <VariableReference />;
 
   const renderInstructionsTab = () => (
     <div className="space-y-6">
@@ -753,15 +554,15 @@ export const PromptsManagement: React.FC = () => {
         <h2 className="text-xl font-semibold mb-3">3. Best Practices</h2>
         <ul className="space-y-2 text-gray-700">
           <li>
-            ✓ Mention the location (city, state) 2-3 times naturally in the body
+            - Mention the location (city, state) 2-3 times naturally in the body
           </li>
-          <li>✓ Include the phone number once in the body content</li>
-          <li>✓ End with a clear call-to-action</li>
-          <li>✓ Write for local searchers, not generic audiences</li>
-          <li>✓ Keep language natural and avoid keyword stuffing</li>
-          <li>✓ Use active voice and benefit-focused language</li>
-          <li>✗ Don&apos;t use placeholder text that might slip through</li>
-          <li>✗ Don&apos;t make up facts, testimonials, or statistics</li>
+          <li>- Include the phone number once in the body content</li>
+          <li>- End with a clear call-to-action</li>
+          <li>- Write for local searchers, not generic audiences</li>
+          <li>- Keep language natural and avoid keyword stuffing</li>
+          <li>- Use active voice and benefit-focused language</li>
+          <li>- Don&apos;t use placeholder text that might slip through</li>
+          <li>- Don&apos;t make up facts, testimonials, or statistics</li>
         </ul>
       </section>
 
@@ -770,27 +571,25 @@ export const PromptsManagement: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="border rounded p-4 bg-purple-50">
             <h3 className="font-semibold text-purple-800 mb-2">
-              service-location
-            </h3>
-            <p className="text-sm text-gray-700 mb-2">
-              Business service in a specific city. Focus on the service offering
-              and local presence.
-            </p>
-            <p className="text-sm text-gray-600">
-              <strong>Example:</strong> &quot;HVAC Repair in Sterling, VA&quot;
-            </p>
-          </div>
-          <div className="border rounded p-4 bg-green-50">
-            <h3 className="font-semibold text-green-800 mb-2">
-              keyword-location
+              location-keyword
             </h3>
             <p className="text-sm text-gray-700 mb-2">
               Keyword-focused page optimized for specific search intent. Answer
               what searchers are looking for.
             </p>
             <p className="text-sm text-gray-600">
-              <strong>Example:</strong> &quot;Best Fried Chicken in
-              Arlington&quot;
+              <strong>Example:</strong> &quot;Best Burgers in Arlington&quot;
+            </p>
+          </div>
+          <div className="border rounded p-4 bg-green-50">
+            <h3 className="font-semibold text-green-800 mb-2">service-area</h3>
+            <p className="text-sm text-gray-700 mb-2">
+              Service-focused page for a specific city. Focus on the service
+              offering and local presence.
+            </p>
+            <p className="text-sm text-gray-600">
+              <strong>Example:</strong> &quot;Plumbing Services in Sterling,
+              VA&quot;
             </p>
           </div>
         </div>
@@ -802,22 +601,22 @@ export const PromptsManagement: React.FC = () => {
           <pre className="text-sm whitespace-pre-wrap font-mono text-gray-700">
             {`You are an SEO content writer for {{business_name}}, a {{industry}} business.
 
-Write a local SEO landing page for the service "{{primary_service}}" targeting customers in {{city}}, {{state}}.
+Write a local SEO landing page for "{{primary_keyword}}" targeting customers in {{city}}, {{state}}.
 
 BUSINESS CONTEXT:
 - Business Name: {{business_name}}
 - Phone: {{phone}}
 - Years Experience: {{years_experience}}
-- Key Differentiators: {{differentiators}}
+- Tagline: {{tagline}}
 
 TARGET AUDIENCE:
 {{target_audience}}
 
 REQUIREMENTS:
-1. Title tag (max 70 characters) - include service and city
+1. Title tag (max 70 characters) - include keyword and city
 2. Meta description (max 160 characters) - compelling, include location
-3. Body content (400-450 words):
-   - Opening paragraph mentioning {{city}} and the service
+3. Body content ({{word_count}} words):
+   - Opening paragraph mentioning {{city}} and the keyword
    - Why choose {{business_name}} (2-3 paragraphs)
    - Local relevance to {{city}}, {{state}}
    - Clear call-to-action with phone number
@@ -865,18 +664,24 @@ IMPORTANT:
                     }`}
                   >
                     {tab.label}
+                    {tab.name === "editor" && (isCreating || editingId) && (
+                      <span className="ml-1 w-2 h-2 bg-blue-600 rounded-full inline-block" />
+                    )}
                   </button>
                 ))}
               </nav>
             </div>
             <div className="pt-2">
               {activeTab === "templates" && renderTemplatesTab()}
+              {activeTab === "editor" && renderEditorTab()}
+              {activeTab === "preview" && renderPreviewTab()}
               {activeTab === "variables" && renderVariablesTab()}
               {activeTab === "instructions" && renderInstructionsTab()}
             </div>
           </>
         )}
       </div>
+      <ConfirmDialog {...dialogProps} />
     </DashboardLayout>
   );
 };
