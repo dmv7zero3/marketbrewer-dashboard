@@ -1,12 +1,54 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { SocialLinksForm, type SocialLinkInput } from "./SocialLinksForm";
+import type { QuestionnaireDataStructure } from "@marketbrewer/shared";
+import type { SocialPlatform } from "@marketbrewer/shared";
 
 interface SocialLinksTabProps {
   isSaving: boolean;
+  socialProfiles: QuestionnaireDataStructure["socialProfiles"];
+  onSocialProfilesChange: (profiles: QuestionnaireDataStructure["socialProfiles"]) => void;
 }
 
-export const SocialLinksTab: React.FC<SocialLinksTabProps> = ({ isSaving }) => {
-  const [socialLinks, setSocialLinks] = useState<SocialLinkInput[]>([]);
+export const SocialLinksTab: React.FC<SocialLinksTabProps> = ({
+  isSaving,
+  socialProfiles,
+  onSocialProfilesChange,
+}) => {
+  // Convert socialProfiles object to SocialLinkInput array for the form
+  const socialLinks: SocialLinkInput[] = useMemo(() => {
+    if (!socialProfiles) return [];
+    return Object.entries(socialProfiles)
+      .filter(([_, url]) => url && url.trim() !== "")
+      .map(([platform, url]) => ({
+        platform: platform as SocialPlatform,
+        url: url as string,
+      }));
+  }, [socialProfiles]);
+
+  // Convert SocialLinkInput array back to socialProfiles object
+  const handleSocialLinksChange = (links: SocialLinkInput[]) => {
+    // Start with current profiles or empty defaults
+    const newProfiles: QuestionnaireDataStructure["socialProfiles"] = {
+      instagram: "",
+      facebook: "",
+      twitter: "",
+      linkedin: "",
+      google: "",
+      linktree: "",
+      youtube: "",
+      tiktok: "",
+      yelp: "",
+    };
+
+    // Populate with values from links array
+    links.forEach((link) => {
+      if (newProfiles) {
+        newProfiles[link.platform] = link.url;
+      }
+    });
+
+    onSocialProfilesChange(newProfiles);
+  };
 
   return (
     <div className="space-y-8">
@@ -21,7 +63,7 @@ export const SocialLinksTab: React.FC<SocialLinksTabProps> = ({ isSaving }) => {
         </p>
         <SocialLinksForm
           value={socialLinks}
-          onChange={setSocialLinks}
+          onChange={handleSocialLinksChange}
           disabled={isSaving}
         />
       </section>

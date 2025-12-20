@@ -1,56 +1,84 @@
 import React from "react";
 
-const STORAGE_KEY = "keywords.createBilingualDefault";
-
 interface KeywordsSettingsProps {
-  createBilingualDefault: boolean;
-  onCreateBilingualDefaultChange: (value: boolean) => void;
+  enabledLanguages: string[];
+  onEnabledLanguagesChange: (languages: string[]) => void;
+  isSaving?: boolean;
 }
 
 /**
  * KeywordsSettings: Settings tab for the Keywords dashboard
- * Controls default behavior for keyword creation (bilingual pair mode)
+ * Controls which languages are enabled for keyword/content generation.
  *
- * Architecture note: Co-located with KeywordsManagement since settings are
- * keyword-specific. Uses localStorage for persistence (per-browser setting).
+ * Architecture note: Settings are per-business, stored in questionnaire.seoSettings.
+ * Parent component (KeywordsManagement) handles loading/saving via questionnaire API.
  */
 export const KeywordsSettings: React.FC<KeywordsSettingsProps> = ({
-  createBilingualDefault,
-  onCreateBilingualDefaultChange,
+  enabledLanguages,
+  onEnabledLanguagesChange,
+  isSaving = false,
 }) => {
-  const handleToggle = (checked: boolean) => {
-    // Persist to localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(checked));
-    // Update parent state
-    onCreateBilingualDefaultChange(checked);
+  const isSpanishEnabled = enabledLanguages.includes("es");
+
+  const handleSpanishToggle = (checked: boolean) => {
+    if (checked) {
+      // Add Spanish if not already present
+      if (!enabledLanguages.includes("es")) {
+        onEnabledLanguagesChange([...enabledLanguages, "es"]);
+      }
+    } else {
+      // Remove Spanish
+      onEnabledLanguagesChange(enabledLanguages.filter((lang) => lang !== "es"));
+    }
   };
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Keyword Creation Defaults
+          Content Languages
         </h2>
         <p className="text-sm text-gray-600">
-          Configure default behavior when adding new keywords.
+          Configure which languages are enabled for SEO content generation for this business.
         </p>
       </div>
 
-      {/* Bilingual Default Setting */}
+      {/* English (always enabled) */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={true}
+            disabled={true}
+            className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 cursor-not-allowed"
+          />
+          <div>
+            <span className="text-sm font-medium text-gray-900 block">
+              English (EN)
+            </span>
+            <span className="text-sm text-gray-500 block mt-1">
+              Primary language (always enabled)
+            </span>
+          </div>
+        </label>
+      </div>
+
+      {/* Spanish toggle */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
-            checked={createBilingualDefault}
-            onChange={(e) => handleToggle(e.target.checked)}
-            className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+            checked={isSpanishEnabled}
+            onChange={(e) => handleSpanishToggle(e.target.checked)}
+            disabled={isSaving}
+            className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 disabled:opacity-50"
           />
           <div>
             <span className="text-sm font-medium text-gray-900 block">
-              Create bilingual pair (EN + ES)
+              Spanish (ES)
             </span>
             <span className="text-sm text-gray-600 block mt-1">
-              Recommended: Creates both languages at once
+              Enable bilingual keyword pairs and Spanish content generation
             </span>
           </div>
         </label>
@@ -59,37 +87,42 @@ export const KeywordsSettings: React.FC<KeywordsSettingsProps> = ({
       {/* Info section */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-900 mb-2">
-          About this setting
+          About Language Settings
         </h3>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>
-            • When enabled, the "Add New Keywords" form in the Manage tab will
-            default to bilingual mode
+            • When Spanish is enabled, you can create bilingual keyword pairs (EN + ES)
           </li>
           <li>
-            • You can still toggle the mode manually when adding individual
-            keywords
+            • The Keywords dashboard will show paired keywords side-by-side
           </li>
-          <li>• This setting is saved in your browser and persists across sessions</li>
+          <li>
+            • Content generation will produce pages in both languages
+          </li>
+          <li>
+            • This setting is saved per-business
+          </li>
         </ul>
+      </div>
+
+      {/* Future languages note */}
+      <div className="text-xs text-gray-500 italic">
+        Additional languages will be available in future versions.
       </div>
     </div>
   );
 };
 
 /**
- * Utility to load the bilingual default setting from localStorage
+ * Helper to check if Spanish is enabled from enabledLanguages array
  */
-export const loadBilingualDefault = (): boolean => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) {
-      return JSON.parse(stored) as boolean;
-    }
-  } catch {
-    // If parsing fails, return default
-  }
-  return true; // Default to bilingual mode enabled
+export const isSpanishEnabled = (enabledLanguages: string[]): boolean => {
+  return enabledLanguages.includes("es");
 };
+
+/**
+ * Default enabled languages for new businesses
+ */
+export const DEFAULT_ENABLED_LANGUAGES = ["en"];
 
 export default KeywordsSettings;

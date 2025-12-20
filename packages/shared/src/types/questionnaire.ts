@@ -20,9 +20,10 @@ export enum BrandVoiceTone {
 }
 
 export interface ServiceOffering {
-  name: string;
-  description: string;
+  name: string;        // English name (required)
+  slug: string;        // URL-friendly slug (auto-generated from EN name)
   isPrimary: boolean;
+  nameEs?: string;     // Spanish name (optional)
 }
 
 export interface QuestionnaireDataStructure {
@@ -65,6 +66,11 @@ export interface QuestionnaireDataStructure {
     [key: string]: string | undefined;
   };
 
+  // SEO content generation settings
+  seoSettings?: {
+    enabledLanguages: string[]; // e.g., ["en", "es"] - languages to generate content for
+  };
+
   // Future: industry-specific data
   industryData?: Record<string, unknown>;
 }
@@ -99,6 +105,9 @@ export function createEmptyQuestionnaire(): QuestionnaireDataStructure {
       linkedin: "",
       google: "",
       linktree: "",
+    },
+    seoSettings: {
+      enabledLanguages: ["en"], // Default to English only
     },
   };
 }
@@ -194,6 +203,16 @@ export function normalizeQuestionnaireData(
       obj.industryData && typeof obj.industryData === "object"
         ? (obj.industryData as Record<string, unknown>)
         : base.industryData,
+    seoSettings:
+      obj.seoSettings && typeof obj.seoSettings === "object"
+        ? {
+            enabledLanguages: Array.isArray(
+              (obj.seoSettings as Record<string, unknown>).enabledLanguages
+            )
+              ? ((obj.seoSettings as Record<string, unknown>).enabledLanguages as string[])
+              : base.seoSettings?.enabledLanguages ?? ["en"],
+          }
+        : base.seoSettings,
   };
 
   return next;

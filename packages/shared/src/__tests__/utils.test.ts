@@ -230,9 +230,9 @@ describe("calculateCompletenessScore", () => {
           ...baseQuestionnaire,
           services: {
             offerings: [
-              { name: "Service 1", description: "", isPrimary: true },
-              { name: "Service 2", description: "", isPrimary: false },
-              { name: "Service 3", description: "", isPrimary: false },
+              { name: "Service 1", slug: "service-1", isPrimary: true },
+              { name: "Service 2", slug: "service-2", isPrimary: false },
+              { name: "Service 3", slug: "service-3", isPrimary: false },
             ],
           },
         },
@@ -281,9 +281,9 @@ describe("calculateCompletenessScore", () => {
           identity: { tagline: "Hi", yearEstablished: "2020", ownerName: "J" },
           services: {
             offerings: [
-              { name: "S1", description: "", isPrimary: true },
-              { name: "S2", description: "", isPrimary: false },
-              { name: "S3", description: "", isPrimary: false },
+              { name: "S1", slug: "s1", isPrimary: true },
+              { name: "S2", slug: "s2", isPrimary: false },
+              { name: "S3", slug: "s3", isPrimary: false },
             ],
           },
           audience: { targetDescription: "All", languages: ["English"] },

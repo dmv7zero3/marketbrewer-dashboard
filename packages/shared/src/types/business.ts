@@ -300,19 +300,23 @@ export type SocialPlatform =
   | "linkedin"
   | "youtube"
   | "tiktok"
-  | "yelp";
+  | "yelp"
+  | "google"
+  | "linktree";
 
 export const SOCIAL_PLATFORMS: readonly {
   value: SocialPlatform;
   label: string;
 }[] = [
-  { value: "facebook", label: "Facebook" },
   { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
   { value: "twitter", label: "Twitter / X" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "youtube", label: "YouTube" },
   { value: "tiktok", label: "TikTok" },
   { value: "yelp", label: "Yelp" },
+  { value: "google", label: "Google Business" },
+  { value: "linktree", label: "Linktree" },
 ] as const;
 
 export interface BusinessSocialLink {

@@ -62,15 +62,15 @@ async function recomputeCompletenessScore(businessId: string): Promise<void> {
     [businessId]
   )?.count;
 
-  const hoursExists = dbGet<{ exists: number }>(
-    "SELECT 1 as exists FROM business_hours WHERE business_id = ? LIMIT 1",
+  const hoursExists = dbGet<{ found: number }>(
+    "SELECT 1 as found FROM business_hours WHERE business_id = ? LIMIT 1",
     [businessId]
-  )?.exists;
+  )?.found;
 
-  const fullAddressExists = dbGet<{ exists: number }>(
-    "SELECT 1 as exists FROM business_locations WHERE business_id = ? AND street_address IS NOT NULL AND TRIM(street_address) <> '' LIMIT 1",
+  const fullAddressExists = dbGet<{ found: number }>(
+    "SELECT 1 as found FROM business_locations WHERE business_id = ? AND street_address IS NOT NULL AND TRIM(street_address) <> '' LIMIT 1",
     [businessId]
-  )?.exists;
+  )?.found;
 
   const score = calculateCompletenessScore({
     business: {

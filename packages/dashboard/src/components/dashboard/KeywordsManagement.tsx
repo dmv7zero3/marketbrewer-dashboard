@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -8,13 +8,18 @@ import {
   deleteKeyword,
   updateKeyword,
 } from "../../api/keywords";
+import { getQuestionnaire, updateQuestionnaire } from "../../api/businesses";
 import { validateKeyword } from "../../lib/validation";
-import { toSlug } from "@marketbrewer/shared";
-import type { Keyword } from "@marketbrewer/shared";
+import { toSlug, normalizeQuestionnaireData } from "@marketbrewer/shared";
+import type { Keyword, QuestionnaireDataStructure } from "@marketbrewer/shared";
 import { EmptyState, EmptyStateIcons, StatsCards } from "../ui";
 import { useConfirmDialog } from "../../hooks";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
-import { KeywordsSettings, loadBilingualDefault } from "./KeywordsSettings";
+import {
+  KeywordsSettings,
+  isSpanishEnabled,
+  DEFAULT_ENABLED_LANGUAGES,
+} from "./KeywordsSettings";
 
 type KeywordPair = {
   id: string; // Combined ID for the pair
@@ -43,21 +48,23 @@ export const KeywordsManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
   const [newKeywordEs, setNewKeywordEs] = useState("");
-  // Bilingual default from localStorage setting (controlled via Settings tab)
-  const [createBilingualDefault, setCreateBilingualDefault] = useState(() =>
-    loadBilingualDefault()
+  // Per-business language settings (loaded from questionnaire)
+  const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
+    DEFAULT_ENABLED_LANGUAGES
   );
+  const [questionnaireData, setQuestionnaireData] =
+    useState<QuestionnaireDataStructure | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  // Derived state: is bilingual mode enabled for this business?
+  const createBilingualDefault = isSpanishEnabled(enabledLanguages);
   const [newLanguage, setNewLanguage] = useState<"en" | "es">("en");
   const [bulkText, setBulkText] = useState("");
-  const [bulkTextEs, setBulkTextEs] = useState("");
   const [bulkLanguage, setBulkLanguage] = useState<"en" | "es">("en");
   const [bulkBilingual, setBulkBilingual] = useState(true);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const [languageFilter, setLanguageFilter] = useState<"all" | "en" | "es">(
-    "all"
-  );
   const [addingTranslationFor, setAddingTranslationFor] = useState<
     string | null
   >(null);
@@ -158,6 +165,67 @@ export const KeywordsManagement: React.FC = () => {
       mounted = false;
     };
   }, [selectedBusiness]);
+
+  // Load questionnaire settings (enabledLanguages) when business changes
+  useEffect(() => {
+    let mounted = true;
+    const loadSettings = async () => {
+      if (!selectedBusiness) {
+        setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+        setQuestionnaireData(null);
+        return;
+      }
+      try {
+        setSettingsLoading(true);
+        const { questionnaire } = await getQuestionnaire(selectedBusiness);
+        if (!mounted) return;
+        const normalized = normalizeQuestionnaireData(questionnaire.data);
+        setQuestionnaireData(normalized);
+        setEnabledLanguages(
+          normalized.seoSettings?.enabledLanguages ?? DEFAULT_ENABLED_LANGUAGES
+        );
+      } catch (e) {
+        console.error("Failed to load questionnaire settings:", e);
+        // Use defaults on error
+        setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+      } finally {
+        if (mounted) setSettingsLoading(false);
+      }
+    };
+    loadSettings();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedBusiness]);
+
+  // Handler for saving language settings changes
+  const handleEnabledLanguagesChange = useCallback(
+    async (newLanguages: string[]) => {
+      if (!selectedBusiness || !questionnaireData) return;
+
+      try {
+        setSettingsSaving(true);
+        const updatedData: QuestionnaireDataStructure = {
+          ...questionnaireData,
+          seoSettings: {
+            ...questionnaireData.seoSettings,
+            enabledLanguages: newLanguages,
+          },
+        };
+        await updateQuestionnaire(selectedBusiness, updatedData);
+        setQuestionnaireData(updatedData);
+        setEnabledLanguages(newLanguages);
+        addToast("Language settings saved", "success");
+      } catch (e) {
+        const msg =
+          e instanceof Error ? e.message : "Failed to save language settings";
+        addToast(msg, "error", 5000);
+      } finally {
+        setSettingsSaving(false);
+      }
+    },
+    [selectedBusiness, questionnaireData, addToast]
+  );
 
   const handleAdd = async () => {
     if (!selectedBusiness) return;
@@ -400,47 +468,60 @@ export const KeywordsManagement: React.FC = () => {
     );
   };
 
+  // Helper to parse CSV for bulk add
+  const parseBulkCSVForAdd = (
+    text: string
+  ): { en: string; es: string }[] => {
+    const lines = text.split("\n").filter((line) => line.trim());
+    const pairs: { en: string; es: string }[] = [];
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+
+      // Try tab first (Excel/Google Sheets default), then comma
+      let parts: string[];
+      if (trimmed.includes("\t")) {
+        parts = trimmed.split("\t").map((p) => p.trim());
+      } else {
+        parts = trimmed.split(",").map((p) => p.trim());
+      }
+
+      if (parts.length >= 2 && parts[0] && parts[1]) {
+        pairs.push({ en: parts[0], es: parts[1] });
+      }
+    });
+
+    return pairs;
+  };
+
   const handleBulkAdd = async (): Promise<void> => {
     if (!selectedBusiness) {
       addToast("Select a business before adding keywords.", "error", 4000);
       return;
     }
 
-    if (bulkBilingual) {
-      // ========================================
-      // BILINGUAL MODE
-      // ========================================
-      const linesEN = bulkText
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
-      const linesES = bulkTextEs
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
+    // Use effective bilingual setting - both global setting AND local toggle must be true
+    const effectiveBulkBilingual = createBilingualDefault && bulkBilingual;
 
-      // Validation: both textareas must have content
-      if (linesEN.length === 0 || linesES.length === 0) {
+    if (effectiveBulkBilingual) {
+      // ========================================
+      // BILINGUAL MODE - Parse CSV from single textarea
+      // ========================================
+      const csvPairs = parseBulkCSVForAdd(bulkText);
+
+      // Validation: must have content
+      if (csvPairs.length === 0) {
         addToast(
-          "Enter keywords in both English and Spanish fields.",
+          "Enter keyword pairs in CSV format: english, spanish",
           "error",
           4000
         );
         return;
       }
 
-      // Validation: line counts must match
-      if (linesEN.length !== linesES.length) {
-        addToast(
-          `Line count mismatch: ${linesEN.length} English, ${linesES.length} Spanish. Both must have equal lines.`,
-          "error",
-          5000
-        );
-        return;
-      }
-
       // Validation: max 100 pairs
-      if (linesEN.length > 100) {
+      if (csvPairs.length > 100) {
         addToast("Maximum 100 keyword pairs per operation.", "error", 5000);
         return;
       }
@@ -472,10 +553,10 @@ export const KeywordsManagement: React.FC = () => {
           );
         }
 
-        // Create pairs from matching lines
-        const pairs = linesEN.map((en, i) => ({
-          en: { keyword: en, slug: toSlug(en) },
-          es: { keyword: linesES[i], slug: toSlug(linesES[i]) },
+        // Create pairs with slug info
+        const pairs = csvPairs.map((p) => ({
+          en: { keyword: p.en, slug: toSlug(p.en) },
+          es: { keyword: p.es, slug: toSlug(p.es) },
         }));
 
         // Filter out pairs where EITHER keyword already exists
@@ -498,7 +579,6 @@ export const KeywordsManagement: React.FC = () => {
         if (newPairs.length === 0) {
           addToast("All keyword pairs already exist.", "info", 3000);
           setBulkText("");
-          setBulkTextEs("");
           setBulkLoading(false);
           return;
         }
@@ -537,8 +617,6 @@ export const KeywordsManagement: React.FC = () => {
             }
           } catch (e) {
             // If either fails, mark the pair as failed
-            // Note: This could leave orphaned EN keywords if ES creation fails
-            // TODO: Consider rollback logic for production
             results.failed.push(pair);
           }
         }
@@ -547,11 +625,11 @@ export const KeywordsManagement: React.FC = () => {
         if (results.success.length > 0) {
           const totalKeywords = results.success.length * 2;
           addToast(
-            `✅ Added ${
+            `Added ${
               results.success.length
             } bilingual pair(s) (${totalKeywords} keywords)${
               results.failed.length > 0
-                ? ` | ❌ ${results.failed.length} failed`
+                ? ` | ${results.failed.length} failed`
                 : ""
             }`,
             results.failed.length > 0 ? "warning" : "success",
@@ -565,13 +643,13 @@ export const KeywordsManagement: React.FC = () => {
           addToast("All keyword pairs failed to add.", "error", 5000);
         }
 
-        // Keep only failed pairs in textareas for retry
+        // Keep only failed pairs in textarea for retry (as CSV format)
         if (results.failed.length > 0) {
-          setBulkText(results.failed.map((p) => p.en.keyword).join("\n"));
-          setBulkTextEs(results.failed.map((p) => p.es.keyword).join("\n"));
+          setBulkText(
+            results.failed.map((p) => `${p.en.keyword}, ${p.es.keyword}`).join("\n")
+          );
         } else {
           setBulkText("");
-          setBulkTextEs("");
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to add keywords";
@@ -694,57 +772,31 @@ export const KeywordsManagement: React.FC = () => {
     }
   };
 
-  const parseBulkKeywords = (text: string) => {
-    return text
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        // Expected: keyword[, intent]
-        const parts = line
-          .split(",")
-          .map((p) => p.trim())
-          .filter(Boolean);
-        const [keyword, intentRaw] = parts;
-        const search_intent = intentRaw || undefined;
-        return { keyword, search_intent };
-      })
-      .filter((k) => k.keyword) as Array<{
-      keyword: string;
-      search_intent?: string;
-    }>;
-  };
 
   const renderManageTab = () => {
-    const filteredPairs = keywordPairs.filter((pair) => {
-      if (languageFilter === "all") return true;
-      if (languageFilter === "en") return pair.en !== null;
-      if (languageFilter === "es") return pair.es !== null;
-      return true;
-    });
+    // In bilingual mode, show all pairs; in single-language mode, show all keywords
+    const filteredPairs = keywordPairs;
 
-    const stats = [
-      {
-        label: "Total Pairs",
-        value: keywordPairs.filter((p) => p.isPaired).length,
-        color: "blue" as const,
-      },
-      {
-        label: "English Only",
-        value: keywordPairs.filter((p) => p.en && !p.es).length,
-        color: "blue" as const,
-      },
-      {
-        label: "Spanish Only",
-        value: keywordPairs.filter((p) => p.es && !p.en).length,
-        color: "green" as const,
-      },
-      {
-        label: "Total Keywords",
-        value: keywords.length,
-        color: "gray" as const,
-      },
-    ];
+    const stats = createBilingualDefault
+      ? [
+          {
+            label: "Keyword Pairs",
+            value: keywordPairs.filter((p) => p.isPaired).length,
+            color: "blue" as const,
+          },
+          {
+            label: "Total Keywords",
+            value: keywords.length,
+            color: "gray" as const,
+          },
+        ]
+      : [
+          {
+            label: "Total Keywords",
+            value: keywords.filter((k) => k.language === "en").length,
+            color: "blue" as const,
+          },
+        ];
 
     return (
       <div className="space-y-6">
@@ -843,40 +895,6 @@ export const KeywordsManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Filter Section */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">View:</span>
-          <button
-            onClick={() => setLanguageFilter("all")}
-            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
-              languageFilter === "all"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            All Keywords
-          </button>
-          <button
-            onClick={() => setLanguageFilter("en")}
-            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
-              languageFilter === "en"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setLanguageFilter("es")}
-            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
-              languageFilter === "es"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Spanish
-          </button>
-        </div>
 
         {/* Keywords List */}
         {error && (
@@ -895,14 +913,12 @@ export const KeywordsManagement: React.FC = () => {
             icon={EmptyStateIcons.keywords}
             title="No keywords yet"
             description={
-              languageFilter === "all"
+              createBilingualDefault
                 ? "Add your first keyword pair to start generating SEO content"
-                : `No ${
-                    languageFilter === "en" ? "English" : "Spanish"
-                  } keywords found`
+                : "Add your first keyword to start generating SEO content"
             }
             action={{
-              label: "Add Keywords",
+              label: createBilingualDefault ? "Add Keyword Pair" : "Add Keyword",
               onClick: () => {
                 // Focus on the appropriate input based on bilingual setting
                 const selector = createBilingualDefault
@@ -912,7 +928,8 @@ export const KeywordsManagement: React.FC = () => {
               },
             }}
           />
-        ) : (
+        ) : createBilingualDefault ? (
+          // BILINGUAL MODE - Show paired keyword cards
           <div className="space-y-3">
             {filteredPairs.map((pair) => {
               const hasEnTranslationMissing = pair.en && !pair.es;
@@ -1163,6 +1180,38 @@ export const KeywordsManagement: React.FC = () => {
               );
             })}
           </div>
+        ) : (
+          // SINGLE LANGUAGE MODE - Show simple keyword list
+          <div className="space-y-2">
+            {keywords
+              .filter((k) => k.language === "en")
+              .map((keyword) => {
+                const isDeleting = deletingIds.has(keyword.id);
+                return (
+                  <div
+                    key={keyword.id}
+                    className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 font-medium truncate">
+                        {keyword.keyword}
+                      </p>
+                      <p className="text-xs text-gray-500 font-mono truncate">
+                        /{keyword.slug}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(keyword.id)}
+                      disabled={isDeleting}
+                      className="flex-shrink-0 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      aria-label={`Delete ${keyword.keyword}`}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
         )}
 
         <ConfirmDialog {...dialogProps} />
@@ -1170,126 +1219,130 @@ export const KeywordsManagement: React.FC = () => {
     );
   };
 
+  // Parse CSV/TSV text into keyword pairs
+  const parseBulkCSV = (
+    text: string
+  ): { pairs: { en: string; es: string }[]; errors: string[] } => {
+    const lines = text.split("\n").filter((line) => line.trim());
+    const pairs: { en: string; es: string }[] = [];
+    const errors: string[] = [];
+
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+
+      // Try tab first (Excel/Google Sheets default), then comma
+      let parts: string[];
+      if (trimmed.includes("\t")) {
+        parts = trimmed.split("\t").map((p) => p.trim());
+      } else {
+        parts = trimmed.split(",").map((p) => p.trim());
+      }
+
+      if (parts.length < 2 || !parts[0] || !parts[1]) {
+        errors.push(`Line ${idx + 1}: Missing EN or ES keyword`);
+        return;
+      }
+
+      pairs.push({ en: parts[0], es: parts[1] });
+    });
+
+    return { pairs, errors };
+  };
+
   const renderBulkAddTab = (): JSX.Element => {
-    // Calculate line counts for validation display
-    const enLineCount = bulkText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean).length;
-    const esLineCount = bulkTextEs
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean).length;
-    const linesMatch = enLineCount === esLineCount;
-    const hasContent = bulkBilingual
-      ? enLineCount > 0 && esLineCount > 0
+    // Use effective bilingual setting - both global setting AND local toggle must be true
+    const effectiveBulkBilingual = createBilingualDefault && bulkBilingual;
+
+    // Parse the CSV text for bilingual mode
+    const { pairs: parsedPairs, errors: parseErrors } = effectiveBulkBilingual
+      ? parseBulkCSV(bulkText)
+      : { pairs: [], errors: [] };
+
+    const hasContent = effectiveBulkBilingual
+      ? parsedPairs.length > 0
       : bulkText.trim().length > 0;
+
+    const hasParseErrors = parseErrors.length > 0;
 
     return (
       <div className="space-y-4">
-        {/* Bilingual Mode Toggle */}
-        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={bulkBilingual}
-              onChange={(e) => setBulkBilingual(e.target.checked)}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              disabled={bulkLoading}
-            />
-            <span className="text-sm font-medium text-blue-800">
-              Create bilingual pairs (EN + ES)
+        {/* Bilingual Mode Toggle - Only show when bilingual setting is enabled */}
+        {createBilingualDefault && (
+          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bulkBilingual}
+                onChange={(e) => setBulkBilingual(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                disabled={bulkLoading}
+              />
+              <span className="text-sm font-medium text-blue-800">
+                Create bilingual pairs (EN + ES)
+              </span>
+            </label>
+            <span className="text-xs text-blue-600">
+              {bulkBilingual
+                ? "Paste 2-column CSV: English, Spanish"
+                : "Single language keywords only"}
             </span>
-          </label>
-          <span className="text-xs text-blue-600">
-            {bulkBilingual
-              ? "Keywords will be created in matched pairs"
-              : "Keywords created in single language only"}
-          </span>
-        </div>
+          </div>
+        )}
 
-        {bulkBilingual ? (
+        {effectiveBulkBilingual ? (
           // ========================================
-          // BILINGUAL MODE UI
+          // BILINGUAL MODE - Single textarea with CSV paste
           // ========================================
           <>
             <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
               <p className="font-medium text-gray-700 mb-1">
-                Enter one keyword per line. Line 1 EN matches Line 1 ES.
+                Paste a 2-column CSV (comma or tab separated)
               </p>
               <p>
-                Example: If "criminal defense attorney" is on line 3 in English,
-                "abogado de defensa criminal" should be on line 3 in Spanish.
+                Format: <code className="bg-gray-200 px-1 rounded">english keyword, spanish keyword</code>
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* English Keywords Textarea */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  English Keywords
-                  <span className="ml-2 text-xs text-gray-500">
-                    ({enLineCount} line{enLineCount !== 1 ? "s" : ""})
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Paste CSV data
+                {parsedPairs.length > 0 && (
+                  <span className="ml-2 text-xs text-green-600">
+                    ({parsedPairs.length} pair{parsedPairs.length !== 1 ? "s" : ""} detected)
                   </span>
-                </label>
-                <textarea
-                  className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={`criminal defense attorney
-DUI lawyer
-personal injury attorney
-drug possession defense
-traffic ticket lawyer`}
-                  value={bulkText}
-                  onChange={(e) => setBulkText(e.target.value)}
-                  disabled={bulkLoading}
-                />
-              </div>
-
-              {/* Spanish Keywords Textarea */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Spanish Keywords
-                  <span className="ml-2 text-xs text-gray-500">
-                    ({esLineCount} line{esLineCount !== 1 ? "s" : ""})
-                  </span>
-                </label>
-                <textarea
-                  className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={`abogado de defensa criminal
-abogado de DUI
-abogado de lesiones personales
-defensa por posesión de drogas
-abogado de multas de tráfico`}
-                  value={bulkTextEs}
-                  onChange={(e) => setBulkTextEs(e.target.value)}
-                  disabled={bulkLoading}
-                />
-              </div>
+                )}
+              </label>
+              <textarea
+                className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder={`criminal defense lawyer, abogado de defensa criminal
+DUI lawyer, abogado de DUI
+personal injury lawyer, abogado de lesiones personales
+car accident lawyer, abogado de accidente de auto
+drug charges lawyer, abogado de cargos de drogas`}
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                disabled={bulkLoading}
+              />
             </div>
 
-            {/* Line count validation message */}
-            {enLineCount > 0 && esLineCount > 0 && !linesMatch && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded text-red-700">
-                <svg
-                  className="w-5 h-5 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-sm font-medium">
-                  Line count mismatch: {enLineCount} English vs {esLineCount}{" "}
-                  Spanish. Both columns must have the same number of lines.
-                </span>
+            {/* Parse errors */}
+            {hasParseErrors && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700">
+                <p className="text-sm font-medium mb-1">Format errors:</p>
+                <ul className="text-sm list-disc pl-5">
+                  {parseErrors.slice(0, 5).map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                  {parseErrors.length > 5 && (
+                    <li>...and {parseErrors.length - 5} more</li>
+                  )}
+                </ul>
               </div>
             )}
 
-            {/* Success indicator when lines match */}
-            {enLineCount > 0 && esLineCount > 0 && linesMatch && (
+            {/* Success indicator */}
+            {parsedPairs.length > 0 && !hasParseErrors && (
               <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded text-green-700">
                 <svg
                   className="w-5 h-5 flex-shrink-0"
@@ -1303,9 +1356,25 @@ abogado de multas de tráfico`}
                   />
                 </svg>
                 <span className="text-sm font-medium">
-                  ✓ {enLineCount} bilingual pair{enLineCount !== 1 ? "s" : ""}{" "}
-                  ready to add ({enLineCount * 2} keywords total)
+                  {parsedPairs.length} bilingual pair{parsedPairs.length !== 1 ? "s" : ""}{" "}
+                  ready to add ({parsedPairs.length * 2} keywords total)
                 </span>
+              </div>
+            )}
+
+            {/* Preview of parsed pairs */}
+            {parsedPairs.length > 0 && parsedPairs.length <= 10 && (
+              <div className="text-sm">
+                <p className="font-medium text-gray-700 mb-2">Preview:</p>
+                <div className="bg-gray-50 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+                  {parsedPairs.map((pair, i) => (
+                    <div key={i} className="flex gap-2 text-xs font-mono">
+                      <span className="text-blue-600">{pair.en}</span>
+                      <span className="text-gray-400">=</span>
+                      <span className="text-green-600">{pair.es}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>
@@ -1352,14 +1421,12 @@ traffic ticket lawyer`}
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={handleBulkAdd}
-          disabled={
-            bulkLoading || !hasContent || (bulkBilingual && !linesMatch)
-          }
+          disabled={bulkLoading || !hasContent || hasParseErrors}
         >
           {bulkLoading
             ? "Adding..."
-            : bulkBilingual
-            ? `Add ${enLineCount} Bilingual Pair${enLineCount !== 1 ? "s" : ""}`
+            : effectiveBulkBilingual
+            ? `Add ${parsedPairs.length} Bilingual Pair${parsedPairs.length !== 1 ? "s" : ""}`
             : "Add Keywords"}
         </button>
 
@@ -1369,13 +1436,13 @@ traffic ticket lawyer`}
           <ul className="list-disc pl-5 space-y-1">
             <li>Duplicate keywords are automatically skipped</li>
             <li>
-              Maximum 100 {bulkBilingual ? "pairs" : "keywords"} per operation
+              Maximum 100 {effectiveBulkBilingual ? "pairs" : "keywords"} per operation
             </li>
-            {bulkBilingual && (
-              <li>
-                If either keyword in a pair already exists, the entire pair is
-                skipped
-              </li>
+            {effectiveBulkBilingual && (
+              <>
+                <li>Accepts comma-separated or tab-separated values</li>
+                <li>Copy from Excel/Google Sheets works directly</li>
+              </>
             )}
             <li>Failed entries remain in the textarea for retry</li>
           </ul>
@@ -1385,341 +1452,241 @@ traffic ticket lawyer`}
   };
 
   const renderSettingsTab = (): JSX.Element => {
+    if (settingsLoading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Loading settings...</span>
+        </div>
+      );
+    }
     return (
       <KeywordsSettings
-        createBilingualDefault={createBilingualDefault}
-        onCreateBilingualDefaultChange={setCreateBilingualDefault}
+        enabledLanguages={enabledLanguages}
+        onEnabledLanguagesChange={handleEnabledLanguagesChange}
+        isSaving={settingsSaving}
       />
     );
   };
 
   const renderInstructionsTab = (): JSX.Element => (
     <div className="space-y-8 max-w-4xl">
-      {/* Section 1: Bilingual Keyword Management */}
+      {/* Section 1: Overview */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">🌐</span>
-          Bilingual Keyword Management
+        <h2 className="text-xl font-semibold text-gray-900">
+          Overview
         </h2>
-        <div className="prose prose-sm text-gray-700">
+        <div className="text-sm text-gray-700 space-y-2">
           <p>
-            This platform supports <strong>bilingual keyword pairs</strong> for
-            English and Spanish content generation. Paired keywords ensure your
-            SEO pages are generated consistently in both languages, targeting
-            the same services for both English and Spanish-speaking audiences.
-          </p>
-          <p>
-            When keywords are paired, the system can generate matching landing
-            pages in both languages, ensuring consistent messaging across your
-            multilingual SEO strategy.
+            SEO keywords drive the generation of location-based landing pages for your business.
+            When Spanish is enabled in Settings, keywords are managed as <strong>bilingual pairs</strong> (EN + ES)
+            that share the same URL slug, ensuring consistent multilingual SEO coverage.
           </p>
         </div>
 
         {/* Visual example of paired keywords */}
         <div className="bg-gray-50 border rounded-lg p-4">
           <p className="text-sm font-medium text-gray-700 mb-3">
-            Example of paired keywords:
+            Example keyword pair:
           </p>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-white p-3 rounded border">
-              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded mb-2">
+            <div className="bg-white p-3 rounded border border-blue-200">
+              <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded mb-2">
                 EN
               </span>
-              <p className="font-mono">criminal defense attorney DC</p>
+              <p className="font-mono text-gray-900">criminal defense lawyer</p>
+              <p className="text-xs text-gray-500 mt-1">/criminal-defense-lawyer</p>
             </div>
-            <div className="bg-white p-3 rounded border">
-              <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded mb-2">
+            <div className="bg-white p-3 rounded border border-green-200">
+              <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-bold rounded mb-2">
                 ES
               </span>
-              <p className="font-mono">abogado de defensa criminal DC</p>
+              <p className="font-mono text-gray-900">abogado de defensa criminal</p>
+              <p className="text-xs text-gray-500 mt-1">/criminal-defense-lawyer</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-            <span>↔️</span> These keywords are paired and will generate matching
-            EN/ES pages
+          <p className="text-xs text-gray-500 mt-3">
+            Both keywords share the same slug and generate matching EN/ES landing pages.
           </p>
         </div>
       </section>
 
       {/* Section 2: Adding Keywords */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">➕</span>
+        <h2 className="text-xl font-semibold text-gray-900">
           Adding Keywords
         </h2>
 
-        {/* Option A: Bilingual Pairs */}
+        {/* Manage Tab */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-2">
-            Option A: Bilingual Pairs (Recommended)
+            Manage Tab (One at a Time)
           </h3>
+          <p className="text-sm text-blue-800 mb-2">
+            When Spanish is enabled, enter both EN and ES keywords together:
+          </p>
           <ol className="list-decimal pl-5 text-sm text-blue-800 space-y-1">
-            <li>Check "Create bilingual pair (EN + ES)" in the Manage tab</li>
             <li>Enter the English keyword in the first field</li>
             <li>Enter the Spanish translation in the second field</li>
             <li>Click "Add Bilingual Pair"</li>
-            <li>Both keywords are created and visually linked</li>
           </ol>
         </div>
 
-        {/* Option B: Single Language */}
+        {/* Bulk Add Tab */}
         <div className="bg-gray-50 border rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-2">
-            Option B: Single Language
+            Bulk Add Tab (Multiple at Once)
           </h3>
-          <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-            <li>Uncheck "Create bilingual pair" in the Manage tab</li>
-            <li>Select language (EN or ES) from dropdown</li>
-            <li>Enter keyword</li>
-            <li>Click "Add"</li>
-          </ol>
-          <p className="text-xs text-gray-500 mt-2">
-            Use this when you only need content in one language.
+          <p className="text-sm text-gray-700 mb-2">
+            Paste a 2-column CSV with English and Spanish keywords:
           </p>
+          <div className="bg-gray-900 text-gray-100 rounded-lg p-3 font-mono text-xs overflow-x-auto mb-3">
+            <p>criminal defense lawyer, abogado de defensa criminal</p>
+            <p>DUI lawyer, abogado de DUI</p>
+            <p>personal injury lawyer, abogado de lesiones personales</p>
+          </div>
+          <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+            <li>One pair per line: <code className="bg-gray-200 px-1 rounded text-xs">english, spanish</code></li>
+            <li>Comma or tab separated (copy from Excel/Sheets)</li>
+            <li>Preview shows parsed pairs before adding</li>
+            <li>Maximum 100 pairs per operation</li>
+          </ul>
         </div>
 
-        {/* Option C: Add Translation Later */}
+        {/* Add Translation Later */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <h3 className="font-semibold text-amber-900 mb-2">
-            Option C: Add Translation Later
+            Adding Missing Translations
           </h3>
-          <ol className="list-decimal pl-5 text-sm text-amber-800 space-y-1">
-            <li>
-              Find a keyword without a pair (no "↔️ paired" indicator in the
-              list)
-            </li>
-            <li>Click the "+ Add ES" or "+ Add EN" button next to it</li>
-            <li>Enter the translation in the inline input</li>
-            <li>Press Enter to save</li>
-          </ol>
-          <p className="text-xs text-amber-700 mt-2">
-            This lets you add translations to existing keywords at any time.
+          <p className="text-sm text-amber-800">
+            If a keyword is unpaired (shown with amber "UNPAIRED" badge), click
+            "+ Add Spanish" or "+ Add English" to complete the pair.
           </p>
         </div>
       </section>
 
-      {/* Section 3: Bulk Add */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">📋</span>
-          Bulk Add
-        </h2>
-
-        {/* Bilingual Mode */}
-        <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900">
-            Bilingual Mode (Default)
-          </h3>
-          <p className="text-sm text-gray-700">
-            Use two side-by-side textareas. Line numbers must match between
-            columns.
-          </p>
-          <div className="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <p className="text-gray-400 mb-2">English Keywords</p>
-                <p>criminal defense attorney</p>
-                <p>DUI lawyer</p>
-                <p>personal injury attorney</p>
-                <p>drug possession defense</p>
-                <p>traffic ticket lawyer</p>
-              </div>
-              <div>
-                <p className="text-gray-400 mb-2">Spanish Keywords</p>
-                <p>abogado de defensa criminal</p>
-                <p>abogado de DUI</p>
-                <p>abogado de lesiones personales</p>
-                <p>defensa por posesión de drogas</p>
-                <p>abogado de multas de tráfico</p>
-              </div>
-            </div>
-          </div>
-          <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-            <li>One keyword per line</li>
-            <li>
-              Line 1 EN pairs with Line 1 ES, Line 2 EN pairs with Line 2 ES,
-              etc.
-            </li>
-            <li>Both columns must have the same number of lines</li>
-            <li>Creates paired keywords automatically</li>
-          </ul>
-        </div>
-
-        {/* Single Language Mode */}
-        <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900">Single Language Mode</h3>
-          <p className="text-sm text-gray-700">
-            Uncheck the bilingual toggle to add keywords in one language only.
-          </p>
-          <div className="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm">
-            <p>criminal defense attorney</p>
-            <p>DUI lawyer</p>
-            <p>personal injury attorney</p>
-            <p>drug possession defense</p>
-            <p>traffic ticket lawyer</p>
-          </div>
-          <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-            <li>Select language from dropdown before adding</li>
-            <li>One keyword per line</li>
-            <li>Creates keywords in selected language only</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Section 4: Keyword Format */}
+      {/* Section 3: Keyword Format */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">📝</span>
-          Keyword Format Guidelines
+        <h2 className="text-xl font-semibold text-gray-900">
+          Keyword Format
         </h2>
-        <div className="text-sm text-gray-700 space-y-2">
-          <p>
-            Write keywords as descriptive phrases that match how users search:
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded p-3">
-              <p className="font-medium text-green-800 mb-2">
-                ✅ Good Examples
-              </p>
-              <ul className="text-green-700 space-y-1">
-                <li>• criminal defense attorney DC</li>
-                <li>• abogado criminalista en Washington</li>
-                <li>• nashville hot chicken near me</li>
-                <li>• DUI lawyer Northern Virginia</li>
-              </ul>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded p-3">
-              <p className="font-medium text-red-800 mb-2">❌ Bad Examples</p>
-              <ul className="text-red-700 space-y-1">
-                <li>• lawyer</li>
-                <li>• abogado</li>
-                <li>• chicken</li>
-                <li>• DUI</li>
-              </ul>
-            </div>
+        <p className="text-sm text-gray-700">
+          Write keywords as descriptive phrases matching how users search:
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-green-50 border border-green-200 rounded p-3">
+            <p className="font-medium text-green-800 mb-2 text-sm">
+              Good Examples
+            </p>
+            <ul className="text-green-700 space-y-1 text-sm">
+              <li>criminal defense attorney DC</li>
+              <li>abogado de defensa criminal DC</li>
+              <li>DUI lawyer Northern Virginia</li>
+              <li>car accident lawyer near me</li>
+            </ul>
           </div>
-          <p className="text-gray-600">
-            Short, generic terms have too much competition. Use specific,
-            long-tail keywords with location modifiers for better SEO results.
-          </p>
+          <div className="bg-red-50 border border-red-200 rounded p-3">
+            <p className="font-medium text-red-800 mb-2 text-sm">
+              Avoid
+            </p>
+            <ul className="text-red-700 space-y-1 text-sm">
+              <li>lawyer (too generic)</li>
+              <li>abogado (too generic)</li>
+              <li>DUI (no context)</li>
+              <li>legal help (vague)</li>
+            </ul>
+          </div>
         </div>
+        <p className="text-xs text-gray-500">
+          Long-tail keywords with location modifiers perform better for local SEO.
+        </p>
       </section>
 
-      {/* Section 5: Best Practices */}
+      {/* Section 4: Best Practices */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">💡</span>
+        <h2 className="text-xl font-semibold text-gray-900">
           Best Practices
         </h2>
-        <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-2">
+        <ul className="text-sm text-gray-700 space-y-2">
           <li>
-            <strong>Always create bilingual pairs</strong> for complete market
-            coverage. Don't leave keywords unpaired unless you're only targeting
-            one language.
+            <strong>Keep keywords paired.</strong> Unpaired keywords only generate
+            content in one language, missing half your potential audience.
           </li>
           <li>
-            <strong>Use natural language in both languages.</strong> Don't just
-            translate word-for-word. "Criminal defense attorney" becomes
-            "abogado de defensa criminal," not "abogado defensa criminal."
+            <strong>Use natural translations.</strong> "Criminal defense attorney"
+            becomes "abogado de defensa criminal" - translate meaning, not words.
           </li>
           <li>
-            <strong>Include location-specific terms</strong> like city names,
-            neighborhoods, or regions to target local search intent.
+            <strong>Include locations.</strong> Add city names, neighborhoods, or
+            regions to target local search intent.
           </li>
           <li>
-            <strong>Review generated content</strong> to ensure accuracy and
-            cultural appropriateness in both languages.
+            <strong>Quality over quantity.</strong> 20-50 well-targeted keywords
+            outperform 200 generic ones.
           </li>
-          <li>
-            <strong>Maintain 20–100 keywords</strong> per business depending on
-            your content strategy. Quality over quantity.
-          </li>
-          <li>
-            <strong>Delete underperforming keywords</strong> and add new ones
-            based on search analytics.
-          </li>
-        </ol>
+        </ul>
       </section>
 
-      {/* Section 6: Technical Details */}
+      {/* Section 5: Settings */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">⚙️</span>
-          Technical Details
+        <h2 className="text-xl font-semibold text-gray-900">
+          Language Settings
         </h2>
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <table className="w-full text-sm">
-            <tbody>
-              <tr className="border-b">
-                <td className="py-2 font-medium text-gray-700">
-                  Slug Generation
-                </td>
-                <td className="py-2 text-gray-600">
-                  Derived from keyword using <code>toSlug()</code>; used for
-                  de-duplication
-                </td>
-              </tr>
-              <tr className="border-b">
-                <td className="py-2 font-medium text-gray-700">Languages</td>
-                <td className="py-2 text-gray-600">
-                  "en" (English) or "es" (Spanish)
-                </td>
-              </tr>
-              <tr className="border-b">
-                <td className="py-2 font-medium text-gray-700">
-                  Duplicate Detection
-                </td>
-                <td className="py-2 text-gray-600">
-                  By slug per language; same keyword can exist in both EN and ES
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 font-medium text-gray-700">Max Bulk Add</td>
-                <td className="py-2 text-gray-600">
-                  100 keywords (or 100 pairs in bilingual mode)
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+          <p className="mb-2">
+            Go to the <strong>Settings</strong> tab to enable or disable Spanish:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><strong>Spanish enabled:</strong> Keywords managed as EN/ES pairs, bilingual content generation</li>
+            <li><strong>Spanish disabled:</strong> English-only keywords, single-language content</li>
+          </ul>
+          <p className="mt-2 text-xs text-gray-500">
+            This setting is saved per-business in the questionnaire.
+          </p>
         </div>
       </section>
 
       {/* Current data snapshot */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <span className="text-2xl">📊</span>
-          Current Data Snapshot
+        <h2 className="text-xl font-semibold text-gray-900">
+          Current Stats
         </h2>
         {selectedBusiness ? (
           loading ? (
-            <p className="text-gray-600">Loading keywords…</p>
+            <p className="text-gray-600 text-sm">Loading...</p>
           ) : (
             <div className="bg-gray-50 border rounded-lg p-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-4 gap-4 text-center">
                 <div>
                   <p className="text-2xl font-bold text-gray-900">
-                    {keywords.length}
+                    {keywordPairs.filter((p) => p.isPaired).length}
                   </p>
-                  <p className="text-sm text-gray-600">Total Keywords</p>
+                  <p className="text-xs text-gray-600">Paired</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-amber-600">
+                    {keywordPairs.filter((p) => !p.isPaired).length}
+                  </p>
+                  <p className="text-xs text-gray-600">Unpaired</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-blue-600">
                     {keywords.filter((k) => k.language === "en").length}
                   </p>
-                  <p className="text-sm text-gray-600">English</p>
+                  <p className="text-xs text-gray-600">English</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-green-600">
                     {keywords.filter((k) => k.language === "es").length}
                   </p>
-                  <p className="text-sm text-gray-600">Spanish</p>
+                  <p className="text-xs text-gray-600">Spanish</p>
                 </div>
               </div>
             </div>
           )
         ) : (
-          <p className="text-gray-600">
-            Select a business to view keyword counts.
+          <p className="text-gray-600 text-sm">
+            Select a business to view stats.
           </p>
         )}
       </section>

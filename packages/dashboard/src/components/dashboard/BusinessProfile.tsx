@@ -473,7 +473,16 @@ export const BusinessProfile: React.FC = () => {
             )}
 
             {activeSection === "social" && (
-              <SocialLinksTab isSaving={isSavingAny} />
+              <SocialLinksTab
+                isSaving={isSavingAny}
+                socialProfiles={questionnaireData.socialProfiles}
+                onSocialProfilesChange={(profiles) => {
+                  handleQuestionnaireDataChange({
+                    ...questionnaireData,
+                    socialProfiles: profiles,
+                  });
+                }}
+              />
             )}
 
             {activeSection === "content" && (

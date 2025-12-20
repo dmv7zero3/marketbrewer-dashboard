@@ -12,11 +12,7 @@
 
 import Database from "better-sqlite3";
 import { generateId } from "../packages/shared/src/utils";
-import {
-  calculateCompleteness,
-  isSectionComplete,
-  QuestionnaireDataStructure,
-} from "../packages/shared/src/types/questionnaire";
+import type { QuestionnaireDataStructure } from "../packages/shared/src/types/questionnaire";
 import path from "path";
 import fs from "fs";
 
@@ -73,55 +69,42 @@ console.log("✓ Inserted business: Nash & Smashed");
 // Using the QuestionnaireDataStructure format from @marketbrewer/shared
 const questionnaireData: QuestionnaireDataStructure = {
   identity: {
-    businessName: "Nash & Smashed",
-    industry: "Fast Food Restaurant",
     tagline: "Nashville Heat. Smashed to Perfection.",
     yearEstablished: "2023",
-    contactName: "Owner",
-  },
-  location: {
-    address: "Multiple locations across DMV", // Minimal - intentionally incomplete
-    serviceType: "onsite" as const,
+    ownerName: "Owner",
   },
   services: {
     offerings: [
       {
         name: "Nashville Hot Chicken",
-        description: "Authentic Nashville-style fried chicken",
+        slug: "nashville-hot-chicken",
         isPrimary: true,
       },
       {
         name: "Smash Burgers",
-        description: "Premium smashed burgers",
+        slug: "smash-burgers",
         isPrimary: true,
       },
     ],
   },
   audience: {
-    targetDescription: "", // Missing - incomplete
-    demographics: "", // Missing - incomplete
-    painPoints: "", // Missing - incomplete
+    targetDescription: "",
     languages: [],
   },
   brand: {
     voiceTone: "friendly",
-    requiredPhrases: [], // Missing - incomplete
-    forbiddenWords: [],
-    callToAction: "", // Missing - incomplete
+    forbiddenTerms: [],
+    callToAction: "",
   },
+  serviceType: "onsite",
 };
 
 // Remove any existing questionnaire rows to avoid duplicates.
 // The DB schema does not enforce UNIQUE(business_id), so repeated seeding can create multiple rows.
 db.prepare("DELETE FROM questionnaires WHERE business_id = ?").run(businessId);
 
-const completenessScore = calculateCompleteness({
-  identity: isSectionComplete("identity", questionnaireData),
-  location: isSectionComplete("location", questionnaireData),
-  services: isSectionComplete("services", questionnaireData),
-  audience: isSectionComplete("audience", questionnaireData),
-  brand: isSectionComplete("brand", questionnaireData),
-});
+// Simple completeness score (not using deprecated functions)
+const completenessScore = 30; // Basic score
 
 db.prepare(
   `
