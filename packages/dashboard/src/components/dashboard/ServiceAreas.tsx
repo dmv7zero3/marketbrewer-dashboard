@@ -38,7 +38,6 @@ export const ServiceAreas: React.FC = () => {
   // Add form state
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
-  const [county, setCounty] = useState("");
   const [inputErrors, setInputErrors] = useState<{
     city: string | null;
     state: string | null;
@@ -173,12 +172,11 @@ export const ServiceAreas: React.FC = () => {
       const { service_area } = await createServiceArea(selectedBusiness, {
         city: city.trim(),
         state: state.trim().toUpperCase(),
-        county: county.trim() || null,
+        county: null,
       });
       setAreas((prev) => [service_area, ...prev]);
       setCity("");
       setState("");
-      setCounty("");
       addToast("Service area added successfully", "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to add service area";
@@ -343,7 +341,7 @@ export const ServiceAreas: React.FC = () => {
           Add New Service Area
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City
@@ -375,17 +373,6 @@ export const ServiceAreas: React.FC = () => {
                 setInputErrors((prev) => ({ ...prev, state: null }));
               }}
               maxLength={2}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              County (optional)
-            </label>
-            <input
-              className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., Fairfax"
-              value={county}
-              onChange={(e) => setCounty(e.target.value)}
             />
           </div>
         </div>
@@ -448,16 +435,16 @@ export const ServiceAreas: React.FC = () => {
                 className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-gray-900 font-medium">
-                      {area.city}, {area.state}
-                    </p>
+                  <p className="text-gray-900 font-medium">
+                    {area.city}
                     {area.county && (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                        {area.county}
+                      <span className="text-gray-500 font-normal">
+                        {" "}
+                        ({area.county})
                       </span>
                     )}
-                  </div>
+                    , {area.state}
+                  </p>
                   <p className="text-xs text-gray-500 font-mono truncate">
                     /{area.slug}
                   </p>

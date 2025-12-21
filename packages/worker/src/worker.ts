@@ -368,20 +368,29 @@ Output ONLY valid JSON with this structure:
 
   private parseOllamaResponse(response: string): GeneratedContent {
     try {
+      // Step 1: Extract JSON from response (may have text before/after)
       const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON found");
+      if (!jsonMatch) throw new Error("No JSON found in response");
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      let jsonStr = jsonMatch[0];
+
+      // Step 2: Clean common LLM JSON issues
+      jsonStr = this.cleanLlmJson(jsonStr);
+
+      // Step 3: Parse the cleaned JSON
+      const parsed = JSON.parse(jsonStr);
+
+      // Step 4: Validate required fields
       if (!parsed.title || !parsed.h1 || !parsed.body) {
-        throw new Error("Missing required fields");
+        throw new Error("Missing required fields (title, h1, or body)");
       }
 
       return {
-        title: parsed.title,
-        meta_description: parsed.meta_description || parsed.title,
-        h1: parsed.h1,
-        body: parsed.body,
-        sections: parsed.sections || [],
+        title: String(parsed.title).substring(0, 70),
+        meta_description: String(parsed.meta_description || parsed.title).substring(0, 160),
+        h1: String(parsed.h1),
+        body: String(parsed.body),
+        sections: Array.isArray(parsed.sections) ? parsed.sections : [],
         cta: parsed.cta || { text: "Contact Us", url: "/contact" },
       };
     } catch (error) {
@@ -390,17 +399,79 @@ Output ONLY valid JSON with this structure:
     }
   }
 
+  /**
+   * Clean common JSON formatting issues from LLM output
+   */
+  private cleanLlmJson(jsonStr: string): string {
+    // Remove control characters (except \n, \r, \t which we'll handle)
+    // eslint-disable-next-line no-control-regex
+    jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+
+    // Fix unescaped newlines inside string values
+    // This regex finds strings and escapes newlines within them
+    jsonStr = jsonStr.replace(
+      /"([^"\\]*(\\.[^"\\]*)*)"/g,
+      (match) => {
+        // Replace actual newlines/tabs with escaped versions inside strings
+        return match
+          .replace(/\n/g, "\\n")
+          .replace(/\r/g, "\\r")
+          .replace(/\t/g, "\\t");
+      }
+    );
+
+    // Fix trailing commas before } or ]
+    jsonStr = jsonStr.replace(/,(\s*[}\]])/g, "$1");
+
+    // Fix single quotes used instead of double quotes (common LLM error)
+    // Only do this outside of already double-quoted strings
+    // This is a simplified fix - handles most common cases
+    jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
+
+    return jsonStr;
+  }
+
   private createFallbackContent(raw: string): GeneratedContent {
-    const lines = raw.split("\n").filter((l) => l.trim());
+    // Try to extract useful content even from malformed JSON
+    // Look for field values using regex patterns
+    const extractField = (field: string): string => {
+      const patterns = [
+        new RegExp(`"${field}"\\s*:\\s*"([^"]*(?:\\\\.[^"]*)*)"`, "i"),
+        new RegExp(`"${field}"\\s*:\\s*'([^']*)'`, "i"),
+        new RegExp(`${field}:\\s*"([^"]*)"`, "i"),
+      ];
+      for (const pattern of patterns) {
+        const match = raw.match(pattern);
+        if (match && match[1]) {
+          return match[1].replace(/\\n/g, " ").replace(/\\"/g, '"').trim();
+        }
+      }
+      return "";
+    };
+
+    const title = extractField("title") || "Professional Services";
+    const metaDesc = extractField("meta_description") || title;
+    const h1 = extractField("h1") || title;
+    const body = extractField("body") || "";
+
+    // If we couldn't extract body, use first few non-JSON lines
+    let fallbackBody = body;
+    if (!fallbackBody) {
+      const lines = raw.split("\n")
+        .filter((l) => l.trim() && !l.trim().startsWith("{") && !l.trim().startsWith("}"))
+        .slice(0, 5);
+      fallbackBody = lines.join(" ").substring(0, 500);
+    }
+
     return {
-      title: lines[0]?.substring(0, 60) || "Local Services",
-      meta_description: lines[0]?.substring(0, 155) || "Professional service",
-      h1: lines[0] || "Welcome",
-      body: raw.substring(0, 500),
+      title: title.substring(0, 70),
+      meta_description: metaDesc.substring(0, 160),
+      h1: h1,
+      body: fallbackBody,
       sections: [
-        { heading: "About Us", content: raw.substring(0, 300) },
-        { heading: "Why Choose Us", content: "Exceptional service" },
-        { heading: "Contact", content: "Get in touch today" },
+        { heading: "About Our Services", content: fallbackBody.substring(0, 300) },
+        { heading: "Why Choose Us", content: "Professional service and expertise" },
+        { heading: "Contact Us", content: "Get in touch today for a consultation" },
       ],
       cta: { text: "Get Started", url: "/contact" },
     };
