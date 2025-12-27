@@ -22,14 +22,14 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
   cancelLabel = "Discard Changes",
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+    <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-dark-800 border-t border-dark-700 shadow-lg z-40">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Status indicator */}
         <div className="flex items-center gap-2">
           {isSaving ? (
             <>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-600">Saving...</span>
+              <div className="w-2 h-2 bg-metro-orange rounded-full animate-pulse" />
+              <span className="text-sm text-dark-400">Saving...</span>
             </>
           ) : hasChanges ? (
             <>
@@ -42,7 +42,7 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
           ) : (
             <>
               <div className="w-2 h-2 bg-green-600 rounded-full" />
-              <span className="text-sm text-green-700 font-medium">
+              <span className="text-sm text-metro-green-600 font-medium">
                 <span aria-hidden="true">✓</span>
                 <span className="ml-1">All changes saved</span>
               </span>
@@ -55,7 +55,7 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
           <button
             onClick={onCancel}
             disabled={!hasChanges || isSaving}
-            className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 border border-dark-600 rounded-lg font-medium text-dark-200 hover:bg-dark-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             type="button"
           >
             {cancelLabel}
@@ -63,7 +63,7 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
           <button
             onClick={onSave}
             disabled={!hasChanges || isSaving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-metro-orange text-white rounded-lg font-medium hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             type="button"
           >
             {isSaving ? (

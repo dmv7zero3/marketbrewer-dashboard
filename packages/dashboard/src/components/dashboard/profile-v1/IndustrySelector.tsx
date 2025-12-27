@@ -33,9 +33,9 @@ export const IndustrySelector = memo<IndustrySelectorProps>(
 
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1.5">
+        <label className="block text-sm font-medium text-dark-100 mb-1.5">
           Industry{" "}
-          <span className="ml-2 text-xs font-normal text-gray-400">
+          <span className="ml-2 text-xs font-normal text-dark-500">
             optional
           </span>
         </label>
@@ -43,9 +43,9 @@ export const IndustrySelector = memo<IndustrySelectorProps>(
           disabled={disabled}
           className={`w-full px-3 py-2 border rounded-md transition-colors ${
             hasError
-              ? "border-red-500 bg-red-50 focus:ring-red-500"
-              : "border-gray-300 bg-white focus:ring-blue-500"
-          } focus:outline-none focus:ring-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed`}
+              ? "border-metro-red bg-metro-red-950 focus:ring-red-500"
+              : "border-dark-600 bg-dark-800 focus:ring-metro-orange"
+          } focus:outline-none focus:ring-1 disabled:bg-dark-800 disabled:text-dark-400 disabled:cursor-not-allowed`}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={hasError}
@@ -65,7 +65,7 @@ export const IndustrySelector = memo<IndustrySelectorProps>(
         {hasError && (
           <p
             id="industry_type-error"
-            className="text-red-600 text-xs mt-1.5 flex items-center gap-1"
+            className="text-metro-red text-xs mt-1.5 flex items-center gap-1"
           >
             <span className="inline-block">⚠</span>
             {error}

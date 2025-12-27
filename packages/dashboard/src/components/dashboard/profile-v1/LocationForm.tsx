@@ -76,13 +76,13 @@ export const LocationForm = memo<LocationFormProps>(
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               City
             </label>
             <input
               type="text"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={draft.city}
               onChange={(e) => setDraft({ ...draft, city: e.target.value })}
               placeholder="e.g., Arlington"
@@ -90,13 +90,13 @@ export const LocationForm = memo<LocationFormProps>(
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               State
             </label>
             <input
               type="text"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={draft.state}
               onChange={(e) => setDraft({ ...draft, state: e.target.value })}
               placeholder="VA"
@@ -105,13 +105,13 @@ export const LocationForm = memo<LocationFormProps>(
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               Street Address
             </label>
             <input
               type="text"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={draft.street_address ?? ""}
               onChange={(e) =>
                 setDraft({ ...draft, street_address: e.target.value })
@@ -121,13 +121,13 @@ export const LocationForm = memo<LocationFormProps>(
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               Postal Code
             </label>
             <input
               type="text"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={draft.postal_code ?? ""}
               onChange={(e) =>
                 setDraft({ ...draft, postal_code: e.target.value })
@@ -138,7 +138,7 @@ export const LocationForm = memo<LocationFormProps>(
         </div>
 
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-gray-900">
+          <label className="flex items-center gap-2 text-sm text-dark-100">
             <input
               type="checkbox"
               disabled={disabled}
@@ -149,7 +149,7 @@ export const LocationForm = memo<LocationFormProps>(
             />
             Primary location
           </label>
-          <label className="flex items-center gap-2 text-sm text-gray-900">
+          <label className="flex items-center gap-2 text-sm text-dark-100">
             <input
               type="checkbox"
               disabled={disabled}
@@ -166,7 +166,7 @@ export const LocationForm = memo<LocationFormProps>(
           <button
             type="button"
             disabled={disabled || !draft.city.trim() || !draft.state.trim()}
-            className="ml-auto px-3 py-2 rounded-md bg-gray-900 text-white disabled:bg-gray-300 disabled:text-gray-600"
+            className="ml-auto px-3 py-2 rounded-md bg-gray-900 text-white disabled:bg-dark-600 disabled:text-dark-400"
             onClick={handleAdd}
           >
             Add location
@@ -174,7 +174,7 @@ export const LocationForm = memo<LocationFormProps>(
         </div>
 
         {value.length === 0 ? (
-          <p className="text-sm text-gray-500">No locations added yet.</p>
+          <p className="text-sm text-dark-400">No locations added yet.</p>
         ) : (
           <div className="space-y-3">
             {value.map((loc) => (
@@ -183,13 +183,13 @@ export const LocationForm = memo<LocationFormProps>(
                 className="flex items-center gap-3 border rounded-md px-3 py-2"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-dark-100">
                     {loc.city}, {loc.state}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-dark-400">
                     {loc.street_address || "No street address"}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-dark-400">
                     {loc.location_type === "service_area"
                       ? "Service area"
                       : "Physical"}
@@ -202,7 +202,7 @@ export const LocationForm = memo<LocationFormProps>(
                     <button
                       type="button"
                       disabled={disabled}
-                      className="text-blue-600 hover:text-blue-700 disabled:text-gray-400"
+                      className="text-metro-orange hover:text-metro-orange-600 disabled:text-dark-500"
                       onClick={() => setPrimary(loc.id ?? "")}
                     >
                       Make primary
@@ -211,7 +211,7 @@ export const LocationForm = memo<LocationFormProps>(
                   <button
                     type="button"
                     disabled={disabled}
-                    className="text-red-600 hover:text-red-700 disabled:text-gray-400"
+                    className="text-metro-red hover:text-metro-red-600 disabled:text-dark-500"
                     onClick={() => handleRemove(loc.id)}
                   >
                     Remove

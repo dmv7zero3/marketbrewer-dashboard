@@ -20,7 +20,7 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
   if (!business) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading business details...</div>
+        <div className="text-dark-400">Loading business details...</div>
       </div>
     );
   }
@@ -31,10 +31,10 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
       {/* SECTION 1: Business Details (Core Identity) */}
       {/* ============================================ */}
       <section id="business-details">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-dark-100 mb-2">
           Business Details
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-dark-400 mb-6">
           Core information about your business including name, industry, and
           contact details.
         </p>
@@ -50,10 +50,10 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
       {/* SECTION 2: Primary Location */}
       {/* ============================================ */}
       <section id="primary-location" className="border-t pt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-dark-100 mb-2">
           Primary Location
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-dark-400 mb-6">
           Your main business location used for local SEO targeting.
         </p>
         <PrimaryLocationCard
@@ -68,10 +68,10 @@ export const EssentialsTab: React.FC<EssentialsTabProps> = ({
       {/* SECTION 3: Google Business Profile */}
       {/* ============================================ */}
       <section id="google-business-profile" className="border-t pt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-dark-100 mb-2">
           Google Business Profile
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-dark-400 mb-6">
           Link your Google Business Profile for verification and local SEO
           benefits.
         </p>

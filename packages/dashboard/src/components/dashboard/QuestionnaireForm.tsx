@@ -138,7 +138,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   const BRAND_VOICE_OPTIONS = Object.values(BrandVoiceTone);
 
   if (isLoading) {
-    return <div className="text-gray-500">Loading questionnaire...</div>;
+    return <div className="text-dark-400">Loading questionnaire...</div>;
   }
 
   const completeness = calculateSimpleCompleteness();
@@ -149,30 +149,30 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Content Profile</h3>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-dark-400">
             {completeness}% Complete
           </span>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-dark-700 rounded-full h-2">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all"
+            className="bg-metro-orange h-2 rounded-full transition-all"
             style={{ width: `${completeness}%` }}
           />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-300 overflow-x-auto pb-2 -mb-px">
+      <div className="flex gap-1 border-b border-dark-600 overflow-x-auto pb-2 -mb-px">
         {TABS.map(({ name, label }) => (
           <button
             key={name}
             onClick={() => handleTabChange(name)}
             className={`px-4 py-2 font-medium whitespace-nowrap transition-colors ${
               activeTab === name
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-600 hover:text-gray-900"
+                ? "border-b-2 border-blue-600 text-metro-orange"
+                : "text-dark-400 hover:text-dark-100"
             }`}
           >
             {label}
@@ -185,7 +185,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         {/* Identity Tab */}
         {activeTab === "identity" && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-dark-400">
               Core identity and background information
             </p>
 
@@ -200,7 +200,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., The Best Fried Chicken in Town"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Optional. Used in meta descriptions and content.
               </p>
             </div>
@@ -218,7 +218,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., 2015"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Optional. Adds credibility to content.
               </p>
             </div>
@@ -237,11 +237,11 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 placeholder="e.g., John Smith"
               />
               {warnings.identity && warnings.identity.length > 0 && (
-                <p className="text-yellow-600 text-xs mt-1">
+                <p className="text-metro-yellow text-xs mt-1">
                   ⚠ {warnings.identity[0]}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Optional. Helps personalize content.
               </p>
             </div>
@@ -251,7 +251,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         {/* Audience Tab */}
         {activeTab === "audience" && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">Define your target audience</p>
+            <p className="text-sm text-dark-400">Define your target audience</p>
 
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -267,11 +267,11 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 rows={3}
               />
               {warnings.audience && warnings.audience.length > 0 && (
-                <p className="text-yellow-600 text-xs mt-1">
+                <p className="text-metro-yellow text-xs mt-1">
                   ⚠ {warnings.audience[0]}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Optional. Helps tailor content tone and focus.
               </p>
             </div>
@@ -294,7 +294,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 className="w-full border rounded px-3 py-2 text-sm"
                 placeholder="e.g., English, Spanish"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Comma-separated list. Optional.
               </p>
             </div>
@@ -304,7 +304,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         {/* Brand Tab */}
         {activeTab === "brand" && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-dark-400">
               Define your brand voice and communication style
             </p>
 
@@ -329,7 +329,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 ))}
               </select>
               {warnings.brand && warnings.brand.length > 0 && (
-                <p className="text-yellow-600 text-xs mt-1">
+                <p className="text-metro-yellow text-xs mt-1">
                   ⚠ {warnings.brand[0]}
                 </p>
               )}
@@ -348,7 +348,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                 placeholder="e.g., Call us today at (555) 123-4567 or visit our website to order online"
                 rows={2}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Main call-to-action used in content.
               </p>
             </div>
@@ -364,7 +364,7 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                       forbiddenTerms: [...data.brand.forbiddenTerms, ""],
                     });
                   }}
-                  className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                  className="text-xs bg-metro-orange text-white px-2 py-1 rounded hover:bg-metro-orange-600"
                 >
                   Add Term
                 </button>
@@ -390,14 +390,14 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
                         );
                         updateData("brand", { forbiddenTerms: newTerms });
                       }}
-                      className="text-red-600 hover:text-red-700 text-xs"
+                      className="text-metro-red hover:text-metro-red-600 text-xs"
                     >
                       Remove
                     </button>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 Optional. Terms to avoid in generated content.
               </p>
             </div>
@@ -410,19 +410,19 @@ export const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         <button
           onClick={onCancel}
           disabled={isSaving}
-          className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+          className="px-4 py-2 border rounded hover:bg-dark-900 disabled:opacity-50"
         >
           Cancel
         </button>
         {hasUnsavedChanges && (
-          <span className="text-xs text-yellow-600 flex items-center">
+          <span className="text-xs text-metro-yellow flex items-center">
             ⚠ Unsaved changes
           </span>
         )}
         <button
           onClick={onSave}
           disabled={isSaving}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-metro-orange text-white rounded hover:bg-metro-orange-600 disabled:opacity-50"
         >
           {isSaving ? "Saving..." : "Save Changes"}
         </button>

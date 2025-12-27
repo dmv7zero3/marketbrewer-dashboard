@@ -266,7 +266,16 @@ router.put(
 );
 
 /**
- * GET /jobs/:jobId/pages - List pages for a job
+ * GET /jobs/:jobId/pages - List pages for a job with filtering and pagination
+ *
+ * Query params:
+ * - status: Filter by status (queued, processing, completed, failed)
+ * - language: Filter by keyword language (en, es)
+ * - search: Search in keyword_text, url_path, service_area_slug
+ * - page: Page number (1-indexed, default: 1)
+ * - limit: Items per page (default: 50, max: 200)
+ * - sort: Sort field (created_at, keyword_text, url_path, status)
+ * - order: Sort order (asc, desc)
  */
 router.get(
   "/:jobId/pages",
@@ -274,19 +283,77 @@ router.get(
     try {
       const { jobId } = req.params;
       const status = req.query.status as string | undefined;
+      const language = req.query.language as string | undefined;
+      const search = req.query.search as string | undefined;
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.min(200, Math.max(1, parseInt(req.query.limit as string) || 50));
+      const sort = (req.query.sort as string) || "created_at";
+      const order = (req.query.order as string)?.toLowerCase() === "desc" ? "DESC" : "ASC";
+      const offset = (page - 1) * limit;
 
-      let query = "SELECT * FROM job_pages WHERE job_id = ?";
+      // Validate sort field to prevent SQL injection
+      const validSortFields = ["created_at", "keyword_text", "url_path", "status", "service_area_slug"];
+      const sortField = validSortFields.includes(sort) ? sort : "created_at";
+
+      // Build query with filters
+      let whereClause = "job_id = ?";
       const params: unknown[] = [jobId];
 
       if (status) {
-        query += " AND status = ?";
+        whereClause += " AND status = ?";
         params.push(status);
       }
 
-      query += " ORDER BY created_at ASC";
+      if (language && (language === "en" || language === "es")) {
+        whereClause += " AND keyword_language = ?";
+        params.push(language);
+      }
 
-      const pages = dbAll<JobPage>(query, params);
-      res.json({ pages });
+      if (search && search.trim()) {
+        const searchTerm = `%${search.trim().toLowerCase()}%`;
+        whereClause += " AND (LOWER(keyword_text) LIKE ? OR LOWER(url_path) LIKE ? OR LOWER(service_area_slug) LIKE ?)";
+        params.push(searchTerm, searchTerm, searchTerm);
+      }
+
+      // Get total count for pagination
+      const countResult = dbGet<{ count: number }>(
+        `SELECT COUNT(*) as count FROM job_pages WHERE ${whereClause}`,
+        params
+      );
+      const total = countResult?.count || 0;
+
+      // Get paginated results
+      const pages = dbAll<JobPage>(
+        `SELECT * FROM job_pages WHERE ${whereClause} ORDER BY ${sortField} ${order} LIMIT ? OFFSET ?`,
+        [...params, limit, offset]
+      );
+
+      // Get status counts for this job
+      const statusCounts = dbAll<{ status: string; count: number }>(
+        `SELECT status, COUNT(*) as count FROM job_pages WHERE job_id = ? GROUP BY status`,
+        [jobId]
+      );
+
+      const counts: Record<string, number> = {
+        queued: 0,
+        processing: 0,
+        completed: 0,
+        failed: 0,
+      };
+      statusCounts.forEach((sc) => {
+        counts[sc.status] = sc.count;
+      });
+
+      res.json({
+        pages,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+        counts,
+      });
     } catch (error) {
       next(error);
     }

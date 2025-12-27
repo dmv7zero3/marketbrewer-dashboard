@@ -99,7 +99,7 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-2xl font-bold">Business Profile</h1>
-          <p className="text-gray-600">
+          <p className="text-dark-400">
             Manage your business information and profile details for content
             generation.
           </p>
@@ -109,7 +109,7 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="sticky bg-white border rounded-lg shadow-sm top-4">
+            <div className="sticky bg-dark-800 border rounded-lg shadow-sm top-4">
               <nav className="p-4 space-y-2">
                 {SECTION_GROUPS.map((group) => (
                   <div key={group.name}>
@@ -117,8 +117,8 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
                       onClick={() => onSectionChange(group.name)}
                       className={`w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                         activeSection === group.name
-                          ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                          : "text-gray-700 hover:bg-gray-50"
+                          ? "bg-blue-50 text-metro-orange border-l-4 border-blue-600"
+                          : "text-dark-200 hover:bg-dark-900"
                       }`}
                     >
                       <span className="mr-2">{group.icon}</span>
@@ -131,10 +131,10 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
                         {PROFILE_SECTIONS[group.name].map((item) => (
                           <button
                             key={item.id}
-                            className="w-full px-4 py-2 text-xs text-left text-gray-600 transition-colors rounded hover:bg-blue-50 hover:text-blue-600"
+                            className="w-full px-4 py-2 text-xs text-left text-dark-400 transition-colors rounded hover:bg-blue-50 hover:text-metro-orange"
                           >
                             <div className="font-medium">{item.label}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-dark-400">
                               {item.description}
                             </div>
                           </button>
@@ -148,16 +148,16 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
               {/* Progress Bar */}
               <div className="p-4 border-t">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-gray-600">
+                  <span className="text-xs font-semibold text-dark-400">
                     Completeness
                   </span>
-                  <span className="text-xs font-bold text-gray-900">
+                  <span className="text-xs font-bold text-dark-100">
                     {completenessScore}%
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full">
+                <div className="w-full h-2 bg-dark-700 rounded-full">
                   <div
-                    className="h-2 transition-all duration-300 bg-blue-600 rounded-full"
+                    className="h-2 transition-all duration-300 bg-metro-orange rounded-full"
                     style={{ width: `${completenessScore}%` }}
                   />
                 </div>
@@ -167,7 +167,7 @@ export const BusinessProfileLayout: React.FC<BusinessProfileLayoutProps> = ({
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
-            <div className="p-6 bg-white border rounded-lg shadow-sm">
+            <div className="p-6 bg-dark-800 border rounded-lg shadow-sm">
               {children}
             </div>
           </div>

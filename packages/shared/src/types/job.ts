@@ -9,15 +9,37 @@ export type JobStatus =
   | "failed"
   | "cancelled";
 export type PageStatus = "queued" | "processing" | "completed" | "failed";
+export type PageLocationStatus = "active" | "coming-soon";
 
 /**
- * Page Types:
- * - location-keyword: Business location city (where store exists) × keyword
- *   Example: Manassas × best fried chicken
- * - service-area: Nearby city (no store) × keyword
- *   Example: Centreville × best fried chicken (targets Centreville, directs to Manassas store)
+ * Page Types - combinations of content type and location type:
+ *
+ * Content Types:
+ * - keyword: SEO keywords (e.g., "best fried chicken", "halal burgers")
+ * - service: Services/Menu items (e.g., "Smash Burger", "Nashville Hot Chicken")
+ *
+ * Location Types:
+ * - location: Physical store locations (where business exists)
+ * - service-area: Nearby cities (no store, targets surrounding areas)
+ *
+ * Combinations:
+ * - keyword-service-area: Keywords × Service Areas (most common for local SEO)
+ * - keyword-location: Keywords × Store Locations
+ * - service-service-area: Services/Menu Items × Service Areas
+ * - service-location: Services/Menu Items × Store Locations
+ *
+ * Legacy (backwards compatible):
+ * - location-keyword: Alias for keyword-location
+ * - service-area: Alias for keyword-service-area
  */
-export type PageType = "location-keyword" | "service-area";
+export type PageType =
+  | "keyword-service-area"
+  | "keyword-location"
+  | "service-service-area"
+  | "service-location"
+  // Legacy aliases (backwards compatible)
+  | "location-keyword"
+  | "service-area";
 
 export interface GenerationJob {
   id: string;
@@ -42,6 +64,7 @@ export interface JobPage {
   service_area_slug: string;
   url_path: string;
   status: PageStatus;
+  location_status: PageLocationStatus; // 'active' or 'coming-soon' for location-based pages
   worker_id: string | null;
   attempts: number;
   claimed_at: string | null;

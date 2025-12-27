@@ -170,6 +170,54 @@ export function getIndustryLabel(industryType: string): string {
   return found?.label ?? industryType;
 }
 
+/**
+ * UI label configuration based on industry type
+ * Controls how "Services" / "Keywords" etc. are displayed
+ */
+export interface IndustryUILabels {
+  servicesLabel: string; // "Services" | "Menu Items" | "Practice Areas"
+  servicesSingular: string; // "Service" | "Menu Item" | "Practice Area"
+  keywordsLabel: string; // Usually "SEO Keywords" but could vary
+}
+
+const FOOD_BEVERAGE_LABELS: IndustryUILabels = {
+  servicesLabel: "Menu Items",
+  servicesSingular: "Menu Item",
+  keywordsLabel: "SEO Keywords",
+};
+
+const LEGAL_LABELS: IndustryUILabels = {
+  servicesLabel: "Practice Areas",
+  servicesSingular: "Practice Area",
+  keywordsLabel: "SEO Keywords",
+};
+
+const DEFAULT_LABELS: IndustryUILabels = {
+  servicesLabel: "Services",
+  servicesSingular: "Service",
+  keywordsLabel: "SEO Keywords",
+};
+
+/**
+ * Get UI labels based on industry type
+ */
+export function getIndustryUILabels(industryType: string | null | undefined): IndustryUILabels {
+  if (!industryType) return DEFAULT_LABELS;
+
+  // Food & Beverage industries
+  const foodTypes = ["Restaurant", "FastFoodRestaurant", "BarOrPub", "CafeOrCoffeeShop", "Bakery"];
+  if (foodTypes.includes(industryType)) {
+    return FOOD_BEVERAGE_LABELS;
+  }
+
+  // Legal industry
+  if (industryType === "Attorney") {
+    return LEGAL_LABELS;
+  }
+
+  return DEFAULT_LABELS;
+}
+
 export function getIndustryByCategory(): Record<
   IndustryCategory,
   IndustryType[]
@@ -358,7 +406,14 @@ export interface ServiceArea {
 export interface PromptTemplate {
   id: string;
   business_id: string;
-  page_type: "location-keyword" | "service-area";
+  page_type:
+    | "keyword-service-area"
+    | "keyword-location"
+    | "service-service-area"
+    | "service-location"
+    // Legacy aliases
+    | "location-keyword"
+    | "service-area";
   version: number;
   template: string;
   required_variables: string | null;

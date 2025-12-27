@@ -22,11 +22,11 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
   if (errors.length === 0) return null;
 
   return (
-    <div className="p-4 mb-6 border border-red-200 rounded-lg bg-red-50">
+    <div className="p-4 mb-6 border border-red-200 rounded-lg bg-metro-red-950">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           <svg
-            className="w-5 h-5 text-red-600"
+            className="w-5 h-5 text-metro-red"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -47,7 +47,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
               <li key={i}>
                 <button
                   onClick={() => onErrorClick?.(err.field)}
-                  className="text-sm text-left text-red-700 hover:underline"
+                  className="text-sm text-left text-metro-red-600 hover:underline"
                   type="button"
                 >
                   {err.section && (

@@ -804,8 +804,8 @@ export const KeywordsManagement: React.FC = () => {
         <StatsCards stats={stats} loading={loading} />
 
         {/* Add Keywords Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900">
+        <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 space-y-3">
+          <h3 className="text-lg font-semibold text-dark-100">
             Add New Keywords
           </h3>
 
@@ -813,14 +813,14 @@ export const KeywordsManagement: React.FC = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     English Keyword
                   </label>
                   <input
-                    className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`border rounded-lg px-3 py-2 w-full bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
                       inputError && inputError.includes("English")
-                        ? "border-red-500"
-                        : "border-gray-300"
+                        ? "border-metro-red"
+                        : "border-dark-600"
                     }`}
                     placeholder="e.g., criminal defense attorney DC"
                     value={newKeyword}
@@ -831,14 +831,14 @@ export const KeywordsManagement: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     Spanish Keyword
                   </label>
                   <input
-                    className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`border rounded-lg px-3 py-2 w-full bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
                       inputError && inputError.includes("Spanish")
-                        ? "border-red-500"
-                        : "border-gray-300"
+                        ? "border-metro-red"
+                        : "border-dark-600"
                     }`}
                     placeholder="e.g., abogado de defensa criminal DC"
                     value={newKeywordEs}
@@ -850,7 +850,7 @@ export const KeywordsManagement: React.FC = () => {
                 </div>
               </div>
               <button
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="bg-metro-orange text-white px-6 py-2 rounded-lg hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 onClick={handleAdd}
                 disabled={loading}
               >
@@ -860,7 +860,7 @@ export const KeywordsManagement: React.FC = () => {
           ) : (
             <div className="flex items-center gap-3">
               <select
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-dark-600 rounded-lg px-3 py-2 bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
                 value={newLanguage}
                 onChange={(e) => setNewLanguage(e.target.value as "en" | "es")}
                 aria-label="Keyword language"
@@ -869,8 +869,8 @@ export const KeywordsManagement: React.FC = () => {
                 <option value="es">Spanish (ES)</option>
               </select>
               <input
-                className={`border rounded-lg px-3 py-2 flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  inputError ? "border-red-500" : "border-gray-300"
+                className={`border rounded-lg px-3 py-2 flex-1 bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
+                  inputError ? "border-metro-red" : "border-dark-600"
                 }`}
                 placeholder="Add keyword"
                 value={newKeyword}
@@ -880,7 +880,7 @@ export const KeywordsManagement: React.FC = () => {
                 }}
               />
               <button
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="bg-metro-orange text-white px-6 py-2 rounded-lg hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 onClick={handleAdd}
                 disabled={loading}
               >
@@ -889,7 +889,7 @@ export const KeywordsManagement: React.FC = () => {
             </div>
           )}
           {inputError && (
-            <p className="text-red-600 text-sm flex items-center gap-1">
+            <p className="text-metro-red text-sm flex items-center gap-1">
               <span>⚠</span> {inputError}
             </p>
           )}
@@ -898,7 +898,7 @@ export const KeywordsManagement: React.FC = () => {
 
         {/* Keywords List */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+          <div className="bg-metro-red-950 border border-red-200 rounded-lg p-4 text-red-800">
             {error}
           </div>
         )}
@@ -906,7 +906,7 @@ export const KeywordsManagement: React.FC = () => {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading keywords...</span>
+            <span className="ml-3 text-dark-400">Loading keywords...</span>
           </div>
         ) : filteredPairs.length === 0 ? (
           <EmptyState
@@ -942,7 +942,7 @@ export const KeywordsManagement: React.FC = () => {
               return (
                 <div
                   key={pair.id}
-                  className={`bg-white border-2 rounded-lg p-4 transition-all hover:shadow-md ${
+                  className={`bg-dark-800 border-2 rounded-lg p-4 transition-all hover:shadow-md ${
                     pair.isPaired
                       ? "border-blue-200 bg-blue-50/30"
                       : "border-amber-200 bg-amber-50/30"
@@ -987,7 +987,7 @@ export const KeywordsManagement: React.FC = () => {
                             UNPAIRED
                           </span>
                         )}
-                        <h4 className="text-lg font-semibold text-gray-900 truncate">
+                        <h4 className="text-lg font-semibold text-dark-100 truncate">
                           {pair.displayName}
                         </h4>
                       </div>
@@ -998,8 +998,8 @@ export const KeywordsManagement: React.FC = () => {
                         <div
                           className={`p-3 rounded-lg border-2 ${
                             pair.en
-                              ? "bg-white border-blue-200"
-                              : "bg-gray-50 border-gray-200 border-dashed"
+                              ? "bg-dark-800 border-blue-200"
+                              : "bg-dark-900 border-dark-700 border-dashed"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -1008,7 +1008,7 @@ export const KeywordsManagement: React.FC = () => {
                             </span>
                             {hasEnTranslationMissing && (
                               <button
-                                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                className="text-xs text-metro-orange hover:text-blue-800 font-medium"
                                 onClick={() =>
                                   setAddingTranslationFor(pair.en!.id)
                                 }
@@ -1019,15 +1019,15 @@ export const KeywordsManagement: React.FC = () => {
                           </div>
                           {pair.en ? (
                             <>
-                              <p className="text-gray-900 font-medium">
+                              <p className="text-dark-100 font-medium">
                                 {pair.en.keyword}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                              <p className="text-xs text-dark-400 mt-1 font-mono truncate">
                                 /{pair.en.slug}
                               </p>
                             </>
                           ) : (
-                            <p className="text-gray-400 italic text-sm">
+                            <p className="text-dark-500 italic text-sm">
                               No English version
                             </p>
                           )}
@@ -1037,17 +1037,17 @@ export const KeywordsManagement: React.FC = () => {
                         <div
                           className={`p-3 rounded-lg border-2 ${
                             pair.es
-                              ? "bg-white border-green-200"
-                              : "bg-gray-50 border-gray-200 border-dashed"
+                              ? "bg-dark-800 border-green-200"
+                              : "bg-dark-900 border-dark-700 border-dashed"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-bold rounded">
+                            <span className="inline-block px-2 py-0.5 bg-metro-green-950 text-metro-green text-xs font-bold rounded">
                               ES
                             </span>
                             {hasEsTranslationMissing && (
                               <button
-                                className="text-xs text-green-600 hover:text-green-800 font-medium"
+                                className="text-xs text-metro-green hover:text-metro-green font-medium"
                                 onClick={() =>
                                   setAddingTranslationFor(pair.es!.id)
                                 }
@@ -1058,15 +1058,15 @@ export const KeywordsManagement: React.FC = () => {
                           </div>
                           {pair.es ? (
                             <>
-                              <p className="text-gray-900 font-medium">
+                              <p className="text-dark-100 font-medium">
                                 {pair.es.keyword}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                              <p className="text-xs text-dark-400 mt-1 font-mono truncate">
                                 /{pair.es.slug}
                               </p>
                             </>
                           ) : (
-                            <p className="text-gray-400 italic text-sm">
+                            <p className="text-dark-500 italic text-sm">
                               No Spanish version
                             </p>
                           )}
@@ -1077,8 +1077,8 @@ export const KeywordsManagement: React.FC = () => {
                       {addingTranslationFor &&
                         (pair.en?.id === addingTranslationFor ||
                           pair.es?.id === addingTranslationFor) && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <div className="mt-3 p-3 bg-dark-900 rounded-lg border border-dark-700">
+                            <label className="block text-sm font-medium text-dark-200 mb-2">
                               Add{" "}
                               {pair.en?.id === addingTranslationFor
                                 ? "Spanish"
@@ -1087,7 +1087,7 @@ export const KeywordsManagement: React.FC = () => {
                             </label>
                             <div className="flex items-center gap-2">
                               <input
-                                className="border border-gray-300 rounded-lg px-3 py-2 flex-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="border border-dark-600 rounded-lg px-3 py-2 flex-1 text-sm bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
                                 placeholder={`Enter ${
                                   pair.en?.id === addingTranslationFor
                                     ? "Spanish"
@@ -1113,13 +1113,13 @@ export const KeywordsManagement: React.FC = () => {
                                 }}
                               />
                               <button
-                                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 font-medium"
+                                className="px-4 py-2 text-sm text-dark-200 hover:text-dark-100 font-medium"
                                 onClick={() => setAddingTranslationFor(null)}
                               >
                                 Cancel
                               </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-dark-400 mt-1">
                               Press Enter to save, Escape to cancel
                             </p>
                           </div>
@@ -1130,7 +1130,7 @@ export const KeywordsManagement: React.FC = () => {
                     <button
                       onClick={() => handleDeletePair(pair)}
                       disabled={isDeleting}
-                      className="flex-shrink-0 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                      className="flex-shrink-0 px-3 py-2 text-metro-red hover:bg-metro-red-950 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
                       aria-label={`Delete ${pair.displayName}`}
                     >
                       {isDeleting ? (
@@ -1190,20 +1190,20 @@ export const KeywordsManagement: React.FC = () => {
                 return (
                   <div
                     key={keyword.id}
-                    className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow"
+                    className="bg-dark-800 border border-dark-700 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 font-medium truncate">
+                      <p className="text-dark-100 font-medium truncate">
                         {keyword.keyword}
                       </p>
-                      <p className="text-xs text-gray-500 font-mono truncate">
+                      <p className="text-xs text-dark-400 font-mono truncate">
                         /{keyword.slug}
                       </p>
                     </div>
                     <button
                       onClick={() => handleDelete(keyword.id)}
                       disabled={isDeleting}
-                      className="flex-shrink-0 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex-shrink-0 px-3 py-1.5 text-metro-red hover:bg-metro-red-950 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       aria-label={`Delete ${keyword.keyword}`}
                     >
                       {isDeleting ? "Deleting..." : "Delete"}
@@ -1275,14 +1275,14 @@ export const KeywordsManagement: React.FC = () => {
                 type="checkbox"
                 checked={bulkBilingual}
                 onChange={(e) => setBulkBilingual(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-metro-orange rounded focus:ring-metro-orange"
                 disabled={bulkLoading}
               />
               <span className="text-sm font-medium text-blue-800">
                 Create bilingual pairs (EN + ES)
               </span>
             </label>
-            <span className="text-xs text-blue-600">
+            <span className="text-xs text-metro-orange">
               {bulkBilingual
                 ? "Paste 2-column CSV: English, Spanish"
                 : "Single language keywords only"}
@@ -1295,26 +1295,26 @@ export const KeywordsManagement: React.FC = () => {
           // BILINGUAL MODE - Single textarea with CSV paste
           // ========================================
           <>
-            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
-              <p className="font-medium text-gray-700 mb-1">
+            <div className="text-sm text-dark-400 bg-dark-900 p-3 rounded border">
+              <p className="font-medium text-dark-200 mb-1">
                 Paste a 2-column CSV (comma or tab separated)
               </p>
               <p>
-                Format: <code className="bg-gray-200 px-1 rounded">english keyword, spanish keyword</code>
+                Format: <code className="bg-dark-700 px-1 rounded">english keyword, spanish keyword</code>
               </p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-dark-200">
                 Paste CSV data
                 {parsedPairs.length > 0 && (
-                  <span className="ml-2 text-xs text-green-600">
+                  <span className="ml-2 text-xs text-metro-green">
                     ({parsedPairs.length} pair{parsedPairs.length !== 1 ? "s" : ""} detected)
                   </span>
                 )}
               </label>
               <textarea
-                className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-dark-600 rounded p-2 w-full font-mono text-sm h-64 resize-none bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
                 placeholder={`criminal defense lawyer, abogado de defensa criminal
 DUI lawyer, abogado de DUI
 personal injury lawyer, abogado de lesiones personales
@@ -1328,7 +1328,7 @@ drug charges lawyer, abogado de cargos de drogas`}
 
             {/* Parse errors */}
             {hasParseErrors && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700">
+              <div className="p-3 bg-metro-red-950 border border-red-200 rounded text-metro-red-600">
                 <p className="text-sm font-medium mb-1">Format errors:</p>
                 <ul className="text-sm list-disc pl-5">
                   {parseErrors.slice(0, 5).map((err, i) => (
@@ -1343,7 +1343,7 @@ drug charges lawyer, abogado de cargos de drogas`}
 
             {/* Success indicator */}
             {parsedPairs.length > 0 && !hasParseErrors && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded text-green-700">
+              <div className="flex items-center gap-2 p-3 bg-metro-green-950 border border-green-200 rounded text-metro-green-600">
                 <svg
                   className="w-5 h-5 flex-shrink-0"
                   fill="currentColor"
@@ -1365,13 +1365,13 @@ drug charges lawyer, abogado de cargos de drogas`}
             {/* Preview of parsed pairs */}
             {parsedPairs.length > 0 && parsedPairs.length <= 10 && (
               <div className="text-sm">
-                <p className="font-medium text-gray-700 mb-2">Preview:</p>
-                <div className="bg-gray-50 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+                <p className="font-medium text-dark-200 mb-2">Preview:</p>
+                <div className="bg-dark-900 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
                   {parsedPairs.map((pair, i) => (
                     <div key={i} className="flex gap-2 text-xs font-mono">
-                      <span className="text-blue-600">{pair.en}</span>
-                      <span className="text-gray-400">=</span>
-                      <span className="text-green-600">{pair.es}</span>
+                      <span className="text-metro-orange">{pair.en}</span>
+                      <span className="text-dark-500">=</span>
+                      <span className="text-metro-green">{pair.es}</span>
                     </div>
                   ))}
                 </div>
@@ -1384,11 +1384,11 @@ drug charges lawyer, abogado de cargos de drogas`}
           // ========================================
           <>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-dark-200">
                 Language
               </label>
               <select
-                className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-dark-600 rounded px-2 py-1 text-sm bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
                 value={bulkLanguage}
                 onChange={(e) => setBulkLanguage(e.target.value as "en" | "es")}
                 disabled={bulkLoading}
@@ -1399,11 +1399,11 @@ drug charges lawyer, abogado de cargos de drogas`}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-dark-200">
                 Paste keywords (one per line)
               </label>
               <textarea
-                className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-dark-600 rounded p-2 w-full font-mono text-sm h-64 resize-none bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
                 placeholder={`criminal defense attorney
 DUI lawyer
 personal injury attorney
@@ -1419,7 +1419,7 @@ traffic ticket lawyer`}
 
         {/* Add Keywords Button */}
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={handleBulkAdd}
           disabled={bulkLoading || !hasContent || hasParseErrors}
         >
@@ -1431,8 +1431,8 @@ traffic ticket lawyer`}
         </button>
 
         {/* Help text */}
-        <div className="text-sm text-gray-600 space-y-1 border-t pt-4">
-          <p className="font-medium text-gray-700">Notes:</p>
+        <div className="text-sm text-dark-400 space-y-1 border-t pt-4">
+          <p className="font-medium text-dark-200">Notes:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Duplicate keywords are automatically skipped</li>
             <li>
@@ -1456,7 +1456,7 @@ traffic ticket lawyer`}
       return (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading settings...</span>
+          <span className="ml-3 text-dark-400">Loading settings...</span>
         </div>
       );
     }
@@ -1473,10 +1473,10 @@ traffic ticket lawyer`}
     <div className="space-y-8 max-w-4xl">
       {/* Section 1: Overview */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Overview
         </h2>
-        <div className="text-sm text-gray-700 space-y-2">
+        <div className="text-sm text-dark-200 space-y-2">
           <p>
             SEO keywords drive the generation of location-based landing pages for your business.
             When Spanish is enabled in Settings, keywords are managed as <strong>bilingual pairs</strong> (EN + ES)
@@ -1485,27 +1485,27 @@ traffic ticket lawyer`}
         </div>
 
         {/* Visual example of paired keywords */}
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-dark-900 border rounded-lg p-4">
+          <p className="text-sm font-medium text-dark-200 mb-3">
             Example keyword pair:
           </p>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-white p-3 rounded border border-blue-200">
+            <div className="bg-dark-800 p-3 rounded border border-blue-200">
               <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded mb-2">
                 EN
               </span>
-              <p className="font-mono text-gray-900">criminal defense lawyer</p>
-              <p className="text-xs text-gray-500 mt-1">/criminal-defense-lawyer</p>
+              <p className="font-mono text-dark-100">criminal defense lawyer</p>
+              <p className="text-xs text-dark-400 mt-1">/criminal-defense-lawyer</p>
             </div>
-            <div className="bg-white p-3 rounded border border-green-200">
-              <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-bold rounded mb-2">
+            <div className="bg-dark-800 p-3 rounded border border-green-200">
+              <span className="inline-block px-2 py-0.5 bg-metro-green-950 text-metro-green text-xs font-bold rounded mb-2">
                 ES
               </span>
-              <p className="font-mono text-gray-900">abogado de defensa criminal</p>
-              <p className="text-xs text-gray-500 mt-1">/criminal-defense-lawyer</p>
+              <p className="font-mono text-dark-100">abogado de defensa criminal</p>
+              <p className="text-xs text-dark-400 mt-1">/criminal-defense-lawyer</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-dark-400 mt-3">
             Both keywords share the same slug and generate matching EN/ES landing pages.
           </p>
         </div>
@@ -1513,7 +1513,7 @@ traffic ticket lawyer`}
 
       {/* Section 2: Adding Keywords */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Adding Keywords
         </h2>
 
@@ -1533,11 +1533,11 @@ traffic ticket lawyer`}
         </div>
 
         {/* Bulk Add Tab */}
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">
+        <div className="bg-dark-900 border rounded-lg p-4">
+          <h3 className="font-semibold text-dark-100 mb-2">
             Bulk Add Tab (Multiple at Once)
           </h3>
-          <p className="text-sm text-gray-700 mb-2">
+          <p className="text-sm text-dark-200 mb-2">
             Paste a 2-column CSV with English and Spanish keywords:
           </p>
           <div className="bg-gray-900 text-gray-100 rounded-lg p-3 font-mono text-xs overflow-x-auto mb-3">
@@ -1545,8 +1545,8 @@ traffic ticket lawyer`}
             <p>DUI lawyer, abogado de DUI</p>
             <p>personal injury lawyer, abogado de lesiones personales</p>
           </div>
-          <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-            <li>One pair per line: <code className="bg-gray-200 px-1 rounded text-xs">english, spanish</code></li>
+          <ul className="list-disc pl-5 text-sm text-dark-400 space-y-1">
+            <li>One pair per line: <code className="bg-dark-700 px-1 rounded text-xs">english, spanish</code></li>
             <li>Comma or tab separated (copy from Excel/Sheets)</li>
             <li>Preview shows parsed pairs before adding</li>
             <li>Maximum 100 pairs per operation</li>
@@ -1567,29 +1567,29 @@ traffic ticket lawyer`}
 
       {/* Section 3: Keyword Format */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Keyword Format
         </h2>
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-dark-200">
           Write keywords as descriptive phrases matching how users search:
         </p>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded p-3">
-            <p className="font-medium text-green-800 mb-2 text-sm">
+          <div className="bg-metro-green-950 border border-green-200 rounded p-3">
+            <p className="font-medium text-metro-green mb-2 text-sm">
               Good Examples
             </p>
-            <ul className="text-green-700 space-y-1 text-sm">
+            <ul className="text-metro-green-600 space-y-1 text-sm">
               <li>criminal defense attorney DC</li>
               <li>abogado de defensa criminal DC</li>
               <li>DUI lawyer Northern Virginia</li>
               <li>car accident lawyer near me</li>
             </ul>
           </div>
-          <div className="bg-red-50 border border-red-200 rounded p-3">
+          <div className="bg-metro-red-950 border border-red-200 rounded p-3">
             <p className="font-medium text-red-800 mb-2 text-sm">
               Avoid
             </p>
-            <ul className="text-red-700 space-y-1 text-sm">
+            <ul className="text-metro-red-600 space-y-1 text-sm">
               <li>lawyer (too generic)</li>
               <li>abogado (too generic)</li>
               <li>DUI (no context)</li>
@@ -1597,17 +1597,17 @@ traffic ticket lawyer`}
             </ul>
           </div>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-dark-400">
           Long-tail keywords with location modifiers perform better for local SEO.
         </p>
       </section>
 
       {/* Section 4: Best Practices */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Best Practices
         </h2>
-        <ul className="text-sm text-gray-700 space-y-2">
+        <ul className="text-sm text-dark-200 space-y-2">
           <li>
             <strong>Keep keywords paired.</strong> Unpaired keywords only generate
             content in one language, missing half your potential audience.
@@ -1629,10 +1629,10 @@ traffic ticket lawyer`}
 
       {/* Section 5: Settings */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Language Settings
         </h2>
-        <div className="bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+        <div className="bg-dark-900 border rounded-lg p-4 text-sm text-dark-200">
           <p className="mb-2">
             Go to the <strong>Settings</strong> tab to enable or disable Spanish:
           </p>
@@ -1640,7 +1640,7 @@ traffic ticket lawyer`}
             <li><strong>Spanish enabled:</strong> Keywords managed as EN/ES pairs, bilingual content generation</li>
             <li><strong>Spanish disabled:</strong> English-only keywords, single-language content</li>
           </ul>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-dark-400">
             This setting is saved per-business in the questionnaire.
           </p>
         </div>
@@ -1648,44 +1648,44 @@ traffic ticket lawyer`}
 
       {/* Current data snapshot */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-dark-100">
           Current Stats
         </h2>
         {selectedBusiness ? (
           loading ? (
-            <p className="text-gray-600 text-sm">Loading...</p>
+            <p className="text-dark-400 text-sm">Loading...</p>
           ) : (
-            <div className="bg-gray-50 border rounded-lg p-4">
+            <div className="bg-dark-900 border rounded-lg p-4">
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-dark-100">
                     {keywordPairs.filter((p) => p.isPaired).length}
                   </p>
-                  <p className="text-xs text-gray-600">Paired</p>
+                  <p className="text-xs text-dark-400">Paired</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-amber-600">
                     {keywordPairs.filter((p) => !p.isPaired).length}
                   </p>
-                  <p className="text-xs text-gray-600">Unpaired</p>
+                  <p className="text-xs text-dark-400">Unpaired</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-2xl font-bold text-metro-orange">
                     {keywords.filter((k) => k.language === "en").length}
                   </p>
-                  <p className="text-xs text-gray-600">English</p>
+                  <p className="text-xs text-dark-400">English</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-metro-green">
                     {keywords.filter((k) => k.language === "es").length}
                   </p>
-                  <p className="text-xs text-gray-600">Spanish</p>
+                  <p className="text-xs text-dark-400">Spanish</p>
                 </div>
               </div>
             </div>
           )
         ) : (
-          <p className="text-gray-600 text-sm">
+          <p className="text-dark-400 text-sm">
             Select a business to view stats.
           </p>
         )}
@@ -1698,10 +1698,10 @@ traffic ticket lawyer`}
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">SEO Keywords</h1>
         {!selectedBusiness ? (
-          <p className="text-gray-600">Select a business to manage keywords.</p>
+          <p className="text-dark-400">Select a business to manage keywords.</p>
         ) : (
           <>
-            <div className="border-b border-gray-200">
+            <div className="border-b border-dark-700">
               <nav className="flex gap-4" aria-label="Tabs">
                 {TABS.map((tab) => (
                   <button
@@ -1709,8 +1709,8 @@ traffic ticket lawyer`}
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-3 py-2 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.name
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                        ? "border-blue-600 text-metro-orange"
+                        : "border-transparent text-dark-400 hover:text-dark-100 hover:border-dark-600"
                     }`}
                   >
                     {tab.label}

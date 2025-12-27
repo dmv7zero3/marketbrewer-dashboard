@@ -5,7 +5,13 @@
 import React from "react";
 import type { PromptTemplate } from "@marketbrewer/shared";
 
-type PageType = "location-keyword" | "service-area";
+type PageType =
+  | "keyword-service-area"
+  | "keyword-location"
+  | "service-service-area"
+  | "service-location"
+  | "location-keyword"
+  | "service-area";
 
 export interface PromptEditorFormData {
   page_type: PageType;
@@ -68,13 +74,13 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   );
 
   return (
-    <div className="space-y-4 p-4 border rounded bg-gray-50">
+    <div className="space-y-4 p-4 border rounded bg-dark-900">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-lg">
           {mode === "create" ? "New Template" : "Edit Template"}
         </h3>
         {extractedVariables.length > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-dark-400">
             {extractedVariables.length} variable
             {extractedVariables.length !== 1 ? "s" : ""} detected
           </span>
@@ -83,7 +89,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-dark-200 mb-1">
             Page Type
           </label>
           <select
@@ -101,20 +107,20 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             <option value="service-area">service-area</option>
           </select>
           {mode === "edit" && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-dark-400 mt-1">
               Page type cannot be changed after creation
             </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-dark-200 mb-1">
             Version
           </label>
           <input
             type="number"
             className={`border rounded px-2 py-1 w-full ${
-              isDuplicateVersion ? "border-red-500" : ""
+              isDuplicateVersion ? "border-metro-red" : ""
             }`}
             value={formData.version}
             onChange={(e) =>
@@ -127,12 +133,12 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             disabled={saving || mode === "edit"}
           />
           {isDuplicateVersion && (
-            <p className="text-xs text-red-600 mt-1">
+            <p className="text-xs text-metro-red mt-1">
               Version {formData.version} already exists for {formData.page_type}
             </p>
           )}
           {mode === "edit" && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-dark-400 mt-1">
               Version cannot be changed after creation
             </p>
           )}
@@ -140,7 +146,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-dark-200 mb-1">
           Template Content
         </label>
         <textarea
@@ -160,11 +166,11 @@ Write content for {{city}}, {{state}}.`}
           disabled={saving}
         />
         <div className="flex items-center justify-between mt-1">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-dark-400">
             {formData.template.length.toLocaleString()} characters
           </span>
           {formData.template.length > 0 && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-dark-400">
               ~{Math.round(formData.template.split(/\s+/).length)} words
             </span>
           )}
@@ -175,8 +181,8 @@ Write content for {{city}}, {{state}}.`}
       {(undeclaredVariables.length > 0 || unusedDeclared.length > 0) && (
         <div className="space-y-2">
           {undeclaredVariables.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-              <p className="text-sm text-yellow-800">
+            <div className="bg-metro-yellow-950 border border-yellow-200 rounded p-3">
+              <p className="text-sm text-metro-yellow">
                 <strong>Variables in template but not declared:</strong>{" "}
                 {undeclaredVariables.map((v) => `{{${v}}}`).join(", ")}
               </p>
@@ -199,7 +205,7 @@ Write content for {{city}}, {{state}}.`}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-dark-200 mb-1">
             Required Variables (comma-separated)
           </label>
           <input
@@ -215,13 +221,13 @@ Write content for {{city}}, {{state}}.`}
             placeholder="business_name, city, state, phone"
             disabled={saving}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-dark-400 mt-1">
             Content generation will fail if these are missing
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-dark-200 mb-1">
             Optional Variables (comma-separated)
           </label>
           <input
@@ -237,7 +243,7 @@ Write content for {{city}}, {{state}}.`}
             placeholder="years_experience, differentiators, tone"
             disabled={saving}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-dark-400 mt-1">
             Will be substituted if available, blank otherwise
           </p>
         </div>
@@ -245,7 +251,7 @@ Write content for {{city}}, {{state}}.`}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-dark-200 mb-1">
             Word Count Target
           </label>
           <input
@@ -262,7 +268,7 @@ Write content for {{city}}, {{state}}.`}
             max={10000}
             disabled={saving}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-dark-400 mt-1">
             Target word count for generated content (100-10,000)
           </p>
         </div>
@@ -281,9 +287,9 @@ Write content for {{city}}, {{state}}.`}
               disabled={saving}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-gray-700">Active</span>
+            <span className="text-sm font-medium text-dark-200">Active</span>
           </label>
-          <p className="text-xs text-gray-500 ml-2">
+          <p className="text-xs text-dark-400 ml-2">
             Only active templates are used for content generation
           </p>
         </div>
@@ -291,14 +297,14 @@ Write content for {{city}}, {{state}}.`}
 
       <div className="flex gap-2 pt-2">
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600 disabled:opacity-50"
           onClick={onSave}
           disabled={saving || isDuplicateVersion || !formData.template.trim()}
         >
           {saving ? "Saving..." : mode === "create" ? "Create Template" : "Save Changes"}
         </button>
         <button
-          className="border px-4 py-2 rounded hover:bg-gray-100 disabled:opacity-50"
+          className="border px-4 py-2 rounded hover:bg-dark-800 disabled:opacity-50"
           onClick={onCancel}
           disabled={saving}
         >

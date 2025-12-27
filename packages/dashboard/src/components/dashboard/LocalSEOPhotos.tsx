@@ -8,11 +8,11 @@ export const LocalSEOPhotos: React.FC = () => {
     <DashboardLayout>
       <h1 className="text-2xl font-bold">Local SEO Photos</h1>
       {!selectedBusiness ? (
-        <p className="text-gray-600 mt-2">
+        <p className="text-dark-400 mt-2">
           Select a business to upload photos.
         </p>
       ) : (
-        <p className="text-gray-600 mt-2">
+        <p className="text-dark-400 mt-2">
           Photo uploads for: {selectedBusiness}
         </p>
       )}

@@ -38,9 +38,9 @@ export const Dashboard: React.FC = () => {
     <DashboardLayout>
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-        {loading && <p className="text-gray-500">Loading businesses...</p>}
+        {loading && <p className="text-dark-400">Loading businesses...</p>}
         {!loading && !selectedBusiness && (
-          <p className="text-gray-600">
+          <p className="text-dark-400">
             Please select a business from the sidebar.
           </p>
         )}
@@ -48,30 +48,30 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-4">
             <div>
               <h2 className="text-xl font-semibold">Recent Jobs</h2>
-              {jobsLoading && <p className="text-gray-500">Loading jobs...</p>}
-              {error && <p className="text-red-600">{error}</p>}
+              {jobsLoading && <p className="text-dark-400">Loading jobs...</p>}
+              {error && <p className="text-metro-red">{error}</p>}
               {!jobsLoading && jobs.length === 0 && (
-                <p className="text-gray-600">
+                <p className="text-dark-400">
                   No jobs yet. Create one in Generate Content.
                 </p>
               )}
               <ul className="space-y-2">
                 {jobs.slice(0, 10).map((job) => (
-                  <li key={job.id} className="border rounded p-3 bg-white">
+                  <li key={job.id} className="border rounded p-3 bg-dark-800">
                     <div className="flex justify-between">
                       <div>
-                        <p className="text-gray-800">Job {job.id}</p>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-dark-100">Job {job.id}</p>
+                        <p className="text-dark-400 text-sm">
                           Status: {job.status}
                         </p>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-dark-400 text-sm">
                           Pages: {job.completed_pages + job.failed_pages}/
                           {job.total_pages}
                         </p>
                       </div>
                       <Link
                         to={`/jobs/${job.business_id}/${job.id}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-metro-orange hover:underline"
                       >
                         View
                       </Link>

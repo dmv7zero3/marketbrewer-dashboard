@@ -17,32 +17,32 @@ export const ProfileStatus = memo<ProfileStatusProps>(
       : "Complete more sections to enable generation";
 
     return (
-      <div className="flex flex-col items-center p-6 bg-white border rounded-lg shadow-sm">
-        <h2 className="mb-6 text-lg font-semibold text-gray-900">
+      <div className="flex flex-col items-center p-6 bg-dark-800 border rounded-lg shadow-sm">
+        <h2 className="mb-6 text-lg font-semibold text-dark-100">
           Profile Status
         </h2>
 
         <CompletenessRing score={completenessScore} size="md" />
 
         <div className="mt-6 space-y-3 text-center">
-          <p className="text-xs text-gray-600">{statusText}</p>
+          <p className="text-xs text-dark-400">{statusText}</p>
 
           {/* Progress indicator */}
           <div className="w-full space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Progress</span>
+              <span className="text-dark-400">Progress</span>
               <span
                 className={`font-medium ${
-                  isReady ? "text-green-600" : "text-yellow-600"
+                  isReady ? "text-metro-green" : "text-metro-yellow"
                 }`}
               >
                 {completenessScore}%
               </span>
             </div>
-            <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
+            <div className="w-full h-2 overflow-hidden bg-dark-700 rounded-full">
               <div
                 className={`h-full rounded-full transition-all ${
-                  isReady ? "bg-green-500" : "bg-yellow-500"
+                  isReady ? "bg-metro-green-9500" : "bg-metro-yellow-9500"
                 }`}
                 style={{ width: `${completenessScore}%` }}
                 role="progressbar"
@@ -57,8 +57,8 @@ export const ProfileStatus = memo<ProfileStatusProps>(
           <div
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
               isReady
-                ? "bg-green-50 text-green-700"
-                : "bg-yellow-50 text-yellow-700"
+                ? "bg-metro-green-950 text-metro-green-600"
+                : "bg-metro-yellow-950 text-yellow-700"
             }`}
           >
             <span>{isReady ? "✓" : "○"}</span>

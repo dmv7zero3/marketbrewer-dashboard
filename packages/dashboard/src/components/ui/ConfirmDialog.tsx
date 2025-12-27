@@ -26,15 +26,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   if (!isOpen) return null;
 
   const confirmButtonClass = {
-    danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
-    warning: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
-    info: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+    danger: "bg-metro-red hover:bg-metro-red-700 focus:ring-metro-red",
+    warning: "bg-metro-yellow text-dark-900 hover:bg-metro-yellow-500 focus:ring-metro-yellow",
+    info: "bg-metro-blue hover:bg-metro-blue-600 focus:ring-metro-blue",
   }[variant];
 
   const iconColor = {
-    danger: "text-red-600",
-    warning: "text-yellow-600",
-    info: "text-blue-600",
+    danger: "text-metro-red",
+    warning: "text-metro-yellow",
+    info: "text-metro-blue",
   }[variant];
 
   // Handle escape key
@@ -50,14 +50,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLoading) {
           onCancel();
         }
       }}
     >
-      <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+      <div className="bg-dark-800 border border-dark-700 rounded-lg max-w-md w-full p-6 shadow-dark-xl">
         <div className="flex items-start gap-4">
           <div className={`flex-shrink-0 ${iconColor}`}>
             {variant === "danger" && (
@@ -89,24 +89,24 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             )}
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-dark-100 mb-2">
               {title}
             </h3>
-            <p className="text-gray-600">{message}</p>
+            <p className="text-dark-400">{message}</p>
           </div>
         </div>
         <div className="flex items-center justify-end gap-3 mt-6">
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-dark-300 hover:text-dark-100 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`px-4 py-2 text-white rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${confirmButtonClass}`}
+            className={`px-4 py-2 text-white rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${confirmButtonClass}`}
           >
             {isLoading ? "Processing..." : confirmLabel}
           </button>

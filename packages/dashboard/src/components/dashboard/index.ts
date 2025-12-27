@@ -15,5 +15,7 @@ export { ServicesManagement } from "./ServicesManagement";
 export { ServiceAreas } from "./ServiceAreas";
 export { LocationsManagement } from "./LocationsManagement";
 export { PageContentGeneration } from "./PageContentGeneration";
+export { PagePreview } from "./PagePreview";
+export { GeneratedPageViewer } from "./GeneratedPageViewer";
 export { LocalSEOPhotos } from "./LocalSEOPhotos";
 export { Billing } from "./Billing";

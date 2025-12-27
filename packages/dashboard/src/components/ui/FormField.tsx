@@ -18,17 +18,17 @@ export const FormField: React.FC<FormFieldProps> = ({
   children,
 }) => (
   <div className={className}>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-dark-300 mb-1">
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="text-metro-red ml-1">*</span>}
     </label>
     {children}
     {error && (
-      <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+      <p className="text-sm text-metro-red mt-1 flex items-center gap-1">
         <span>⚠</span> {error}
       </p>
     )}
-    {hint && !error && <p className="text-sm text-gray-500 mt-1">{hint}</p>}
+    {hint && !error && <p className="text-sm text-dark-500 mt-1">{hint}</p>}
   </div>
 );
 
@@ -50,12 +50,12 @@ export const FormInput: React.FC<FormInputProps> = ({
 }) => (
   <FormField label={label} required={required} error={error} hint={hint}>
     <input
-      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+      className={`w-full bg-dark-800 border rounded-lg px-3 py-2 text-dark-100 placeholder:text-dark-500 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange transition-colors ${
         error
-          ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-          : "border-gray-300"
+          ? "border-metro-red focus:ring-metro-red focus:border-metro-red"
+          : "border-dark-600"
       } ${
-        props.disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+        props.disabled ? "bg-dark-700 text-dark-500 cursor-not-allowed" : ""
       } ${className}`}
       aria-invalid={!!error}
       aria-describedby={error ? `${props.id || props.name}-error` : undefined}
@@ -85,12 +85,12 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
   <FormField label={label} required={required} error={error} hint={hint}>
     <textarea
       rows={rows}
-      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${
+      className={`w-full bg-dark-800 border rounded-lg px-3 py-2 text-dark-100 placeholder:text-dark-500 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange transition-colors resize-none ${
         error
-          ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-          : "border-gray-300"
+          ? "border-metro-red focus:ring-metro-red focus:border-metro-red"
+          : "border-dark-600"
       } ${
-        props.disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+        props.disabled ? "bg-dark-700 text-dark-500 cursor-not-allowed" : ""
       } ${className}`}
       aria-invalid={!!error}
       aria-describedby={error ? `${props.id || props.name}-error` : undefined}
@@ -120,12 +120,12 @@ export const FormSelect: React.FC<FormSelectProps> = ({
 }) => (
   <FormField label={label} required={required} error={error} hint={hint}>
     <select
-      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+      className={`w-full bg-dark-800 border rounded-lg px-3 py-2 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange transition-colors ${
         error
-          ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-          : "border-gray-300"
+          ? "border-metro-red focus:ring-metro-red focus:border-metro-red"
+          : "border-dark-600"
       } ${
-        props.disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+        props.disabled ? "bg-dark-700 text-dark-500 cursor-not-allowed" : ""
       } ${className}`}
       aria-invalid={!!error}
       aria-describedby={error ? `${props.id || props.name}-error` : undefined}

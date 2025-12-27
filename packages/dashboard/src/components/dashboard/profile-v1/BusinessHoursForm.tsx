@@ -42,7 +42,7 @@ export const BusinessHoursForm = memo<BusinessHoursFormProps>(
 
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-12 gap-2 text-xs text-gray-500">
+        <div className="grid grid-cols-12 gap-2 text-xs text-dark-400">
           <div className="col-span-4">Day</div>
           <div className="col-span-3">Opens</div>
           <div className="col-span-3">Closes</div>
@@ -51,7 +51,7 @@ export const BusinessHoursForm = memo<BusinessHoursFormProps>(
 
         {normalized.map((row) => (
           <div key={row.day_of_week} className="grid grid-cols-12 gap-2">
-            <div className="col-span-4 flex items-center text-sm text-gray-900">
+            <div className="col-span-4 flex items-center text-sm text-dark-100">
               {row.day_of_week}
             </div>
 
@@ -59,7 +59,7 @@ export const BusinessHoursForm = memo<BusinessHoursFormProps>(
               <input
                 type="time"
                 disabled={disabled || row.is_closed}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
                 value={row.opens ?? ""}
                 onChange={(e) =>
                   update(row.day_of_week, {
@@ -73,7 +73,7 @@ export const BusinessHoursForm = memo<BusinessHoursFormProps>(
               <input
                 type="time"
                 disabled={disabled || row.is_closed}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
                 value={row.closes ?? ""}
                 onChange={(e) =>
                   update(row.day_of_week, {
@@ -101,7 +101,7 @@ export const BusinessHoursForm = memo<BusinessHoursFormProps>(
           </div>
         ))}
 
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-dark-400">
           Optional. Used for local SEO content and schema markup.
         </p>
       </div>

@@ -33,7 +33,13 @@ const TABS: { name: TabName; label: string }[] = [
   { name: "instructions", label: "Instructions" },
 ];
 
-type PageType = "location-keyword" | "service-area";
+type PageType =
+  | "keyword-service-area"
+  | "keyword-location"
+  | "service-service-area"
+  | "service-location"
+  | "location-keyword"
+  | "service-area";
 
 const EMPTY_FORM: PromptEditorFormData = {
   page_type: "location-keyword",
@@ -286,25 +292,25 @@ export const PromptsManagement: React.FC = () => {
 
   const renderStatsCards = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className="bg-white border rounded-lg p-4">
-        <div className="text-2xl font-bold text-gray-900">{totalTemplates}</div>
-        <div className="text-sm text-gray-600">Total Templates</div>
+      <div className="bg-dark-800 border rounded-lg p-4">
+        <div className="text-2xl font-bold text-dark-100">{totalTemplates}</div>
+        <div className="text-sm text-dark-400">Total Templates</div>
       </div>
-      <div className="bg-white border rounded-lg p-4">
-        <div className="text-2xl font-bold text-green-600">{activeTemplates}</div>
-        <div className="text-sm text-gray-600">Active</div>
+      <div className="bg-dark-800 border rounded-lg p-4">
+        <div className="text-2xl font-bold text-metro-green">{activeTemplates}</div>
+        <div className="text-sm text-dark-400">Active</div>
       </div>
-      <div className="bg-white border rounded-lg p-4">
+      <div className="bg-dark-800 border rounded-lg p-4">
         <div className="text-2xl font-bold text-purple-600">
           {locationKeywordTemplates}
         </div>
-        <div className="text-sm text-gray-600">Location-Keyword</div>
+        <div className="text-sm text-dark-400">Location-Keyword</div>
       </div>
-      <div className="bg-white border rounded-lg p-4">
-        <div className="text-2xl font-bold text-green-600">
+      <div className="bg-dark-800 border rounded-lg p-4">
+        <div className="text-2xl font-bold text-metro-green">
           {serviceAreaTemplates}
         </div>
-        <div className="text-sm text-gray-600">Service-Area</div>
+        <div className="text-sm text-dark-400">Service-Area</div>
       </div>
     </div>
   );
@@ -314,16 +320,16 @@ export const PromptsManagement: React.FC = () => {
       {renderStatsCards()}
 
       <button
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600"
         onClick={handleStartCreate}
       >
         + Add New Template
       </button>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-metro-red">{error}</p>}
 
       {loading ? (
-        <p className="text-gray-500">Loading templates...</p>
+        <p className="text-dark-400">Loading templates...</p>
       ) : templates.length === 0 ? (
         <EmptyState
           icon={EmptyStateIcons.prompts}
@@ -339,7 +345,7 @@ export const PromptsManagement: React.FC = () => {
           {templates.map((t) => (
             <li
               key={t.id}
-              className="border rounded p-4 bg-white hover:shadow-sm transition-shadow"
+              className="border rounded p-4 bg-dark-800 hover:shadow-sm transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -347,32 +353,32 @@ export const PromptsManagement: React.FC = () => {
                     <span
                       className={`px-2 py-0.5 text-xs rounded font-medium ${
                         t.page_type === "location-keyword"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-green-100 text-green-800"
+                          ? "bg-purple-900/50 text-purple-400"
+                          : "bg-metro-green-950 text-metro-green"
                       }`}
                     >
                       {t.page_type}
                     </span>
-                    <span className="text-sm text-gray-600">v{t.version}</span>
+                    <span className="text-sm text-dark-400">v{t.version}</span>
                     <span
                       className={`px-2 py-0.5 text-xs rounded ${
                         t.is_active
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-metro-green-950 text-metro-green"
+                          : "bg-dark-800 text-dark-400"
                       }`}
                     >
                       {t.is_active ? "Active" : "Inactive"}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-dark-400">
                       {t.word_count_target} words
                     </span>
                   </div>
-                  <p className="text-gray-700 text-sm font-mono line-clamp-3 whitespace-pre-wrap">
+                  <p className="text-dark-200 text-sm font-mono line-clamp-3 whitespace-pre-wrap">
                     {t.template.substring(0, 200)}
                     {t.template.length > 200 ? "..." : ""}
                   </p>
                   {(t.required_variables || t.optional_variables) && (
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="mt-2 text-xs text-dark-400">
                       {t.required_variables && (
                         <span>
                           Required:{" "}
@@ -391,19 +397,19 @@ export const PromptsManagement: React.FC = () => {
                 </div>
                 <div className="flex gap-2 ml-4">
                   <button
-                    className="text-gray-600 hover:text-gray-800 text-sm"
+                    className="text-dark-400 hover:text-dark-100 text-sm"
                     onClick={() => handlePreview(t)}
                   >
                     Preview
                   </button>
                   <button
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="text-metro-orange hover:text-blue-800 text-sm"
                     onClick={() => handleStartEdit(t)}
                   >
                     Edit
                   </button>
                   <button
-                    className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                    className="text-metro-red hover:text-red-800 text-sm disabled:opacity-50"
                     onClick={() => handleDelete(t.id, t.page_type, t.version)}
                     disabled={deletingIds.has(t.id)}
                   >
@@ -459,7 +465,7 @@ export const PromptsManagement: React.FC = () => {
       <div className="space-y-4">
         {templates.length > 0 && (
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-dark-200">
               Select Template:
             </label>
             <select
@@ -497,7 +503,7 @@ export const PromptsManagement: React.FC = () => {
         <h2 className="text-xl font-semibold mb-3">
           1. Output Format Requirements
         </h2>
-        <div className="bg-gray-50 p-4 rounded border">
+        <div className="bg-dark-900 p-4 rounded border">
           <p className="mb-3">
             All prompts must instruct the model to return JSON in this exact
             format:
@@ -509,7 +515,7 @@ export const PromptsManagement: React.FC = () => {
   "body": "350-450 words of content"
 }`}
           </pre>
-          <ul className="mt-4 space-y-2 text-sm text-gray-700">
+          <ul className="mt-4 space-y-2 text-sm text-dark-200">
             <li>
               <strong>Title:</strong> Maximum 70 characters. Include keyword and
               city.
@@ -528,10 +534,10 @@ export const PromptsManagement: React.FC = () => {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">2. Template Syntax</h2>
-        <ul className="space-y-2 text-gray-700">
+        <ul className="space-y-2 text-dark-200">
           <li>
             <strong>Variable format:</strong> Use double curly braces:{" "}
-            <code className="bg-gray-100 px-1 rounded">
+            <code className="bg-dark-800 px-1 rounded">
               {"{{variable_name}}"}
             </code>
           </li>
@@ -552,7 +558,7 @@ export const PromptsManagement: React.FC = () => {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">3. Best Practices</h2>
-        <ul className="space-y-2 text-gray-700">
+        <ul className="space-y-2 text-dark-200">
           <li>
             - Mention the location (city, state) 2-3 times naturally in the body
           </li>
@@ -570,24 +576,24 @@ export const PromptsManagement: React.FC = () => {
         <h2 className="text-xl font-semibold mb-3">4. Page Types</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="border rounded p-4 bg-purple-50">
-            <h3 className="font-semibold text-purple-800 mb-2">
+            <h3 className="font-semibold text-purple-400 mb-2">
               location-keyword
             </h3>
-            <p className="text-sm text-gray-700 mb-2">
+            <p className="text-sm text-dark-200 mb-2">
               Keyword-focused page optimized for specific search intent. Answer
               what searchers are looking for.
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-dark-400">
               <strong>Example:</strong> &quot;Best Burgers in Arlington&quot;
             </p>
           </div>
-          <div className="border rounded p-4 bg-green-50">
-            <h3 className="font-semibold text-green-800 mb-2">service-area</h3>
-            <p className="text-sm text-gray-700 mb-2">
+          <div className="border rounded p-4 bg-metro-green-950">
+            <h3 className="font-semibold text-metro-green mb-2">service-area</h3>
+            <p className="text-sm text-dark-200 mb-2">
               Service-focused page for a specific city. Focus on the service
               offering and local presence.
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-dark-400">
               <strong>Example:</strong> &quot;Plumbing Services in Sterling,
               VA&quot;
             </p>
@@ -597,8 +603,8 @@ export const PromptsManagement: React.FC = () => {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">5. Example Template</h2>
-        <div className="bg-gray-50 p-4 rounded border">
-          <pre className="text-sm whitespace-pre-wrap font-mono text-gray-700">
+        <div className="bg-dark-900 p-4 rounded border">
+          <pre className="text-sm whitespace-pre-wrap font-mono text-dark-200">
             {`You are an SEO content writer for {{business_name}}, a {{industry}} business.
 
 Write a local SEO landing page for "{{primary_keyword}}" targeting customers in {{city}}, {{state}}.
@@ -646,12 +652,12 @@ IMPORTANT:
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Prompt Templates</h1>
         {!selectedBusiness ? (
-          <p className="text-gray-600">
+          <p className="text-dark-400">
             Select a business to manage prompt templates.
           </p>
         ) : (
           <>
-            <div className="border-b border-gray-200">
+            <div className="border-b border-dark-700">
               <nav className="flex gap-4" aria-label="Tabs">
                 {TABS.map((tab) => (
                   <button
@@ -659,13 +665,13 @@ IMPORTANT:
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-3 py-2 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.name
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                        ? "border-blue-600 text-metro-orange"
+                        : "border-transparent text-dark-400 hover:text-dark-100 hover:border-dark-600"
                     }`}
                   >
                     {tab.label}
                     {tab.name === "editor" && (isCreating || editingId) && (
-                      <span className="ml-1 w-2 h-2 bg-blue-600 rounded-full inline-block" />
+                      <span className="ml-1 w-2 h-2 bg-metro-orange rounded-full inline-block" />
                     )}
                   </button>
                 ))}

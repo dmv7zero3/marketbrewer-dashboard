@@ -1,0 +1,72 @@
+{
+  "slug": "abogado-dui-defense/anne-arundel-county-md",
+  "language": "es",
+  "service": {
+    "name": "DUI Defense",
+    "nameEs": "Defensa de DUI",
+    "slug": "abogado-dui-defense"
+  },
+  "location": {
+    "city": "Anne Arundel County",
+    "state": "MD",
+    "slug": "anne-arundel-county-md"
+  },
+  "meta": {
+    "title": "Defensa de DUI en Anne Arundel County, MD | Street Lawyer...",
+    "description": "Defensa efectiva contra cargos de DUI en Anne Arundel County. Contacta a Street Lawyer Magic para obtener un asesoramiento gratuito y construir tu caso.",
+    "canonical": "https://streetlawyermagic.com/abogado-dui-defense/anne-arundel-county-md",
+    "ogImage": "/images/og-image/street-lawyer-magic-og.jpg",
+    "siteUrl": "https://streetlawyermagic.com"
+  },
+  "content": {
+    "h1": "Defensa de DUI en Anne Arundel County",
+    "intro": "<p>¿Estás enfrentando cargos de conducción bajo la influencia? No estés solo. La Street Lawyer Magic tiene más de 4.000 casos resueltos desde 2005 y está aquí para ayudarte.\n\nCon nuestra experiencia y conocimiento del sistema judicial de Maryland, podemos ofrecerte una defensa efectiva contra los cargos de DUI en Anne Arundel County.\n\nContactanos hoy mismo al 240-478-2189 para obtener un asesoramiento gratuito y empezar a construir tu caso.\n</p>",
+    "sections": [
+      {
+        "heading": "¿Por qué elegir Street Lawyer Magic?",
+        "body": "<p>Nuestra experiencia es lo que nos distingue. Con más de 4.000 casos resueltos, sabemos cómo navegar por el sistema judicial y ofrecer una defensa efectiva.\n\nNuestro enfoque es agresivo y comprometido con la justicia.\n</p>"
+      },
+      {
+        "heading": "Nuestra experiencia en Defensa de DUI en Anne Arundel County",
+        "body": "<p>Nuestra equipo tiene conocimiento profundo del sistema judicial de Maryland y las leyes locales que rigen el estado de Annapolis. Podemos ofrecerte una defensa efectiva contra los cargos de DUI.\n\nNo te pongas en riesgo: contacta a Street Lawyer Magic hoy mismo para obtener un asesoramiento gratuito.</p>"
+      },
+      {
+        "heading": "Lo que hacemos por usted",
+        "body": "<ul><li>Representamos a clientes en casos de DUI en todos los niveles del tribunal</li><li>Ofercemos asesoramientos gratuitos y estratégicos</li><li>Ayudan a nuestros clientes a comprender sus derechos y opciones legales</li><li>Trabajan para minimizar las consecuencias de los cargos de DUI</li></ul>"
+      }
+    ],
+    "cta": "Obtenga un asesoramiento gratuito hoy mismo al 240-478-2189"
+  },
+  "business": {
+    "name": "Street Lawyer Magic",
+    "phone": "240-478-2189",
+    "email": "lonny@streetlawyermagic.com"
+  },
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "LegalService",
+    "name": "Defensa de DUI - Street Lawyer Magic",
+    "description": "Defensa de DUI in Anne Arundel County, MD",
+    "telephone": "240-478-2189",
+    "email": "lonny@streetlawyermagic.com",
+    "url": "https://streetlawyermagic.com/abogado-dui-defense/anne-arundel-county-md",
+    "priceRange": "Free Consultation",
+    "areaServed": {
+      "@type": "City",
+      "name": "Anne Arundel County",
+      "addressRegion": "MD",
+      "addressCountry": "US"
+    },
+    "provider": {
+      "@type": "Attorney",
+      "name": "Lonny Bramzon",
+      "jobTitle": "Criminal Defense Attorney",
+      "telephone": "240-478-2189"
+    },
+    "serviceType": "Defensa de DUI",
+    "availableLanguage": [
+      "Spanish",
+      "English"
+    ]
+  }
+}

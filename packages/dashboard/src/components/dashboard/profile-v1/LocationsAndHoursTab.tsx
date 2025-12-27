@@ -94,17 +94,17 @@ export const LocationsAndHoursTab: React.FC<BusinessHoursTabProps> = ({
     <div className="space-y-8">
       {/* Business Hours Section */}
       <section>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-dark-100 mb-4">
           Business Hours
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-dark-400 mb-6">
           Set your general operating hours for each day of the week. Helps
           customers know when you're available.
         </p>
         {loadingHours ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+              <div key={i} className="h-10 bg-dark-700 rounded animate-pulse" />
             ))}
           </div>
         ) : (
@@ -119,14 +119,14 @@ export const LocationsAndHoursTab: React.FC<BusinessHoursTabProps> = ({
                 <button
                   onClick={handleSaveHours}
                   disabled={savingHours}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-metro-orange text-white rounded-md hover:bg-metro-orange-600 disabled:opacity-50"
                 >
                   {savingHours ? "Saving..." : "Save Hours"}
                 </button>
                 <button
                   onClick={() => setHours(originalHours)}
                   disabled={savingHours}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+                  className="px-4 py-2 bg-dark-700 text-dark-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
                 >
                   Cancel
                 </button>

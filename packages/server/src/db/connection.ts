@@ -124,4 +124,11 @@ export function closeDatabase(): void {
   db.close();
 }
 
+/**
+ * Get the database instance
+ */
+export function getDatabase(): Database.Database {
+  return db;
+}
+
 export default db;

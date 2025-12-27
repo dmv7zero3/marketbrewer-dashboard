@@ -100,8 +100,8 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-dark-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-dark-800 border-b border-dark-700 px-6 py-4">
           <h2 className="text-xl font-semibold">
             {mode === "create" ? "Add New Location" : "Edit Location"}
           </h2>
@@ -110,12 +110,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Information */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-semibold text-dark-100 mb-3">
               Basic Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Location Name *
                 </label>
                 <input
@@ -125,13 +125,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   placeholder="e.g., Downtown, North"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Display Name
                 </label>
                 <input
@@ -140,13 +140,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, display_name: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   placeholder="Auto-generated if empty"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Status *
                 </label>
                 <select
@@ -158,7 +158,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                       status: e.target.value as "active" | "upcoming",
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 >
                   <option value="active">Active</option>
                   <option value="upcoming">Upcoming</option>
@@ -166,7 +166,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Store ID
                 </label>
                 <input
@@ -175,7 +175,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, store_id: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
             </div>
@@ -183,12 +183,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
 
           {/* Address */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-semibold text-dark-100 mb-3">
               Address
             </h3>
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Street Address
                 </label>
                 <input
@@ -197,13 +197,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     City *
                   </label>
                   <input
@@ -213,12 +213,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, city: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     State *
                   </label>
                   <input
@@ -228,13 +228,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, state: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-dark-600 rounded-lg px-3 py-2"
                     placeholder="e.g., VA"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     ZIP Code
                   </label>
                   <input
@@ -243,12 +243,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, zip_code: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-dark-200 mb-1">
                     Country *
                   </label>
                   <input
@@ -258,13 +258,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, country: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Full Address (auto-generated if empty)
                 </label>
                 <input
@@ -273,7 +273,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, full_address: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
             </div>
@@ -281,12 +281,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
 
           {/* Contact & Links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-semibold text-dark-100 mb-3">
               Contact & Links
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Phone
                 </label>
                 <input
@@ -295,12 +295,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Email
                 </label>
                 <input
@@ -309,12 +309,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Google Maps URL
                 </label>
                 <input
@@ -326,12 +326,12 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                       google_maps_url: e.target.value,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Order Link
                 </label>
                 <input
@@ -340,7 +340,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, order_link: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
             </div>
@@ -348,7 +348,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
 
           {/* Additional Settings */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-semibold text-dark-100 mb-3">
               Additional Settings
             </h3>
             <div className="space-y-4">
@@ -363,16 +363,16 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                         is_headquarters: e.target.checked,
                       })
                     }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    className="rounded border-dark-600 text-metro-orange focus:ring-metro-orange mr-2"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-dark-200">
                     Mark as headquarters
                   </span>
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Priority (higher = appears first)
                 </label>
                 <input
@@ -384,13 +384,13 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                       priority: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                   min="0"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -399,26 +399,26 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
                     setFormData({ ...formData, note: e.target.value })
                   }
                   rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-dark-600 rounded-lg px-3 py-2"
                 />
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-dark-700">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 border border-dark-600 rounded-lg text-sm hover:bg-dark-900 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-metro-orange text-white rounded-lg text-sm hover:bg-metro-orange-600 disabled:opacity-50"
             >
               {submitting
                 ? "Saving..."

@@ -407,7 +407,7 @@ export const BusinessProfile: React.FC = () => {
       >
         {!selectedBusiness ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
+            <div className="w-16 h-16 text-dark-500 mx-auto mb-4">
               <svg
                 fill="none"
                 stroke="currentColor"
@@ -422,27 +422,27 @@ export const BusinessProfile: React.FC = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-dark-100 mb-2">
               No business selected
             </h3>
-            <p className="text-gray-600">
+            <p className="text-dark-400">
               Select a business from the sidebar to manage its profile.
             </p>
           </div>
         ) : loading ? (
           <div className="space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
+            <div className="h-8 bg-dark-700 rounded w-1/3 animate-pulse" />
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="h-10 bg-gray-200 rounded animate-pulse"
+                  className="h-10 bg-dark-700 rounded animate-pulse"
                 />
               ))}
             </div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded p-4 text-red-600">
+          <div className="bg-metro-red-950 border border-red-200 rounded p-4 text-metro-red">
             {error}
           </div>
         ) : (

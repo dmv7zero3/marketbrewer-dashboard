@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Git
+.git/
+
+# Binary/asset files
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.mp4
+*.webm
+*.webp
+fonts/
+packages/dashboard/src/fonts/
+
+# Generated/temporary files
+*.log
+.cache/
+__pycache__/
+*.pyc
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+data/
+
+# Backup/archive
+*.zip
+*.tar
+*.gz
+backup/
+
+# Environment/secrets
+.env
+.env.*
+.env.local
+.env.production
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test outputs and generated pages
+test-pages/
+generated-pages/
+output/
+
+# Large data files
+*.csv
+
+# Documentation (keep README.md)
+docs/
+*.md
+!README.md
+!CHANGELOG.md

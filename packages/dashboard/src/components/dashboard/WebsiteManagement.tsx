@@ -12,11 +12,11 @@ export const WebsiteManagement: React.FC = () => {
     <DashboardLayout>
       <h1 className="text-2xl font-bold">Website Management</h1>
       {!selectedBusiness ? (
-        <p className="text-gray-600 mt-2">
+        <p className="text-dark-400 mt-2">
           Select a business to manage websites.
         </p>
       ) : (
-        <p className="text-gray-600 mt-2">
+        <p className="text-dark-400 mt-2">
           Managing websites for: {selectedBusiness}
         </p>
       )}

@@ -21,20 +21,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   action,
   secondaryAction,
 }) => (
-  <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
+  <div className="text-center py-12 bg-dark-800 border border-dark-700 rounded-lg">
     {icon && (
-      <div className="text-gray-300 mb-4 flex justify-center">{icon}</div>
+      <div className="text-dark-500 mb-4 flex justify-center">{icon}</div>
     )}
-    <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+    <h3 className="text-lg font-medium text-dark-100 mb-2">{title}</h3>
     {description && (
-      <p className="text-gray-600 mb-4 max-w-md mx-auto">{description}</p>
+      <p className="text-dark-400 mb-4 max-w-md mx-auto">{description}</p>
     )}
     {(action || secondaryAction) && (
       <div className="flex items-center justify-center gap-3">
         {action && (
           <button
             onClick={action.onClick}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="px-4 py-2 bg-metro-orange text-dark-950 rounded-lg hover:bg-metro-orange-600 hover:shadow-glow-orange font-medium transition-all"
           >
             {action.label}
           </button>
@@ -42,7 +42,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {secondaryAction && (
           <button
             onClick={secondaryAction.onClick}
-            className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium"
+            className="px-4 py-2 text-metro-orange hover:text-metro-orange-400 font-medium transition-colors"
           >
             {secondaryAction.label}
           </button>

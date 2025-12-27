@@ -18,15 +18,31 @@ import React from "react";
 import { Sidebar } from "./Sidebar";
 import { ErrorBoundary, DashboardErrorFallback } from "../common/ErrorBoundary";
 
-export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  actions?: React.ReactNode;
+}
+
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
+  title,
+  actions,
 }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-950">
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-6">
           <ErrorBoundary fallback={<DashboardErrorFallback />}>
+            {(title || actions) && (
+              <div className="flex items-center justify-between mb-6">
+                {title && (
+                  <h1 className="text-2xl font-bold text-dark-100">{title}</h1>
+                )}
+                {actions && <div className="flex items-center gap-3">{actions}</div>}
+              </div>
+            )}
             {children}
           </ErrorBoundary>
         </main>

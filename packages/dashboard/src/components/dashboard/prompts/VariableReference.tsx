@@ -246,7 +246,7 @@ const CATEGORY_INFO: Record<
 > = {
   required: {
     label: "Required",
-    color: "bg-red-100 text-red-800",
+    color: "bg-metro-red-950 text-red-800",
     description: "Must be included in every template for consistent output",
   },
   optional: {
@@ -256,17 +256,17 @@ const CATEGORY_INFO: Record<
   },
   keyword: {
     label: "Keyword",
-    color: "bg-purple-100 text-purple-800",
+    color: "bg-purple-900/50 text-purple-400",
     description: "Used for keyword-targeted pages",
   },
   service: {
     label: "Service",
-    color: "bg-green-100 text-green-800",
+    color: "bg-metro-green-950 text-metro-green",
     description: "Related to business service offerings",
   },
   output: {
     label: "Output",
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-dark-800 text-dark-100",
     description: "Controls generation parameters",
   },
 };
@@ -301,13 +301,13 @@ export const VariableReference: React.FC = () => {
               className={`p-3 rounded border text-left transition-all ${
                 filter === key
                   ? "ring-2 ring-blue-500 border-blue-500"
-                  : "hover:bg-gray-50"
+                  : "hover:bg-dark-900"
               }`}
             >
               <span className={`px-2 py-0.5 text-xs rounded ${info.color}`}>
                 {info.label}
               </span>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-dark-400 mt-1">
                 {VARIABLES.filter((v) => v.category === key).length} variables
               </p>
             </button>
@@ -329,31 +329,31 @@ export const VariableReference: React.FC = () => {
       {/* Variables table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border rounded">
-          <thead className="bg-gray-50">
+          <thead className="bg-dark-900">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
+              <th className="px-4 py-2 text-left text-sm font-medium text-dark-200 border-b">
                 Variable
               </th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
+              <th className="px-4 py-2 text-left text-sm font-medium text-dark-200 border-b">
                 Description
               </th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
+              <th className="px-4 py-2 text-left text-sm font-medium text-dark-200 border-b">
                 Source
               </th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">
+              <th className="px-4 py-2 text-left text-sm font-medium text-dark-200 border-b">
                 Example
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-gray-700 border-b w-16">
+              <th className="px-4 py-2 text-center text-sm font-medium text-dark-200 border-b w-16">
                 Copy
               </th>
             </tr>
           </thead>
           <tbody>
             {filteredVariables.map((v) => (
-              <tr key={v.name} className="hover:bg-gray-50">
+              <tr key={v.name} className="hover:bg-dark-900">
                 <td className="px-4 py-2 border-b">
                   <div className="flex items-center gap-2">
-                    <code className="font-mono text-sm bg-gray-100 px-1 rounded">
+                    <code className="font-mono text-sm bg-dark-800 px-1 rounded">
                       {`{{${v.name}}}`}
                     </code>
                     <span
@@ -365,19 +365,19 @@ export const VariableReference: React.FC = () => {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-700">
+                <td className="px-4 py-2 border-b text-sm text-dark-200">
                   {v.description}
                 </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-600">
+                <td className="px-4 py-2 border-b text-sm text-dark-400">
                   {v.source}
                 </td>
-                <td className="px-4 py-2 border-b text-sm text-gray-500 font-mono">
+                <td className="px-4 py-2 border-b text-sm text-dark-400 font-mono">
                   {v.example || "-"}
                 </td>
                 <td className="px-4 py-2 border-b text-center">
                   <button
                     onClick={() => copyVariable(v.name)}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="text-metro-orange hover:text-blue-800 text-sm"
                     title="Copy to clipboard"
                   >
                     <svg
@@ -402,7 +402,7 @@ export const VariableReference: React.FC = () => {
       </div>
 
       {filteredVariables.length === 0 && (
-        <p className="text-center text-gray-500 py-8">
+        <p className="text-center text-dark-400 py-8">
           No variables match your search criteria.
         </p>
       )}

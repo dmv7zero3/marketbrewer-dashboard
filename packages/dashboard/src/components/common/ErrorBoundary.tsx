@@ -59,11 +59,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+        <div className="min-h-screen flex items-center justify-center bg-dark-900 px-4">
+          <div className="max-w-md w-full bg-dark-800 rounded-lg shadow-lg p-8">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-metro-red-950 rounded-full mb-4">
               <svg
-                className="w-6 h-6 text-red-600"
+                className="w-6 h-6 text-metro-red"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -77,21 +77,21 @@ export class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            <h2 className="text-2xl font-bold text-dark-100 text-center mb-2">
               Something Went Wrong
             </h2>
 
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-dark-400 text-center mb-6">
               We encountered an unexpected error. Please try refreshing the
               page.
             </p>
 
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-sm">
+              <div className="mb-6 p-4 bg-metro-red-950 border border-red-200 rounded text-sm">
                 <p className="font-semibold text-red-800 mb-2">
                   Error Details:
                 </p>
-                <pre className="text-red-700 whitespace-pre-wrap overflow-auto">
+                <pre className="text-metro-red-600 whitespace-pre-wrap overflow-auto">
                   {this.state.error.toString()}
                 </pre>
               </div>
@@ -100,13 +100,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3">
               <button
                 onClick={this.handleReset}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-metro-orange text-white rounded-md hover:bg-metro-orange-600 transition-colors"
               >
                 Try Again
               </button>
               <button
                 onClick={() => (window.location.href = "/")}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-dark-600 text-dark-200 rounded-md hover:bg-dark-900 transition-colors"
               >
                 Go Home
               </button>
@@ -127,10 +127,10 @@ export const DashboardErrorFallback: React.FC<{
   error?: Error;
   onReset?: () => void;
 }> = ({ error, onReset }) => (
-  <div className="bg-white rounded-lg shadow p-6 text-center">
-    <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+  <div className="bg-dark-800 rounded-lg shadow p-6 text-center">
+    <div className="w-16 h-16 mx-auto bg-metro-red-950 rounded-full flex items-center justify-center mb-4">
       <svg
-        className="w-8 h-8 text-red-600"
+        className="w-8 h-8 text-metro-red"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -144,20 +144,20 @@ export const DashboardErrorFallback: React.FC<{
       </svg>
     </div>
 
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+    <h3 className="text-lg font-semibold text-dark-100 mb-2">
       Unable to Load Section
     </h3>
 
-    <p className="text-gray-600 mb-4">
+    <p className="text-dark-400 mb-4">
       This section encountered an error. Please refresh or try again later.
     </p>
 
     {process.env.NODE_ENV === "development" && error && (
       <details className="mb-4 text-left">
-        <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+        <summary className="cursor-pointer text-sm font-medium text-dark-200 mb-2">
           Error Details
         </summary>
-        <pre className="text-xs text-red-600 bg-red-50 p-3 rounded overflow-auto">
+        <pre className="text-xs text-metro-red bg-metro-red-950 p-3 rounded overflow-auto">
           {error.toString()}
           {error.stack && `\n\n${error.stack}`}
         </pre>
@@ -167,7 +167,7 @@ export const DashboardErrorFallback: React.FC<{
     {onReset && (
       <button
         onClick={onReset}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        className="px-4 py-2 bg-metro-orange text-white rounded-md hover:bg-metro-orange-600 transition-colors"
       >
         Try Again
       </button>

@@ -79,29 +79,30 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
     required?: boolean
   ) => (
     <div>
-      <label className="block text-sm font-medium mb-1">
+      <label className="block text-sm font-medium text-dark-300 mb-1">
         {label}
-        {required ? " *" : ""}
+        {required && <span className="text-metro-red ml-1">*</span>}
       </label>
       <input
         type={key === "email" ? "email" : "text"}
         value={form[key]}
         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-        className={`w-full border rounded px-3 py-2 ${
-          errors[key] ? "border-red-500" : ""
+        className={`w-full bg-dark-800 border rounded-lg px-3 py-2 text-dark-100 placeholder:text-dark-500
+                   focus:ring-2 focus:ring-metro-orange focus:border-metro-orange transition-colors ${
+          errors[key] ? "border-metro-red" : "border-dark-600"
         }`}
         placeholder={label}
       />
       {errors[key] && (
-        <p className="text-red-500 text-xs mt-1">{errors[key]}</p>
+        <p className="text-metro-red text-xs mt-1">{errors[key]}</p>
       )}
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">Add Business</h2>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-dark-800 border border-dark-700 rounded-lg shadow-dark-xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold text-dark-100 mb-4">Add Business</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {renderField("name", "Business Name", true)}
           {renderField("industry", "Industry", true)}
@@ -114,14 +115,14 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              className="px-4 py-2 text-dark-300 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+              className="px-4 py-2 bg-metro-orange text-dark-950 rounded-lg font-medium hover:bg-metro-orange-600 hover:shadow-glow-orange disabled:bg-dark-600 disabled:text-dark-400 transition-all"
             >
               {submitting ? "Adding..." : "Add Business"}
             </button>

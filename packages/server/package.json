@@ -5,13 +5,15 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "NODE_ENV=development ts-node src/index.ts",
     "migrate": "sqlite3 ./data/seo-platform.db < packages/server/migrations/001_initial_schema.sql",
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.956.0",
+    "@aws-sdk/lib-dynamodb": "^3.956.0",
     "@marketbrewer/shared": "*",
     "better-sqlite3": "^9.2.2",
     "cors": "^2.8.5",

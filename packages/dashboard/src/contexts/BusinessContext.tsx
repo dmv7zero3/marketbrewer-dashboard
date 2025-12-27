@@ -8,10 +8,13 @@ import React, {
 } from "react";
 import { createBusiness, getBusinesses } from "../api/businesses";
 import type { Business } from "@marketbrewer/shared";
+import { getIndustryUILabels, type IndustryUILabels } from "@marketbrewer/shared";
 
 interface BusinessContextValue {
   businesses: Business[];
   selectedBusiness: string | null;
+  selectedBusinessData: Business | null;
+  uiLabels: IndustryUILabels;
   setSelectedBusiness: (id: string | null) => void;
   loading: boolean;
   error: string | null;
@@ -102,10 +105,23 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  // Compute selected business data and UI labels
+  const selectedBusinessData = useMemo(
+    () => businesses.find((b) => b.id === selectedBusiness) ?? null,
+    [businesses, selectedBusiness]
+  );
+
+  const uiLabels = useMemo(
+    () => getIndustryUILabels(selectedBusinessData?.industry_type),
+    [selectedBusinessData]
+  );
+
   const value = useMemo<BusinessContextValue>(
     () => ({
       businesses,
       selectedBusiness,
+      selectedBusinessData,
+      uiLabels,
       setSelectedBusiness: setSelection,
       loading,
       error,
@@ -115,6 +131,8 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
     [
       businesses,
       selectedBusiness,
+      selectedBusinessData,
+      uiLabels,
       loading,
       error,
       addBusiness,

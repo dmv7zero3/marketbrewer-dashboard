@@ -2,13 +2,14 @@
  * MarketBrewer SEO Platform - API Server
  *
  * Entry point for Express REST API with SQLite database
+ * Business profiles are persisted to DynamoDB for durability
  */
 
 import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { initializeDatabase } from "./db/connection";
+import { initializeDatabase, getDatabase } from "./db/connection";
 import {
   authMiddleware,
   corsMiddleware,
@@ -16,6 +17,8 @@ import {
   notFoundHandler,
 } from "./middleware";
 import routes from "./routes";
+import { initDynamoDB } from "./services/dynamodb";
+import { syncAllFromDynamoDB, isDynamoDBAvailable } from "./services/profile-sync";
 
 const app = express();
 
@@ -71,6 +74,31 @@ async function start(): Promise<void> {
   try {
     // Initialize database schema
     initializeDatabase();
+
+    // Initialize DynamoDB and sync business profiles
+    const useDynamoDB = process.env.USE_DYNAMODB === "true";
+    if (useDynamoDB) {
+      console.log("🔄 DynamoDB enabled - checking connection...");
+      const dynamoAvailable = await isDynamoDBAvailable();
+
+      if (dynamoAvailable) {
+        console.log("✅ DynamoDB connected");
+        initDynamoDB();
+
+        // Sync business profiles from DynamoDB to SQLite on startup
+        console.log("🔄 Syncing business profiles from DynamoDB...");
+        const db = getDatabase();
+        const result = await syncAllFromDynamoDB(db);
+        console.log(
+          `✅ Synced ${result.businesses} businesses, ${result.keywords} keywords, ${result.serviceAreas} service areas`
+        );
+      } else {
+        console.warn("⚠️ DynamoDB not available - using SQLite only");
+        console.warn("   Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to enable");
+      }
+    } else {
+      console.log("ℹ️ DynamoDB disabled (set USE_DYNAMODB=true to enable)");
+    }
 
     app.listen(PORT, HOST, () => {
       console.log(`🚀 Server running at http://${HOST}:${PORT}`);

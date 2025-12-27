@@ -302,10 +302,10 @@ export const LocationsManagement: React.FC = () => {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-dark-100 mb-2">
             No business selected
           </h3>
-          <p className="text-gray-600">
+          <p className="text-dark-400">
             Please select a business from the dropdown to manage locations.
           </p>
         </div>
@@ -318,8 +318,8 @@ export const LocationsManagement: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold mb-2">Locations</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-dark-100 mb-2">Locations</h1>
+          <p className="text-dark-400">
             Manage physical business locations and their details.
           </p>
         </div>
@@ -327,25 +327,25 @@ export const LocationsManagement: React.FC = () => {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Total Locations</div>
-              <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="bg-dark-800 border border-dark-700 rounded-lg p-4">
+              <div className="text-sm text-dark-400">Total Locations</div>
+              <div className="text-2xl font-bold text-dark-100">{stats.total}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Active</div>
-              <div className="text-2xl font-bold text-green-600">
+            <div className="bg-dark-800 border border-dark-700 rounded-lg p-4">
+              <div className="text-sm text-dark-400">Active</div>
+              <div className="text-2xl font-bold text-metro-green">
                 {stats.active}
               </div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Upcoming</div>
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="bg-dark-800 border border-dark-700 rounded-lg p-4">
+              <div className="text-sm text-dark-400">Upcoming</div>
+              <div className="text-2xl font-bold text-metro-blue">
                 {stats.upcoming}
               </div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-600">States/Regions</div>
-              <div className="text-2xl font-bold">
+            <div className="bg-dark-800 border border-dark-700 rounded-lg p-4">
+              <div className="text-sm text-dark-400">States/Regions</div>
+              <div className="text-2xl font-bold text-dark-100">
                 {Object.keys(stats.byState).length}
               </div>
             </div>
@@ -358,7 +358,7 @@ export const LocationsManagement: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 text-sm text-dark-100 focus:border-metro-orange focus:ring-1 focus:ring-metro-orange"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
@@ -368,7 +368,7 @@ export const LocationsManagement: React.FC = () => {
             <select
               value={stateFilter}
               onChange={(e) => setStateFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              className="bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 text-sm text-dark-100 focus:border-metro-orange focus:ring-1 focus:ring-metro-orange"
             >
               <option value="all">All States</option>
               {uniqueStates.map((state) => (
@@ -378,7 +378,7 @@ export const LocationsManagement: React.FC = () => {
               ))}
             </select>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-dark-400">
               {filteredLocations.length} location
               {filteredLocations.length !== 1 ? "s" : ""}
             </div>
@@ -387,13 +387,13 @@ export const LocationsManagement: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowImportModal(true)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+              className="px-4 py-2 border border-dark-600 rounded-lg text-sm text-dark-200 hover:bg-dark-700 hover:text-dark-100 transition-colors"
             >
               Bulk Import
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+              className="px-4 py-2 bg-metro-orange text-dark-950 rounded-lg text-sm font-medium hover:bg-metro-orange-600 hover:shadow-glow-orange transition-all"
             >
               Add Location
             </button>
@@ -403,14 +403,14 @@ export const LocationsManagement: React.FC = () => {
         {/* Locations List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="text-gray-600">Loading locations...</div>
+            <div className="text-dark-400">Loading locations...</div>
           </div>
         ) : Object.keys(groupedLocations).length === 0 ? (
-          <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
-            <div className="text-gray-600 mb-4">No locations found</div>
+          <div className="text-center py-12 bg-dark-800 border border-dark-700 rounded-lg">
+            <div className="text-dark-400 mb-4">No locations found</div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-metro-orange hover:text-metro-orange-400 font-medium transition-colors"
             >
               Add your first location
             </button>
@@ -420,15 +420,15 @@ export const LocationsManagement: React.FC = () => {
             {Object.entries(groupedLocations).map(([region, locs]) => (
               <div
                 key={region}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+                className="bg-dark-800 border border-dark-700 rounded-lg overflow-hidden"
               >
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h3 className="font-semibold">{region}</h3>
-                  <p className="text-sm text-gray-600">
+                <div className="bg-dark-900 px-4 py-3 border-b border-dark-700">
+                  <h3 className="font-semibold text-dark-100">{region}</h3>
+                  <p className="text-sm text-dark-400">
                     {locs.length} location{locs.length !== 1 ? "s" : ""}
                   </p>
                 </div>
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-dark-700">
                   {locs.map((location) => (
                     <LocationRow
                       key={location.id}
@@ -481,19 +481,19 @@ const LocationRow: React.FC<LocationRowProps> = ({
   onDelete,
 }) => {
   const statusColors = {
-    active: "bg-green-100 text-green-800",
-    upcoming: "bg-blue-100 text-blue-800",
+    active: "bg-metro-green-950 text-metro-green border border-metro-green-700",
+    upcoming: "bg-metro-blue-950 text-metro-blue border border-metro-blue-700",
   } as const;
 
   return (
-    <div className="px-4 py-4 hover:bg-gray-50 flex items-center justify-between">
+    <div className="px-4 py-4 hover:bg-dark-700/50 flex items-center justify-between transition-colors">
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-1">
-          <h4 className="font-medium">
+          <h4 className="font-medium text-dark-100">
             {location.display_name || location.name}
           </h4>
           {location.is_headquarters && (
-            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-md font-medium">
+            <span className="px-2 py-1 bg-purple-900/50 text-purple-400 border border-purple-700 text-xs rounded-md font-medium">
               HQ
             </span>
           )}
@@ -505,7 +505,7 @@ const LocationRow: React.FC<LocationRowProps> = ({
             {location.status === "upcoming" ? "Coming Soon" : "Active"}
           </span>
         </div>
-        <div className="text-sm text-gray-600 space-y-1">
+        <div className="text-sm text-dark-400 space-y-1">
           {location.full_address && <div>{location.full_address}</div>}
           {location.phone && <div>{location.phone}</div>}
           {location.email && <div>{location.email}</div>}
@@ -517,7 +517,7 @@ const LocationRow: React.FC<LocationRowProps> = ({
             href={location.google_maps_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700"
+            className="px-3 py-1 text-sm text-metro-blue hover:text-metro-blue-400 transition-colors"
           >
             Map
           </a>
@@ -527,20 +527,20 @@ const LocationRow: React.FC<LocationRowProps> = ({
             href={location.order_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700"
+            className="px-3 py-1 text-sm text-metro-blue hover:text-metro-blue-400 transition-colors"
           >
             Order
           </a>
         )}
         <button
           onClick={onEdit}
-          className="px-3 py-1 text-sm text-gray-700 hover:text-gray-900"
+          className="px-3 py-1 text-sm text-dark-300 hover:text-dark-100 transition-colors"
         >
           Edit
         </button>
         <button
           onClick={onDelete}
-          className="px-3 py-1 text-sm text-red-600 hover:text-red-700"
+          className="px-3 py-1 text-sm text-metro-red hover:text-metro-red-400 transition-colors"
         >
           Delete
         </button>

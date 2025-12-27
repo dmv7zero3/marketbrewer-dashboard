@@ -1,0 +1,72 @@
+{
+  "slug": "criminal-defense-lawyer/baltimore-county-md",
+  "language": "en",
+  "service": {
+    "name": "Criminal Defense",
+    "nameEs": "Defensa Criminal",
+    "slug": "criminal-defense-lawyer"
+  },
+  "location": {
+    "city": "Baltimore County",
+    "state": "MD",
+    "slug": "baltimore-county-md"
+  },
+  "meta": {
+    "title": "Criminal Defense Lawyer in Baltimore County, MD | Street Lawyer Magic",
+    "description": "Experienced criminal defense lawyers in Baltimore County, MD. Get a free consultation today and take the first step towards protecting your rights.",
+    "canonical": "https://streetlawyermagic.com/criminal-defense-lawyer/baltimore-county-md",
+    "ogImage": "/images/og-image/street-lawyer-magic-og.jpg",
+    "siteUrl": "https://streetlawyermagic.com"
+  },
+  "content": {
+    "h1": "Criminal Defense in Baltimore County",
+    "intro": "<p>If you've been charged with a crime in Baltimore County, Maryland, and need an effective defense, contact Street Lawyer Magic. With over 4,000 cases resolved since 2005, our team of attorneys is ready to represent your rights.</p>",
+    "sections": [
+      {
+        "heading": "Why Choose Street Lawyer Magic",
+        "body": "<p>Our experience is what sets us apart. With over 4,000 cases resolved, we are confident in our ability to provide aggressive and effective defense. <strong>Trust our knowledge and skills to defend your rights</strong>.</p>"
+      },
+      {
+        "heading": "Our Criminal Defense Experience in Baltimore County",
+        "body": "<p>With deep knowledge of the local jurisdiction and Maryland courts, our team is prepared to defend your rights in any case. We understand the nuances of Baltimore County's legal system.</p>"
+      },
+      {
+        "heading": "What We Do For You",
+        "body": "<ul><li>Effective representation in all types of cases</li><li>Cases resolved with justice</li><li>Rights protected</li><li>Personalized attention for every client</li></ul>"
+      }
+    ],
+    "cta": "Get a free consultation and start defending your rights at 240-478-2189."
+  },
+  "business": {
+    "name": "Street Lawyer Magic",
+    "phone": "240-478-2189",
+    "email": "lonny@streetlawyermagic.com"
+  },
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "LegalService",
+    "name": "Criminal Defense - Street Lawyer Magic",
+    "description": "Criminal Defense in Baltimore County, MD",
+    "telephone": "240-478-2189",
+    "email": "lonny@streetlawyermagic.com",
+    "url": "https://streetlawyermagic.com/criminal-defense-lawyer/baltimore-county-md",
+    "priceRange": "Free Consultation",
+    "areaServed": {
+      "@type": "City",
+      "name": "Baltimore County",
+      "addressRegion": "MD",
+      "addressCountry": "US"
+    },
+    "provider": {
+      "@type": "Attorney",
+      "name": "Lonny Bramzon",
+      "jobTitle": "Criminal Defense Attorney",
+      "telephone": "240-478-2189"
+    },
+    "serviceType": "Criminal Defense",
+    "availableLanguage": [
+      "English",
+      "Spanish"
+    ]
+  }
+}

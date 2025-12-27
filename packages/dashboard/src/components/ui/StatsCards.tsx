@@ -4,7 +4,7 @@ import { Skeleton } from "./Skeleton";
 interface StatItem {
   label: string;
   value: number | string;
-  color?: "blue" | "green" | "yellow" | "red" | "gray";
+  color?: "blue" | "green" | "yellow" | "red" | "gray" | "orange";
   icon?: React.ReactNode;
 }
 
@@ -24,19 +24,21 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
   }
 
   const colorClasses = {
-    blue: "text-blue-600",
-    green: "text-green-600",
-    yellow: "text-yellow-600",
-    red: "text-red-600",
-    gray: "text-gray-600",
+    blue: "text-metro-blue",
+    green: "text-metro-green",
+    yellow: "text-metro-yellow",
+    red: "text-metro-red",
+    gray: "text-dark-400",
+    orange: "text-metro-orange",
   };
 
   const bgColorClasses = {
-    blue: "bg-blue-50",
-    green: "bg-green-50",
-    yellow: "bg-yellow-50",
-    red: "bg-red-50",
-    gray: "bg-gray-50",
+    blue: "bg-metro-blue-950/50 border-metro-blue-900/50",
+    green: "bg-metro-green-950/50 border-metro-green-900/50",
+    yellow: "bg-metro-yellow-950/50 border-metro-yellow-900/50",
+    red: "bg-metro-red-950/50 border-metro-red-900/50",
+    gray: "bg-dark-800 border-dark-700",
+    orange: "bg-metro-orange-950/50 border-metro-orange-900/50",
   };
 
   const gridCols = {
@@ -52,10 +54,10 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
         return (
           <div
             key={index}
-            className={`${bgColorClasses[color]} border border-gray-200 rounded-lg p-4`}
+            className={`${bgColorClasses[color]} border rounded-lg p-4`}
           >
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">{stat.label}</p>
+              <p className="text-sm text-dark-400">{stat.label}</p>
               {stat.icon && (
                 <div className={colorClasses[color]}>{stat.icon}</div>
               )}

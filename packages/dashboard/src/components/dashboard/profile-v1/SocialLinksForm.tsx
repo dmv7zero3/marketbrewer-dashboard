@@ -50,12 +50,12 @@ export const SocialLinksForm = memo<SocialLinksFormProps>(
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               Platform
             </label>
             <select
               disabled={disabled || availablePlatforms.length === 0}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={platform}
               onChange={(e) => setPlatform(e.target.value as SocialPlatform)}
             >
@@ -72,13 +72,13 @@ export const SocialLinksForm = memo<SocialLinksFormProps>(
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-900 mb-1.5">
+            <label className="block text-sm font-medium text-dark-100 mb-1.5">
               URL
             </label>
             <input
               type="url"
               disabled={disabled || availablePlatforms.length === 0}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-dark-600 rounded-md bg-dark-800 focus:outline-none focus:ring-1 focus:ring-metro-orange disabled:bg-dark-800 disabled:text-dark-400"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
@@ -89,7 +89,7 @@ export const SocialLinksForm = memo<SocialLinksFormProps>(
             <button
               type="button"
               disabled={disabled || availablePlatforms.length === 0 || !canAdd}
-              className="w-full px-3 py-2 rounded-md bg-gray-900 text-white disabled:bg-gray-300 disabled:text-gray-600"
+              className="w-full px-3 py-2 rounded-md bg-gray-900 text-white disabled:bg-dark-600 disabled:text-dark-400"
               onClick={handleAdd}
             >
               Add
@@ -98,7 +98,7 @@ export const SocialLinksForm = memo<SocialLinksFormProps>(
         </div>
 
         {value.length === 0 ? (
-          <p className="text-sm text-gray-500">No social links added yet.</p>
+          <p className="text-sm text-dark-400">No social links added yet.</p>
         ) : (
           <div className="space-y-2">
             {value
@@ -115,17 +115,17 @@ export const SocialLinksForm = memo<SocialLinksFormProps>(
                     className="flex items-center justify-between gap-3 border rounded-md px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-dark-100">
                         {label}
                       </p>
-                      <p className="text-sm text-gray-600 truncate">
+                      <p className="text-sm text-dark-400 truncate">
                         {link.url}
                       </p>
                     </div>
                     <button
                       type="button"
                       disabled={disabled}
-                      className="text-sm text-red-600 hover:text-red-700 disabled:text-gray-400"
+                      className="text-sm text-metro-red hover:text-metro-red-600 disabled:text-dark-500"
                       onClick={() => handleRemove(link.platform)}
                     >
                       Remove

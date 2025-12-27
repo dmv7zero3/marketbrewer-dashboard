@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { AddBusinessModal } from "./AddBusinessModal";
@@ -9,36 +9,39 @@ type MenuItem = {
   children?: Array<{ title: string; path: string }>;
 };
 
-const menuItems: MenuItem[] = [
-  { title: "Business Profile", path: "/dashboard/business-profile" },
-  { title: "Store Locations", path: "/dashboard/locations" },
-  { title: "SEO Keywords", path: "/dashboard/keywords" },
-  { title: "Services", path: "/dashboard/services" },
-  { title: "Service Areas", path: "/dashboard/service-areas" },
-  { title: "Prompts", path: "/dashboard/prompts" },
-  { title: "Generate Content", path: "/dashboard/page-content-generation" },
-  { title: "Jobs", path: "/jobs" },
-];
-
 export const Sidebar: React.FC = () => {
-  const { businesses, selectedBusiness, setSelectedBusiness, loading } =
+  const { businesses, selectedBusiness, setSelectedBusiness, loading, uiLabels } =
     useBusiness();
+
+  // Build menu items with dynamic labels based on industry
+  const menuItems: MenuItem[] = useMemo(() => [
+    { title: "Business Profile", path: "/dashboard/business-profile" },
+    { title: "Store Locations", path: "/dashboard/locations" },
+    { title: uiLabels.keywordsLabel, path: "/dashboard/keywords" },
+    { title: uiLabels.servicesLabel, path: "/dashboard/services" },
+    { title: "Service Areas", path: "/dashboard/service-areas" },
+    { title: "Prompts", path: "/dashboard/prompts" },
+    { title: "Generate Content", path: "/dashboard/page-content-generation" },
+    { title: "Jobs", path: "/jobs" },
+  ], [uiLabels]);
   const { pathname } = useLocation();
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <aside className="w-64 border-r bg-white h-[calc(100vh-64px)] sticky top-16">
-      <div className="p-4 space-y-3 border-b">
+    <aside className="w-64 border-r border-dark-700 bg-dark-900 h-[calc(100vh-68px)] sticky top-[68px]">
+      <div className="p-4 space-y-3 border-b border-dark-700">
         <label
           htmlFor="business-selector"
-          className="block text-sm font-semibold"
+          className="block text-sm font-semibold text-dark-300"
         >
           Business
         </label>
         <select
           id="business-selector"
           aria-label="Select business"
-          className="w-full border rounded px-2 py-1"
+          className="w-full bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 text-dark-100
+                     focus:outline-none focus:border-metro-orange focus:ring-1 focus:ring-metro-orange
+                     transition-colors duration-200"
           value={selectedBusiness ?? ""}
           onChange={(e) => {
             if (e.target.value === "__ADD__") {
@@ -55,7 +58,7 @@ export const Sidebar: React.FC = () => {
               {b.name}
             </option>
           ))}
-          <option value="__ADD__">➕ Add Business</option>
+          <option value="__ADD__">+ Add Business</option>
         </select>
       </div>
 
@@ -67,10 +70,10 @@ export const Sidebar: React.FC = () => {
             <div key={item.path}>
               <Link
                 to={item.path}
-                className={`block px-3 py-2 rounded ${
+                className={`block px-3 py-2 rounded-lg transition-all duration-200 ${
                   active
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-metro-orange/10 text-metro-orange border-l-2 border-metro-orange"
+                    : "text-dark-300 hover:bg-dark-800 hover:text-dark-100"
                 }`}
                 aria-current={active ? "page" : undefined}
               >
@@ -88,10 +91,10 @@ export const Sidebar: React.FC = () => {
                       <Link
                         key={child.path}
                         to={child.path}
-                        className={`block px-3 py-2 rounded ${
+                        className={`block px-3 py-2 rounded-lg transition-all duration-200 ${
                           childActive
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-50"
+                            ? "bg-metro-orange/5 text-metro-orange"
+                            : "text-dark-400 hover:bg-dark-800 hover:text-dark-200"
                         }`}
                         aria-current={childActive ? "page" : undefined}
                       >

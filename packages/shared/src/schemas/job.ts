@@ -4,7 +4,15 @@
 
 import { z } from "zod";
 
-export const PageTypeSchema = z.enum(["location-keyword", "service-area"]);
+export const PageTypeSchema = z.enum([
+  "keyword-service-area",
+  "keyword-location",
+  "service-service-area",
+  "service-location",
+  // Legacy aliases (backwards compatible)
+  "location-keyword",
+  "service-area",
+]);
 
 export const CreateGenerationJobSchema = z.object({
   page_type: PageTypeSchema,

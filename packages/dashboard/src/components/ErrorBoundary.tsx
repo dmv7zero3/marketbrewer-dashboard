@@ -29,17 +29,17 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-          <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-            <h1 className="mb-4 text-2xl font-bold text-red-600">
+        <div className="flex items-center justify-center min-h-screen bg-dark-800">
+          <div className="w-full max-w-md p-8 bg-dark-800 rounded-lg shadow-lg">
+            <h1 className="mb-4 text-2xl font-bold text-metro-red">
               Oops! Something went wrong
             </h1>
-            <p className="mb-4 text-gray-600">
+            <p className="mb-4 text-dark-400">
               We encountered an unexpected error. Please try refreshing the
               page.
             </p>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <details className="p-3 mb-4 text-xs text-gray-500 border border-gray-200 rounded bg-gray-50">
+              <details className="p-3 mb-4 text-xs text-dark-400 border border-dark-700 rounded bg-dark-900">
                 <summary className="font-semibold cursor-pointer">
                   Error Details
                 </summary>
@@ -50,7 +50,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             )}
             <button
               onClick={() => window.location.reload()}
-              className="w-full px-4 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-700"
+              className="w-full px-4 py-2 text-white transition bg-metro-orange rounded hover:bg-metro-orange-600"
             >
               Refresh Page
             </button>

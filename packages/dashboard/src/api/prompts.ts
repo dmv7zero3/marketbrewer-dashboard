@@ -48,7 +48,13 @@ export async function getPromptTemplate(
 export async function createPromptTemplate(
   businessId: string,
   data: {
-    page_type: "location-keyword" | "service-area";
+    page_type:
+      | "keyword-service-area"
+      | "keyword-location"
+      | "service-service-area"
+      | "service-location"
+      | "location-keyword"
+      | "service-area";
     version: number;
     template: string;
     required_variables?: string[];

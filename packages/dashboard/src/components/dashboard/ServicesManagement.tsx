@@ -37,7 +37,7 @@ const TABS: { name: TabName; label: string }[] = [
  * Supports bilingual (EN/ES) service names with shared slugs
  */
 export const ServicesManagement: React.FC = () => {
-  const { selectedBusiness } = useBusiness();
+  const { selectedBusiness, uiLabels } = useBusiness();
   const { addToast } = useToast();
   const { confirm, dialogProps } = useConfirmDialog();
 
@@ -441,21 +441,21 @@ export const ServicesManagement: React.FC = () => {
       <StatsCards stats={stats} loading={loading} />
 
       {/* Add Service Section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900">Add New Service</h3>
+      <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 space-y-3">
+        <h3 className="text-lg font-semibold text-dark-100">Add New {uiLabels.servicesSingular}</h3>
 
         {spanishEnabled ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   English Name
                 </label>
                 <input
-                  className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`border rounded-lg px-3 py-2 w-full bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
                     inputError && inputError.includes("English")
-                      ? "border-red-500"
-                      : "border-gray-300"
+                      ? "border-metro-red"
+                      : "border-dark-600"
                   }`}
                   placeholder="e.g., Criminal Defense"
                   value={newServiceName}
@@ -467,14 +467,14 @@ export const ServicesManagement: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-dark-200 mb-1">
                   Spanish Name
                 </label>
                 <input
-                  className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`border rounded-lg px-3 py-2 w-full bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
                     inputError && inputError.includes("Spanish")
-                      ? "border-red-500"
-                      : "border-gray-300"
+                      ? "border-metro-red"
+                      : "border-dark-600"
                   }`}
                   placeholder="e.g., Defensa Criminal"
                   value={newServiceNameEs}
@@ -487,7 +487,7 @@ export const ServicesManagement: React.FC = () => {
               </div>
             </div>
             <button
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="bg-metro-orange text-white px-6 py-2 rounded-lg hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               onClick={handleAddService}
               disabled={disabled}
             >
@@ -497,8 +497,8 @@ export const ServicesManagement: React.FC = () => {
         ) : (
           <div className="flex items-center gap-3">
             <input
-              className={`border rounded-lg px-3 py-2 flex-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                inputError ? "border-red-500" : "border-gray-300"
+              className={`border rounded-lg px-3 py-2 flex-1 bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
+                inputError ? "border-metro-red" : "border-dark-600"
               }`}
               placeholder="Service name"
               value={newServiceName}
@@ -509,7 +509,7 @@ export const ServicesManagement: React.FC = () => {
               disabled={disabled}
             />
             <button
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="bg-metro-orange text-white px-6 py-2 rounded-lg hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               onClick={handleAddService}
               disabled={disabled}
             >
@@ -518,7 +518,7 @@ export const ServicesManagement: React.FC = () => {
           </div>
         )}
         {inputError && (
-          <p className="text-red-600 text-sm flex items-center gap-1">
+          <p className="text-metro-red text-sm flex items-center gap-1">
             <span>!</span> {inputError}
           </p>
         )}
@@ -526,7 +526,7 @@ export const ServicesManagement: React.FC = () => {
 
       {/* Services List */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <div className="bg-metro-red-950 border border-red-200 rounded-lg p-4 text-red-800">
           {error}
         </div>
       )}
@@ -534,19 +534,19 @@ export const ServicesManagement: React.FC = () => {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading services...</span>
+          <span className="ml-3 text-dark-400">Loading services...</span>
         </div>
       ) : questionnaireData.services.offerings.length === 0 ? (
         <EmptyState
           icon={EmptyStateIcons.services}
-          title="No services yet"
+          title={`No ${uiLabels.servicesLabel.toLowerCase()} yet`}
           description={
             spanishEnabled
-              ? "Add your first bilingual service to start generating SEO content"
-              : "Add your first service to start generating SEO content"
+              ? `Add your first bilingual ${uiLabels.servicesSingular.toLowerCase()} to start generating SEO content`
+              : `Add your first ${uiLabels.servicesSingular.toLowerCase()} to start generating SEO content`
           }
           action={{
-            label: spanishEnabled ? "Add Bilingual Service" : "Add Service",
+            label: spanishEnabled ? `Add Bilingual ${uiLabels.servicesSingular}` : `Add ${uiLabels.servicesSingular}`,
             onClick: () => {
               document
                 .querySelector<HTMLInputElement>(
@@ -564,10 +564,10 @@ export const ServicesManagement: React.FC = () => {
             return (
               <div
                 key={service.slug}
-                className={`bg-white border-2 rounded-lg p-4 transition-all hover:shadow-md ${
+                className={`bg-dark-800 border-2 rounded-lg p-4 transition-all hover:shadow-md ${
                   hasMissingTranslation
                     ? "border-amber-200 bg-amber-50/30"
-                    : "border-gray-200"
+                    : "border-dark-700"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -590,7 +590,7 @@ export const ServicesManagement: React.FC = () => {
                     {spanishEnabled ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         {/* English Name */}
-                        <div className="p-3 rounded-lg border-2 bg-white border-blue-200">
+                        <div className="p-3 rounded-lg border-2 bg-dark-800 border-blue-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded">
                               EN
@@ -603,10 +603,10 @@ export const ServicesManagement: React.FC = () => {
                               handleUpdateService(idx, "name", e.target.value)
                             }
                             disabled={disabled}
-                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                            className="w-full border border-dark-600 rounded px-2 py-1.5 text-sm bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange disabled:bg-dark-800"
                             placeholder="English name"
                           />
-                          <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                          <p className="text-xs text-dark-400 mt-1 font-mono truncate">
                             /{service.slug}
                           </p>
                         </div>
@@ -615,12 +615,12 @@ export const ServicesManagement: React.FC = () => {
                         <div
                           className={`p-3 rounded-lg border-2 ${
                             service.nameEs
-                              ? "bg-white border-green-200"
-                              : "bg-gray-50 border-gray-200 border-dashed"
+                              ? "bg-dark-800 border-green-200"
+                              : "bg-dark-900 border-dark-700 border-dashed"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-bold rounded">
+                            <span className="inline-block px-2 py-0.5 bg-metro-green-950 text-metro-green text-xs font-bold rounded">
                               ES
                             </span>
                           </div>
@@ -631,10 +631,10 @@ export const ServicesManagement: React.FC = () => {
                               handleUpdateService(idx, "nameEs", e.target.value)
                             }
                             disabled={disabled}
-                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                            className="w-full border border-dark-600 rounded px-2 py-1.5 text-sm bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange disabled:bg-dark-800"
                             placeholder="Spanish name"
                           />
-                          <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                          <p className="text-xs text-dark-400 mt-1 font-mono truncate">
                             /{service.slug}
                           </p>
                         </div>
@@ -648,17 +648,17 @@ export const ServicesManagement: React.FC = () => {
                             handleUpdateService(idx, "name", e.target.value)
                           }
                           disabled={disabled}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                          className="w-full border border-dark-600 rounded-lg px-3 py-2 text-sm bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange disabled:bg-dark-800"
                           placeholder="Service name"
                         />
-                        <p className="text-xs text-gray-500 mt-1 font-mono">
+                        <p className="text-xs text-dark-400 mt-1 font-mono">
                           /{service.slug}
                         </p>
                       </div>
                     )}
 
                     {/* Primary checkbox */}
-                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <label className="flex items-center gap-2 text-sm text-dark-200">
                       <input
                         type="checkbox"
                         checked={service.isPrimary}
@@ -666,7 +666,7 @@ export const ServicesManagement: React.FC = () => {
                           handleUpdateService(idx, "isPrimary", e.target.checked)
                         }
                         disabled={disabled}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                        className="rounded border-dark-600 text-metro-orange focus:ring-metro-orange disabled:opacity-50"
                       />
                       Primary service
                     </label>
@@ -676,7 +676,7 @@ export const ServicesManagement: React.FC = () => {
                   <button
                     onClick={() => handleRemoveService(idx)}
                     disabled={disabled}
-                    className="flex-shrink-0 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                    className="flex-shrink-0 px-3 py-2 text-metro-red hover:bg-metro-red-950 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
                     aria-label={`Delete ${service.name}`}
                   >
                     <span className="flex items-center gap-1">
@@ -720,8 +720,8 @@ export const ServicesManagement: React.FC = () => {
     return (
       <div className="space-y-4">
         {/* Format instructions */}
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
-          <p className="font-medium text-gray-700 mb-1">
+        <div className="text-sm text-dark-400 bg-dark-900 p-3 rounded border">
+          <p className="font-medium text-dark-200 mb-1">
             {spanishEnabled
               ? "Paste a 2-column CSV (comma or tab separated)"
               : "Paste service names (one per line)"}
@@ -729,7 +729,7 @@ export const ServicesManagement: React.FC = () => {
           {spanishEnabled ? (
             <p>
               Format:{" "}
-              <code className="bg-gray-200 px-1 rounded">
+              <code className="bg-dark-700 px-1 rounded">
                 english name, spanish name
               </code>
             </p>
@@ -740,17 +740,17 @@ export const ServicesManagement: React.FC = () => {
 
         {/* Textarea */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-dark-200">
             Paste services
             {parsedServices.length > 0 && (
-              <span className="ml-2 text-xs text-green-600">
+              <span className="ml-2 text-xs text-metro-green">
                 ({parsedServices.length} service
                 {parsedServices.length !== 1 ? "s" : ""} detected)
               </span>
             )}
           </label>
           <textarea
-            className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-dark-600 rounded p-2 w-full font-mono text-sm h-64 resize-none bg-dark-700 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
             placeholder={
               spanishEnabled
                 ? `Criminal Defense, Defensa Criminal
@@ -770,7 +770,7 @@ Traffic Violations`
 
         {/* Parse errors */}
         {hasParseErrors && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700">
+          <div className="p-3 bg-metro-red-950 border border-red-200 rounded text-metro-red-600">
             <p className="text-sm font-medium mb-1">Format errors:</p>
             <ul className="text-sm list-disc pl-5">
               {parseErrors.slice(0, 5).map((err, i) => (
@@ -785,7 +785,7 @@ Traffic Violations`
 
         {/* Success indicator */}
         {parsedServices.length > 0 && !hasParseErrors && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded text-green-700">
+          <div className="flex items-center gap-2 p-3 bg-metro-green-950 border border-green-200 rounded text-metro-green-600">
             <svg
               className="w-5 h-5 flex-shrink-0"
               fill="currentColor"
@@ -807,15 +807,15 @@ Traffic Violations`
         {/* Preview of parsed services */}
         {parsedServices.length > 0 && parsedServices.length <= 10 && (
           <div className="text-sm">
-            <p className="font-medium text-gray-700 mb-2">Preview:</p>
-            <div className="bg-gray-50 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+            <p className="font-medium text-dark-200 mb-2">Preview:</p>
+            <div className="bg-dark-900 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
               {parsedServices.map((service, i) => (
                 <div key={i} className="flex gap-2 text-xs font-mono">
-                  <span className="text-blue-600">{service.name}</span>
+                  <span className="text-metro-orange">{service.name}</span>
                   {service.nameEs && (
                     <>
-                      <span className="text-gray-400">=</span>
-                      <span className="text-green-600">{service.nameEs}</span>
+                      <span className="text-dark-500">=</span>
+                      <span className="text-metro-green">{service.nameEs}</span>
                     </>
                   )}
                 </div>
@@ -826,7 +826,7 @@ Traffic Violations`
 
         {/* Add button */}
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={handleBulkAdd}
           disabled={disabled || !hasContent || hasParseErrors}
         >
@@ -835,8 +835,8 @@ Traffic Violations`
         </button>
 
         {/* Help text */}
-        <div className="text-sm text-gray-600 space-y-1 border-t pt-4">
-          <p className="font-medium text-gray-700">Notes:</p>
+        <div className="text-sm text-dark-400 space-y-1 border-t pt-4">
+          <p className="font-medium text-dark-200">Notes:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Duplicate services are automatically skipped</li>
             {spanishEnabled && (
@@ -857,7 +857,7 @@ Traffic Violations`
       return (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading settings...</span>
+          <span className="ml-3 text-dark-400">Loading settings...</span>
         </div>
       );
     }
@@ -875,15 +875,15 @@ Traffic Violations`
       <div className="pb-24">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="mb-2 text-2xl font-bold">Services</h1>
-          <p className="text-gray-600">
-            Manage your service offerings for SEO content generation.
+          <h1 className="mb-2 text-2xl font-bold">{uiLabels.servicesLabel}</h1>
+          <p className="text-dark-400">
+            Manage your {uiLabels.servicesLabel.toLowerCase()} for SEO content generation.
           </p>
         </div>
 
         {!selectedBusiness ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
+            <div className="w-16 h-16 text-dark-500 mx-auto mb-4">
               <svg
                 fill="none"
                 stroke="currentColor"
@@ -898,17 +898,17 @@ Traffic Violations`
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-dark-100 mb-2">
               No business selected
             </h3>
-            <p className="text-gray-600">
+            <p className="text-dark-400">
               Select a business from the sidebar to manage its services.
             </p>
           </div>
         ) : (
           <>
             {/* Tabs */}
-            <div className="border-b border-gray-200 mb-4">
+            <div className="border-b border-dark-700 mb-4">
               <nav className="flex gap-4" aria-label="Tabs">
                 {TABS.map((tab) => (
                   <button
@@ -916,8 +916,8 @@ Traffic Violations`
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-3 py-2 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.name
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                        ? "border-blue-600 text-metro-orange"
+                        : "border-transparent text-dark-400 hover:text-dark-100 hover:border-dark-600"
                     }`}
                   >
                     {tab.label}
@@ -927,7 +927,7 @@ Traffic Violations`
             </div>
 
             {/* Tab Content */}
-            <div className="bg-white border rounded-lg shadow-sm p-6">
+            <div className="bg-dark-800 border rounded-lg shadow-sm p-6">
               {activeTab === "manage" && renderManageTab()}
               {activeTab === "bulk-add" && renderBulkAddTab()}
               {activeTab === "settings" && renderSettingsTab()}

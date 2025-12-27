@@ -29,9 +29,9 @@ export const CompletenessRing: React.FC<CompletenessRingProps> = ({
   };
 
   const getColor = () => {
-    if (score < 40) return "text-red-600";
-    if (score < 70) return "text-yellow-600";
-    return "text-green-600";
+    if (score < 40) return "text-metro-red";
+    if (score < 70) return "text-metro-yellow";
+    return "text-metro-green";
   };
 
   const getStroke = () => {

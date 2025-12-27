@@ -98,7 +98,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
 
   if (!template) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-dark-400">
         <p>Select a template to preview</p>
       </div>
     );
@@ -111,40 +111,40 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
         <span
           className={`px-2 py-0.5 text-xs rounded font-medium ${
             template.page_type === "location-keyword"
-              ? "bg-purple-100 text-purple-800"
-              : "bg-green-100 text-green-800"
+              ? "bg-purple-900/50 text-purple-400"
+              : "bg-metro-green-950 text-metro-green"
           }`}
         >
           {template.page_type}
         </span>
-        <span className="text-sm text-gray-600">v{template.version}</span>
+        <span className="text-sm text-dark-400">v{template.version}</span>
         <span
           className={`px-2 py-0.5 text-xs rounded ${
             template.is_active
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-600"
+              ? "bg-metro-green-950 text-metro-green"
+              : "bg-dark-800 text-dark-400"
           }`}
         >
           {template.is_active ? "Active" : "Inactive"}
         </span>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-dark-400">
           Target: {template.word_count_target} words
         </span>
       </div>
 
       {/* Variable customization */}
       {extractedVariables.length > 0 && (
-        <div className="bg-gray-50 border rounded p-4">
-          <h4 className="font-medium text-gray-700 mb-3">
+        <div className="bg-dark-900 border rounded p-4">
+          <h4 className="font-medium text-dark-200 mb-3">
             Customize Preview Values
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {extractedVariables.slice(0, 9).map((variable) => (
               <div key={variable}>
-                <label className="block text-xs text-gray-600 mb-1">
+                <label className="block text-xs text-dark-400 mb-1">
                   {variable}
                   {declaredRequired.includes(variable) && (
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-metro-red ml-1">*</span>
                   )}
                 </label>
                 <input
@@ -163,13 +163,13 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
             ))}
           </div>
           {extractedVariables.length > 9 && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-dark-400 mt-2">
               +{extractedVariables.length - 9} more variables
             </p>
           )}
           {Object.keys(customValues).length > 0 && (
             <button
-              className="text-sm text-blue-600 hover:text-blue-700 mt-2"
+              className="text-sm text-metro-orange hover:text-metro-orange-600 mt-2"
               onClick={() => setCustomValues({})}
             >
               Reset to defaults
@@ -180,8 +180,8 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
 
       {/* Warnings */}
       {unsubstituted.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-          <p className="text-sm text-yellow-800">
+        <div className="bg-metro-yellow-950 border border-yellow-200 rounded p-3">
+          <p className="text-sm text-metro-yellow">
             <strong>Unsubstituted variables:</strong>{" "}
             {unsubstituted.map((v) => `{{${v}}}`).join(", ")}
           </p>
@@ -194,12 +194,12 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
       {/* Preview content */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h4 className="font-medium text-gray-700">Preview</h4>
-          <span className="text-xs text-gray-500">
+          <h4 className="font-medium text-dark-200">Preview</h4>
+          <span className="text-xs text-dark-400">
             {previewContent.split(/\s+/).length} words
           </span>
         </div>
-        <div className="bg-white border rounded p-4 font-mono text-sm whitespace-pre-wrap max-h-[600px] overflow-y-auto">
+        <div className="bg-dark-800 border rounded p-4 font-mono text-sm whitespace-pre-wrap max-h-[600px] overflow-y-auto">
           {previewContent}
         </div>
       </div>
@@ -208,7 +208,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
       <div className="grid grid-cols-2 gap-4">
         {declaredRequired.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
+            <h4 className="text-sm font-medium text-dark-200 mb-2">
               Required Variables
             </h4>
             <div className="flex flex-wrap gap-1">
@@ -217,8 +217,8 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
                   key={v}
                   className={`px-2 py-0.5 text-xs rounded ${
                     extractedVariables.includes(v)
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      ? "bg-metro-green-950 text-metro-green"
+                      : "bg-metro-red-950 text-red-800"
                   }`}
                 >
                   {v}
@@ -229,7 +229,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
         )}
         {declaredOptional.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
+            <h4 className="text-sm font-medium text-dark-200 mb-2">
               Optional Variables
             </h4>
             <div className="flex flex-wrap gap-1">
@@ -239,7 +239,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
                   className={`px-2 py-0.5 text-xs rounded ${
                     extractedVariables.includes(v)
                       ? "bg-blue-100 text-blue-800"
-                      : "bg-gray-100 text-gray-600"
+                      : "bg-dark-800 text-dark-400"
                   }`}
                 >
                   {v}

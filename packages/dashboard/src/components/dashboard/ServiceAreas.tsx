@@ -336,19 +336,19 @@ export const ServiceAreas: React.FC = () => {
       <StatsCards stats={stats} loading={loading} />
 
       {/* Add Form */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 space-y-3">
+        <h3 className="text-lg font-semibold text-dark-100">
           Add New Service Area
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-dark-200 mb-1">
               City
             </label>
             <input
-              className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                inputErrors.city ? "border-red-500" : "border-gray-300"
+              className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
+                inputErrors.city ? "border-metro-red" : "border-dark-600"
               }`}
               placeholder="e.g., Arlington"
               value={city}
@@ -359,12 +359,12 @@ export const ServiceAreas: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-dark-200 mb-1">
               State
             </label>
             <input
-              className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                inputErrors.state ? "border-red-500" : "border-gray-300"
+              className={`border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-metro-orange focus:border-metro-orange ${
+                inputErrors.state ? "border-metro-red" : "border-dark-600"
               }`}
               placeholder="e.g., VA"
               value={state}
@@ -378,7 +378,7 @@ export const ServiceAreas: React.FC = () => {
         </div>
 
         <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="bg-metro-orange text-white px-6 py-2 rounded-lg hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           onClick={handleAdd}
           disabled={loading || !city.trim() || !state.trim()}
         >
@@ -388,10 +388,10 @@ export const ServiceAreas: React.FC = () => {
         {(inputErrors.city || inputErrors.state) && (
           <div className="space-y-1">
             {inputErrors.city && (
-              <p className="text-red-600 text-sm">{inputErrors.city}</p>
+              <p className="text-metro-red text-sm">{inputErrors.city}</p>
             )}
             {inputErrors.state && (
-              <p className="text-red-600 text-sm">{inputErrors.state}</p>
+              <p className="text-metro-red text-sm">{inputErrors.state}</p>
             )}
           </div>
         )}
@@ -399,7 +399,7 @@ export const ServiceAreas: React.FC = () => {
 
       {/* Error display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <div className="bg-metro-red-950 border border-red-200 rounded-lg p-4 text-red-800">
           {error}
         </div>
       )}
@@ -408,7 +408,7 @@ export const ServiceAreas: React.FC = () => {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading service areas...</span>
+          <span className="ml-3 text-dark-400">Loading service areas...</span>
         </div>
       ) : areas.length === 0 ? (
         <EmptyState
@@ -432,27 +432,27 @@ export const ServiceAreas: React.FC = () => {
             return (
               <div
                 key={area.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
+                className="bg-dark-800 border border-dark-700 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 font-medium">
+                  <p className="text-dark-100 font-medium">
                     {area.city}
                     {area.county && (
-                      <span className="text-gray-500 font-normal">
+                      <span className="text-dark-400 font-normal">
                         {" "}
                         ({area.county})
                       </span>
                     )}
                     , {area.state}
                   </p>
-                  <p className="text-xs text-gray-500 font-mono truncate">
+                  <p className="text-xs text-dark-400 font-mono truncate">
                     /{area.slug}
                   </p>
                 </div>
 
                 {/* Delete button */}
                 <button
-                  className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-metro-red hover:text-red-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleDelete(area)}
                   disabled={isDeleting}
                 >
@@ -475,13 +475,13 @@ export const ServiceAreas: React.FC = () => {
     return (
       <div className="space-y-4">
         {/* Format instructions */}
-        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
-          <p className="font-medium text-gray-700 mb-1">
+        <div className="text-sm text-dark-400 bg-dark-900 p-3 rounded border">
+          <p className="font-medium text-dark-200 mb-1">
             Paste service areas (one per line)
           </p>
           <p>
             Format:{" "}
-            <code className="bg-gray-200 px-1 rounded">
+            <code className="bg-dark-700 px-1 rounded">
               City, State[, County]
             </code>
           </p>
@@ -489,17 +489,17 @@ export const ServiceAreas: React.FC = () => {
 
         {/* Textarea */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-dark-200">
             Paste service areas
             {parsedBulkAreas.length > 0 && (
-              <span className="ml-2 text-xs text-green-600">
+              <span className="ml-2 text-xs text-metro-green">
                 ({parsedBulkAreas.length} area
                 {parsedBulkAreas.length !== 1 ? "s" : ""} detected)
               </span>
             )}
           </label>
           <textarea
-            className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border rounded p-2 w-full font-mono text-sm h-64 resize-none focus:ring-2 focus:ring-metro-orange focus:border-metro-orange"
             placeholder={`Washington, DC
 Arlington, VA, Arlington
 Silver Spring, MD, Montgomery
@@ -514,15 +514,15 @@ College Park, MD`}
         {/* Preview */}
         {parsedBulkAreas.length > 0 && parsedBulkAreas.length <= 15 && (
           <div className="text-sm">
-            <p className="font-medium text-gray-700 mb-2">Preview:</p>
-            <div className="bg-gray-50 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
+            <p className="font-medium text-dark-200 mb-2">Preview:</p>
+            <div className="bg-dark-900 border rounded p-2 space-y-1 max-h-40 overflow-y-auto">
               {parsedBulkAreas.map((area, i) => (
                 <div key={i} className="flex gap-2 text-xs font-mono">
-                  <span className="text-blue-600">
+                  <span className="text-metro-orange">
                     {area.city}, {area.state}
                   </span>
                   {area.county && (
-                    <span className="text-gray-500">({area.county})</span>
+                    <span className="text-dark-400">({area.county})</span>
                   )}
                 </div>
               ))}
@@ -532,7 +532,7 @@ College Park, MD`}
 
         {/* Success indicator */}
         {parsedBulkAreas.length > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded text-green-700">
+          <div className="flex items-center gap-2 p-3 bg-metro-green-950 border border-green-200 rounded text-metro-green-600">
             <svg
               className="w-5 h-5 flex-shrink-0"
               fill="currentColor"
@@ -553,7 +553,7 @@ College Park, MD`}
 
         {/* Add button */}
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           onClick={handleBulkAdd}
           disabled={bulkLoading || !hasContent}
         >
@@ -565,8 +565,8 @@ College Park, MD`}
         </button>
 
         {/* Help text */}
-        <div className="text-sm text-gray-600 space-y-1 border-t pt-4">
-          <p className="font-medium text-gray-700">Notes:</p>
+        <div className="text-sm text-dark-400 space-y-1 border-t pt-4">
+          <p className="font-medium text-dark-200">Notes:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Duplicate areas are automatically skipped</li>
             <li>State codes are auto-capitalized (va becomes VA)</li>
@@ -583,8 +583,8 @@ College Park, MD`}
     <div className="space-y-8 max-w-4xl">
       {/* Overview */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
-        <p className="text-sm text-gray-700">
+        <h2 className="text-xl font-semibold text-dark-100">Overview</h2>
+        <p className="text-sm text-dark-200">
           Service areas define the geographic locations where your business
           operates. Each service area generates location-specific SEO pages
           combined with your keywords (e.g., "criminal defense lawyer Arlington
@@ -594,23 +594,23 @@ College Park, MD`}
 
       {/* Data Structure */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Data Structure</h2>
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <ul className="space-y-2 text-sm text-gray-700">
+        <h2 className="text-xl font-semibold text-dark-100">Data Structure</h2>
+        <div className="bg-dark-900 border rounded-lg p-4">
+          <ul className="space-y-2 text-sm text-dark-200">
             <li>
-              <span className="font-medium text-gray-900">City</span> — Required.
+              <span className="font-medium text-dark-100">City</span> — Required.
               The city or town name (e.g., "Arlington")
             </li>
             <li>
-              <span className="font-medium text-gray-900">State</span> — Required.
+              <span className="font-medium text-dark-100">State</span> — Required.
               2-letter uppercase code (e.g., "VA")
             </li>
             <li>
-              <span className="font-medium text-gray-900">County</span> —
+              <span className="font-medium text-dark-100">County</span> —
               Optional. Useful for disambiguation (e.g., "Fairfax County")
             </li>
             <li>
-              <span className="font-medium text-gray-900">Slug</span> —
+              <span className="font-medium text-dark-100">Slug</span> —
               Auto-generated from city + state (e.g., "arlington-va")
             </li>
           </ul>
@@ -619,14 +619,14 @@ College Park, MD`}
 
       {/* Bulk Format */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Bulk Add Format</h2>
+        <h2 className="text-xl font-semibold text-dark-100">Bulk Add Format</h2>
         <div className="bg-gray-900 text-gray-100 rounded-lg p-3 font-mono text-xs overflow-x-auto">
           <p>Washington, DC</p>
           <p>Arlington, VA, Arlington</p>
           <p>Silver Spring, MD, Montgomery</p>
           <p>Rockville, MD, Montgomery</p>
         </div>
-        <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+        <ul className="list-disc pl-5 text-sm text-dark-400 space-y-1">
           <li>One area per line</li>
           <li>Format: City, State[, County]</li>
           <li>Duplicates detected by slug (city-state)</li>
@@ -635,8 +635,8 @@ College Park, MD`}
 
       {/* Best Practices */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Best Practices</h2>
-        <ul className="text-sm text-gray-700 space-y-2">
+        <h2 className="text-xl font-semibold text-dark-100">Best Practices</h2>
+        <ul className="text-sm text-dark-200 space-y-2">
           <li>
             <strong>Start with core markets.</strong> Add 20-50 primary service
             areas for your main coverage zone.
@@ -655,30 +655,30 @@ College Park, MD`}
 
       {/* Current Stats */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Current Stats</h2>
+        <h2 className="text-xl font-semibold text-dark-100">Current Stats</h2>
         {selectedBusiness ? (
           loading ? (
-            <p className="text-gray-600 text-sm">Loading...</p>
+            <p className="text-dark-400 text-sm">Loading...</p>
           ) : (
-            <div className="bg-gray-50 border rounded-lg p-4">
+            <div className="bg-dark-900 border rounded-lg p-4">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-dark-100">
                     {areas.length}
                   </p>
-                  <p className="text-xs text-gray-600">Total Areas</p>
+                  <p className="text-xs text-dark-400">Total Areas</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-metro-green">
                     {new Set(areas.map((a) => a.state)).size}
                   </p>
-                  <p className="text-xs text-gray-600">States</p>
+                  <p className="text-xs text-dark-400">States</p>
                 </div>
               </div>
             </div>
           )
         ) : (
-          <p className="text-gray-600 text-sm">
+          <p className="text-dark-400 text-sm">
             Select a business to view stats.
           </p>
         )}
@@ -692,27 +692,27 @@ College Park, MD`}
         {/* Header */}
         <div className="mb-6">
           <h1 className="mb-2 text-2xl font-bold">Service Areas</h1>
-          <p className="text-gray-600">
+          <p className="text-dark-400">
             Define the geographic locations where you offer services.
           </p>
         </div>
 
         {!selectedBusiness ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 text-gray-300 mx-auto mb-4">
+            <div className="w-16 h-16 text-dark-500 mx-auto mb-4">
               {EmptyStateIcons.serviceAreas}
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-dark-100 mb-2">
               No business selected
             </h3>
-            <p className="text-gray-600">
+            <p className="text-dark-400">
               Select a business from the sidebar to manage service areas.
             </p>
           </div>
         ) : (
           <>
             {/* Tabs */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-dark-700">
               <nav className="flex gap-4" aria-label="Tabs">
                 {TABS.map((tab) => (
                   <button
@@ -720,8 +720,8 @@ College Park, MD`}
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-3 py-2 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.name
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                        ? "border-blue-600 text-metro-orange"
+                        : "border-transparent text-dark-400 hover:text-dark-100 hover:border-dark-600"
                     }`}
                   >
                     {tab.label}

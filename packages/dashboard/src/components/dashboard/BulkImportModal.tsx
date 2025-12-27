@@ -60,10 +60,10 @@ Coming Soon,Richmond,VA,US,upcoming,,,`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-dark-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-dark-800 border-b border-dark-700 px-6 py-4">
           <h2 className="text-xl font-semibold">Bulk Import Locations</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-dark-400 mt-1">
             Import multiple locations using CSV or JSON format
           </p>
         </div>
@@ -96,7 +96,7 @@ Coming Soon,Richmond,VA,US,upcoming,,,`;
 
           {/* Import Text Area */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-dark-200 mb-1">
               Paste CSV or JSON data
             </label>
             <textarea
@@ -104,7 +104,7 @@ Coming Soon,Richmond,VA,US,upcoming,,,`;
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
               rows={12}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono text-sm"
+              className="w-full border border-dark-600 rounded-lg px-3 py-2 font-mono text-sm"
               placeholder="Paste your CSV or JSON data here..."
             />
           </div>
@@ -116,31 +116,31 @@ Coming Soon,Richmond,VA,US,upcoming,,,`;
                 type="checkbox"
                 checked={autoCreateServiceAreas}
                 onChange={(e) => setAutoCreateServiceAreas(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                className="rounded border-dark-600 text-metro-orange focus:ring-metro-orange mr-2"
               />
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-dark-200">
                 Automatically create service areas for active locations
               </span>
             </label>
           </div>
 
           {/* Examples */}
-          <details className="border border-gray-200 rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer font-medium text-sm hover:bg-gray-50">
+          <details className="border border-dark-700 rounded-lg">
+            <summary className="px-4 py-3 cursor-pointer font-medium text-sm hover:bg-dark-900">
               Show CSV Example
             </summary>
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <div className="px-4 py-3 bg-dark-900 border-t border-dark-700">
               <pre className="text-xs font-mono overflow-x-auto">
                 {exampleCSV}
               </pre>
             </div>
           </details>
 
-          <details className="border border-gray-200 rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer font-medium text-sm hover:bg-gray-50">
+          <details className="border border-dark-700 rounded-lg">
+            <summary className="px-4 py-3 cursor-pointer font-medium text-sm hover:bg-dark-900">
               Show JSON Example
             </summary>
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+            <div className="px-4 py-3 bg-dark-900 border-t border-dark-700">
               <pre className="text-xs font-mono overflow-x-auto">
                 {exampleJSON}
               </pre>
@@ -148,19 +148,19 @@ Coming Soon,Richmond,VA,US,upcoming,,,`;
           </details>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-dark-700">
             <button
               type="button"
               onClick={onClose}
               disabled={importing}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 border border-dark-600 rounded-lg text-sm hover:bg-dark-900 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={importing || !importText.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-metro-orange text-white rounded-lg text-sm hover:bg-metro-orange-600 disabled:opacity-50"
             >
               {importing ? "Importing..." : "Import Locations"}
             </button>

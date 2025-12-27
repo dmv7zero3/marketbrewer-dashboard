@@ -16,6 +16,8 @@ function getAllowedOrigins(): (string | RegExp)[] {
     "http://localhost:3002", // Local dev dashboard (webpack default)
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3002",
+    "http://[::1]:3000", // IPv6 localhost
+    "http://[::1]:3002", // IPv6 localhost
   ];
 
   // Allow Tailscale origins in development
@@ -57,7 +59,7 @@ const corsOptions: CorsOptions = {
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   maxAge: 86400, // 24 hours
 };

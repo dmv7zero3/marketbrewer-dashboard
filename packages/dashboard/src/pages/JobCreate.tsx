@@ -1,21 +1,53 @@
 /**
- * Job Creation Page
+ * Job Creation Page - Uses sidebar-selected business
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { useBusiness } from "../contexts/BusinessContext";
 import { createJob, getQuestionnaire } from "../api";
 import type { PageType } from "@marketbrewer/shared";
 
+interface PageTypeOption {
+  value: PageType;
+  title: string;
+  description: string;
+}
+
 export const JobCreate: React.FC = () => {
   const navigate = useNavigate();
-  const { selectedBusiness, setSelectedBusiness, businesses } = useBusiness();
-  const [pageType, setPageType] = useState<PageType>("location-keyword");
+  const { selectedBusiness, uiLabels } = useBusiness();
+  const [pageType, setPageType] = useState<PageType>("keyword-service-area");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [completenessScore, setCompletenessScore] = useState<number | null>(
-    null
+  const [completenessScore, setCompletenessScore] = useState<number | null>(null);
+
+  // Build page type options with dynamic labels based on industry
+  const pageTypeOptions: PageTypeOption[] = useMemo(
+    () => [
+      {
+        value: "keyword-service-area",
+        title: "SEO Keywords × Service Areas",
+        description: `Keywords (e.g., "best fried chicken") × nearby cities`,
+      },
+      {
+        value: "keyword-location",
+        title: "SEO Keywords × Store Locations",
+        description: `Keywords × physical store locations (active + coming soon)`,
+      },
+      {
+        value: "service-service-area",
+        title: `${uiLabels.servicesLabel} × Service Areas`,
+        description: `${uiLabels.servicesLabel} (e.g., "Smash Burger") × nearby cities`,
+      },
+      {
+        value: "service-location",
+        title: `${uiLabels.servicesLabel} × Store Locations`,
+        description: `${uiLabels.servicesLabel} × physical store locations (active + coming soon)`,
+      },
+    ],
+    [uiLabels]
   );
 
   // Load questionnaire when business changes
@@ -42,7 +74,7 @@ export const JobCreate: React.FC = () => {
     e.preventDefault();
 
     if (!selectedBusiness) {
-      setError("Please select a business");
+      setError("Please select a business from the sidebar");
       return;
     }
 
@@ -69,125 +101,103 @@ export const JobCreate: React.FC = () => {
     }
   };
 
+  // No business selected - show prompt
+  if (!selectedBusiness) {
+    return (
+      <DashboardLayout title="Create Generation Job">
+        <div className="bg-dark-800 rounded-lg p-8 text-center">
+          <div className="text-dark-400 mb-2">No business selected</div>
+          <div className="text-dark-500 text-sm">
+            Select a business from the sidebar to create a generation job.
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Create Generation Job</h1>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Business Selection */}
-        <div>
-          <label
-            htmlFor="business"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Select Business
-          </label>
-          <select
-            id="business"
-            value={selectedBusiness || ""}
-            onChange={(e) => setSelectedBusiness(e.target.value || null)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={loading}
-          >
-            <option value="">-- Select a business --</option>
-            {businesses.map((business) => (
-              <option key={business.id} value={business.id}>
-                {business.name} ({business.industry})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Completeness Score */}
-        {selectedBusiness && completenessScore !== null && (
-          <div className="bg-gray-50 p-4 rounded-md">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Questionnaire Completeness
-              </span>
-              <span
-                className={`text-sm font-bold ${
-                  completenessScore >= 40 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {completenessScore}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${
-                  completenessScore >= 40 ? "bg-green-500" : "bg-red-500"
-                }`}
-                style={{ width: `${completenessScore}%` }}
-              />
-            </div>
-            {completenessScore < 40 && (
-              <p className="text-sm text-red-600 mt-2">
-                Minimum 40% required to generate content
-              </p>
-            )}
+    <DashboardLayout title="Create Generation Job">
+      <div className="max-w-3xl">
+        {error && (
+          <div className="bg-metro-red-950 border border-metro-red-700 text-metro-red px-4 py-3 rounded-lg mb-6">
+            {error}
           </div>
         )}
 
-        {/* Page Type Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Page Type
-          </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pageType"
-                value="location-keyword"
-                checked={pageType === "location-keyword"}
-                onChange={(e) => setPageType(e.target.value as PageType)}
-                className="mr-2"
-                disabled={loading}
-              />
-              <span>Keyword + Location</span>
-              <span className="text-gray-500 text-sm ml-2">
-                (e.g., /halal-chicken/sterling-va)
-              </span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pageType"
-                value="service-area"
-                checked={pageType === "service-area"}
-                onChange={(e) => setPageType(e.target.value as PageType)}
-                className="mr-2"
-                disabled={loading}
-              />
-              <span>Service + Location</span>
-              <span className="text-gray-500 text-sm ml-2">
-                (e.g., /sterling-va)
-              </span>
-            </label>
-          </div>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Completeness Score */}
+          {completenessScore !== null && (
+            <div className="bg-dark-800 p-4 rounded-lg">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-dark-200">
+                  Questionnaire Completeness
+                </span>
+                <span
+                  className={`text-sm font-bold ${
+                    completenessScore >= 40 ? "text-metro-green" : "text-metro-red"
+                  }`}
+                >
+                  {completenessScore}%
+                </span>
+              </div>
+              <div className="w-full bg-dark-700 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${
+                    completenessScore >= 40 ? "bg-metro-green" : "bg-metro-red"
+                  }`}
+                  style={{ width: `${completenessScore}%` }}
+                />
+              </div>
+              {completenessScore < 40 && (
+                <p className="text-sm text-metro-red mt-2">
+                  Minimum 40% required to generate content
+                </p>
+              )}
+            </div>
+          )}
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={
-            loading ||
-            !selectedBusiness ||
-            (completenessScore !== null && completenessScore < 40)
-          }
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? "Creating Job..." : "Create Generation Job"}
-        </button>
-      </form>
-    </div>
+          {/* Page Type Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-dark-200">
+              Page Type
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pageTypeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setPageType(option.value)}
+                  disabled={loading}
+                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                    pageType === option.value
+                      ? "border-metro-orange bg-metro-orange-950/30"
+                      : "border-dark-700 bg-dark-900 hover:border-dark-600"
+                  }`}
+                >
+                  <div className="font-medium text-dark-100">{option.title}</div>
+                  <div className="text-sm text-dark-400 mt-1">
+                    {option.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={
+              loading ||
+              !selectedBusiness ||
+              (completenessScore !== null && completenessScore < 40)
+            }
+            className="w-full bg-metro-orange text-dark-950 py-3 px-4 rounded-lg font-medium hover:bg-metro-orange-600 disabled:bg-dark-600 disabled:text-dark-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? "Creating Job..." : "Create Generation Job"}
+          </button>
+        </form>
+      </div>
+    </DashboardLayout>
   );
 };
 

@@ -15,8 +15,8 @@ interface GoogleBusinessProfileCardProps {
 export const GoogleBusinessProfileCard = memo<GoogleBusinessProfileCardProps>(
   ({ business, validationErrors, disabled, onChange }) => {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-        <h4 className="text-sm font-medium text-blue-900 mb-4 flex items-center gap-2">
+      <div className="bg-dark-800 border border-dark-700 rounded-lg p-5">
+        <h4 className="text-sm font-medium text-dark-100 mb-4 flex items-center gap-2">
           {/* Google "G" Icon */}
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
             <path
@@ -40,7 +40,7 @@ export const GoogleBusinessProfileCard = memo<GoogleBusinessProfileCardProps>(
         </h4>
 
         <div>
-          <label className="block text-sm font-medium text-blue-800 mb-1.5">
+          <label className="block text-sm font-medium text-dark-200 mb-1.5">
             GBP URL
           </label>
           <input
@@ -50,14 +50,14 @@ export const GoogleBusinessProfileCard = memo<GoogleBusinessProfileCardProps>(
               onChange({ ...business, gbp_url: e.target.value })
             }
             disabled={disabled}
-            className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+            className={`w-full border rounded-lg px-3 py-2 text-dark-100 focus:ring-2 focus:ring-metro-orange focus:border-metro-orange transition-colors ${
               validationErrors.gbp_url
-                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                : "border-blue-300"
+                ? "border-metro-red focus:ring-red-500 focus:border-metro-red"
+                : "border-dark-600"
             } ${
               disabled
-                ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                : "bg-white"
+                ? "bg-dark-900 text-dark-400 cursor-not-allowed"
+                : "bg-dark-900"
             }`}
             placeholder="https://www.google.com/maps/place/..."
             aria-invalid={!!validationErrors.gbp_url}
@@ -68,36 +68,36 @@ export const GoogleBusinessProfileCard = memo<GoogleBusinessProfileCardProps>(
           {validationErrors.gbp_url && (
             <p
               id="gbp-url-error"
-              className="text-red-600 text-xs mt-1"
+              className="text-metro-red text-xs mt-1"
               role="alert"
             >
               {validationErrors.gbp_url}
             </p>
           )}
-          <p id="gbp-url-hint" className="text-xs text-blue-700 mt-2">
+          <p id="gbp-url-hint" className="text-xs text-metro-orange-600 mt-2">
             Used for verification and local SEO benefits.
           </p>
         </div>
 
         {/* GBP Status Indicator */}
-        <div className="mt-4 pt-4 border-t border-blue-200">
+        <div className="mt-4 pt-4 border-t border-dark-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-              <span className="text-blue-800">GBP not verified</span>
+              <span className="w-2 h-2 rounded-full bg-dark-500"></span>
+              <span className="text-dark-300">GBP not verified</span>
             </div>
             {business.gbp_url && (
               <a
                 href={business.gbp_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:text-blue-700 underline"
+                className="text-xs text-metro-orange hover:text-metro-orange-600 underline"
               >
                 View Profile ↗
               </a>
             )}
           </div>
-          <p className="text-xs text-blue-600 mt-1">
+          <p className="text-xs text-metro-orange mt-1">
             Future: Auto-verify GBP ownership via Google API
           </p>
         </div>
