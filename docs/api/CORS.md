@@ -10,7 +10,7 @@ CORS (Cross-Origin Resource Sharing) controls which origins can access the API.
 
 | Environment | Allowed Origins |
 |-------------|-----------------|
-| Development | `http://localhost:3000` |
+| Development | `http://localhost:3002` |
 | Production | Dashboard URL only |
 
 ---
@@ -23,13 +23,13 @@ Location: `packages/server/src/middleware/cors.ts`
 import cors from 'cors';
 
 const ALLOWED_ORIGINS = [
-  'http://localhost:3000',      // Dashboard dev
-  'http://127.0.0.1:3000',      // Dashboard dev (alt)
+  'http://localhost:3002',      // Dashboard dev
+  'http://127.0.0.1:3002',      // Dashboard dev (alt)
 ];
 
 // Add production URL if set
-if (process.env.DASHBOARD_URL) {
-  ALLOWED_ORIGINS.push(process.env.DASHBOARD_URL);
+if (process.env.CORS_DASHBOARD_URL) {
+  ALLOWED_ORIGINS.push(process.env.CORS_DASHBOARD_URL);
 }
 
 export const corsMiddleware = cors({
@@ -58,12 +58,12 @@ export const corsMiddleware = cors({
 
 ```bash
 # .env
-DASHBOARD_URL=http://localhost:3000
+CORS_DASHBOARD_URL=http://localhost:3002
 ```
 
 For Tailscale:
 ```bash
-DASHBOARD_URL=http://macbook-pro.tailnet:3000
+CORS_DASHBOARD_URL=http://macbook-pro.tailnet:3002
 ```
 
 ---
@@ -98,7 +98,7 @@ Access-Control-Allow-Credentials: true
 ### "CORS error" in browser
 
 1. Check dashboard is running on allowed origin
-2. Verify `DASHBOARD_URL` env var is set
+2. Verify `CORS_DASHBOARD_URL` env var is set
 3. Check browser dev tools Network tab for actual error
 
 ### Worker can't connect

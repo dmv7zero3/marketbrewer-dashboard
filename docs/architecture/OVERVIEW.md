@@ -10,7 +10,7 @@ High-level system design for MarketBrewer SEO Platform V1 (EC2-first).
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           DASHBOARD                                  │
 │                React 18 + TypeScript + Tailwind                      │
-│                         localhost:3000                               │
+│                         localhost:3002                               │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼ HTTP (+Bearer)
@@ -143,7 +143,7 @@ Single EC2 instance runs both the API and worker to avoid multi-machine complexi
 
 - Instance type: t3.small (CPU) or g4dn.xlarge (GPU only if needed)
 - OS: Ubuntu 22.04 LTS
-- Security group: allow inbound `3000` (dashboard if hosted), `3001` (API), and SSH from trusted IPs only
+- Security group: allow inbound `3002` (dashboard if hosted), `3001` (API), and SSH from trusted IPs only
 - Storage: 30GB gp3
 
 ### Cost Guardrails

@@ -12,11 +12,8 @@ const DASHBOARD_URL = process.env.CORS_DASHBOARD_URL || "http://localhost:3002";
 function getAllowedOrigins(): (string | RegExp)[] {
   const origins: (string | RegExp)[] = [
     DASHBOARD_URL,
-    "http://localhost:3000", // Local dev dashboard
-    "http://localhost:3002", // Local dev dashboard (webpack default)
-    "http://127.0.0.1:3000",
+    "http://localhost:3002", // Local dev dashboard
     "http://127.0.0.1:3002",
-    "http://[::1]:3000", // IPv6 localhost
     "http://[::1]:3002", // IPv6 localhost
   ];
 

@@ -10,18 +10,39 @@ Local-first SEO content generation platform for producing thousands of location-
 # Install dependencies
 npm install
 
-# Start dashboard (localhost:3000)
+# Configure environment files
+cp packages/server/.env.example packages/server/.env
+cp packages/dashboard/.env.example packages/dashboard/.env
+cp packages/worker/.env.example packages/worker/.env
+
+# Start dashboard (localhost:3002)
 npm run dev:dashboard
 
 # Start API server (localhost:3001)
 npm run dev:server
 
-# Start worker
+# Start worker (requires API_URL and API_TOKEN in packages/worker/.env)
 npm run dev:worker
 
 # Run smoke tests (requires server running)
 ./scripts/smoke-tests.sh local
 ```
+
+---
+
+## Node Version
+
+Use Node.js 20.x for local development (Homebrew `node@20` works). Example:
+
+```bash
+export PATH="/usr/local/opt/node@20/bin:$PATH"
+node -v
+```
+
+Project-only setup options:
+- `direnv allow` (uses `.envrc` to set PATH for this repo only)
+- `nvm use` (reads `.nvmrc`)
+Optional: Volta/asdf users can pin `20.19.6` locally (no repo changes required).
 
 ---
 

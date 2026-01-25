@@ -418,7 +418,7 @@ npm run build:dashboard
 # - Node.js static server
 
 # Test from local machine (replace <public-ip>):
-# Open browser: http://<public-ip>:3000
+# Open browser: http://<public-ip>:3002
 # (Requires reverse proxy setup)
 ```
 

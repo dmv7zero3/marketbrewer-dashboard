@@ -75,10 +75,7 @@ WHERE status IN ('closed', 'temporarily-closed');
 -- Step 3: Delete closed locations from main table
 DELETE FROM locations WHERE status IN ('closed', 'temporarily-closed');
 
--- Step 4: Update coming-soon to upcoming
-UPDATE locations SET status = 'upcoming' WHERE status = 'coming-soon';
-
--- Step 5: SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+-- Step 4: SQLite doesn't support ALTER COLUMN, so we need to recreate the table
 -- Create new table with updated constraint
 CREATE TABLE locations_new (
   id TEXT PRIMARY KEY,
@@ -119,7 +116,23 @@ CREATE TABLE locations_new (
 );
 
 -- Step 6: Copy data from old table to new
-INSERT INTO locations_new SELECT * FROM locations;
+INSERT INTO locations_new (
+  id, business_id, name, city, state, country, status,
+  display_name, address, zip_code, full_address,
+  phone, email, google_maps_url, store_id, order_link,
+  is_headquarters, note, priority, created_at, updated_at
+)
+SELECT
+  id, business_id, name, city, state, country,
+  CASE
+    WHEN status = 'coming-soon' THEN 'upcoming'
+    WHEN status = 'temporarily-closed' THEN 'upcoming'
+    ELSE status
+  END AS status,
+  display_name, address, zip_code, full_address,
+  phone, email, google_maps_url, store_id, order_link,
+  is_headquarters, note, priority, created_at, updated_at
+FROM locations;
 
 -- Step 7: Drop old table and rename new one
 DROP TABLE locations;
