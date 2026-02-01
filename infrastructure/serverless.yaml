@@ -41,6 +41,16 @@ Parameters:
     Default: ""
     Description: Optional existing SQS queue URL for page generation
 
+  ExistingDlqArn:
+    Type: String
+    Default: ""
+    Description: Optional existing SQS DLQ ARN for page generation
+
+  ExistingDlqUrl:
+    Type: String
+    Default: ""
+    Description: Optional existing SQS DLQ URL for page generation
+
   ExistingTableName:
     Type: String
     Default: ""
@@ -65,6 +75,7 @@ Parameters:
 Conditions:
   CreateQueue: !Equals [!Ref ExistingQueueArn, ""]
   CreateTable: !Equals [!Ref ExistingTableName, ""]
+  CreateDlq: !Equals [!Ref ExistingDlqArn, ""]
 
 Resources:
   DashboardTable:
@@ -99,6 +110,21 @@ Resources:
       VisibilityTimeout: 300
       MessageRetentionPeriod: 604800
       ReceiveMessageWaitTimeSeconds: 20
+      RedrivePolicy:
+        deadLetterTargetArn: !If [CreateDlq, !GetAtt PageGenerationDlq.Arn, !Ref ExistingDlqArn]
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: MarketBrewer
+        - Key: Component
+          Value: Dashboard
+
+  PageGenerationDlq:
+    Type: AWS::SQS::Queue
+    Condition: CreateQueue
+    Properties:
+      QueueName: !Sub "${ProjectPrefix}-page-generation-dlq"
+      MessageRetentionPeriod: 1209600
       Tags:
         - Key: Project
           Value: MarketBrewer
@@ -270,6 +296,86 @@ Resources:
       ApiId: !Ref HttpApi
       StageName: "$default"
       AutoDeploy: true
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: >-
+          {"requestId":"$context.requestId","httpMethod":"$context.httpMethod","path":"$context.path","status":"$context.status","latency":"$context.responseLatency","ip":"$context.identity.sourceIp","userAgent":"$context.identity.userAgent"}
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/http-api/${ProjectPrefix}-dashboard-api"
+      RetentionInDays: 30
+
+  QueueDepthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateQueue
+    Properties:
+      AlarmDescription: "Page generation queue backlog"
+      Namespace: "AWS/SQS"
+      MetricName: "ApproximateNumberOfMessagesVisible"
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt PageGenerationQueue.QueueName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateQueue
+    Properties:
+      AlarmDescription: "Page generation DLQ messages present"
+      Namespace: "AWS/SQS"
+      MetricName: "ApproximateNumberOfMessagesVisible"
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt PageGenerationDlq.QueueName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: "HTTP API 5xx errors"
+      Namespace: "AWS/ApiGateway"
+      MetricName: "5XXError"
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApi
+        - Name: Stage
+          Value: "$default"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ApiLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: "HTTP API latency p90 (approximate) high"
+      Namespace: "AWS/ApiGateway"
+      MetricName: "Latency"
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApi
+        - Name: Stage
+          Value: "$default"
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3000
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   ApiLambdaPermission:
     Type: AWS::Lambda::Permission

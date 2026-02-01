@@ -281,11 +281,12 @@ export const handler = async (event: SQSEvent): Promise<void> => {
       job_id: string;
       page_id: string;
       business_id: string;
+      request_id?: string;
     };
 
-    const { job_id: jobId, page_id: pageId, business_id: businessId } = body;
+    const { job_id: jobId, page_id: pageId, business_id: businessId, request_id: requestId } = body;
     const startedAt = Date.now();
-    logEvent("INFO", "page_processing_started", { jobId, pageId, businessId });
+    logEvent("INFO", "page_processing_started", { jobId, pageId, businessId, requestId });
 
     const pageResult = await dynamo.send(
       new GetCommand({
@@ -295,7 +296,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
     );
     const page = pageResult.Item as Record<string, unknown> | undefined;
     if (!page || page.status === "completed") {
-      logEvent("WARN", "page_skipped", { jobId, pageId, businessId });
+      logEvent("WARN", "page_skipped", { jobId, pageId, businessId, requestId });
       continue;
     }
 
@@ -407,7 +408,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
       if (jobUpdate.finalized && jobUpdate.webhookReady && jobUpdate.job?.status) {
         await dispatchWebhooks(
           jobUpdate.job.status === "failed" ? "job.failed" : "job.completed",
-          { job: jobUpdate.job, business_id: businessId, job_id: jobId }
+          { job: jobUpdate.job, business_id: businessId, job_id: jobId, request_id: requestId }
         );
       }
 
@@ -418,6 +419,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
         jobId,
         pageId,
         businessId,
+        requestId,
         durationMs: Date.now() - startedAt,
         claudeDurationMs: durationMs,
         inputTokens: usage.input_tokens || 0,
@@ -446,13 +448,14 @@ export const handler = async (event: SQSEvent): Promise<void> => {
       if (jobUpdate.finalized && jobUpdate.webhookReady && jobUpdate.job?.status) {
         await dispatchWebhooks(
           jobUpdate.job.status === "failed" ? "job.failed" : "job.completed",
-          { job: jobUpdate.job, business_id: businessId, job_id: jobId }
+          { job: jobUpdate.job, business_id: businessId, job_id: jobId, request_id: requestId }
         );
       }
       logEvent("ERROR", "page_processing_failed", {
         jobId,
         pageId,
         businessId,
+        requestId,
         durationMs: Date.now() - startedAt,
         error: message,
       });

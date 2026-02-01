@@ -64,11 +64,12 @@ function resolveCorsOrigin(requestOrigin?: string | null): string {
   return CORS_ALLOW_ORIGINS[0] || "https://admin.marketbrewer.com";
 }
 
-function buildHeaders(requestOrigin?: string | null) {
+function buildHeaders(requestOrigin?: string | null, requestId?: string) {
   return {
     ...BASE_HEADERS,
     "Access-Control-Allow-Origin": resolveCorsOrigin(requestOrigin),
     Vary: "Origin",
+    ...(requestId ? { "X-Request-Id": requestId } : {}),
   };
 }
 
@@ -1113,6 +1114,7 @@ async function createJob(businessId: string, event: APIGatewayProxyEventV2): Pro
             page_id: page.id,
             business_id: businessId,
             page_type: page.page_type,
+            request_id: currentRequestContext?.requestId || undefined,
           }),
         })),
       })
@@ -1477,13 +1479,17 @@ async function previewPages(businessId: string, event: APIGatewayProxyEventV2): 
 }
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
+  const incomingRequestId =
+    event.headers?.["x-request-id"] ||
+    event.headers?.["X-Request-Id"] ||
+    event.requestContext.requestId;
   currentRequestContext = {
-    requestId: event.requestContext.requestId,
+    requestId: incomingRequestId,
     method: event.requestContext.http.method,
     path: event.rawPath,
   };
   const requestOrigin = event.headers?.origin || event.headers?.Origin || null;
-  currentHeaders = buildHeaders(requestOrigin);
+  currentHeaders = buildHeaders(requestOrigin, incomingRequestId);
   logEvent("INFO", "request_received");
   if (event.requestContext.http.method === "OPTIONS") {
     if (requestOrigin && !CORS_ALLOW_ORIGINS.includes("*") && !CORS_ALLOW_ORIGINS.includes(requestOrigin)) {

@@ -5,7 +5,7 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 ## 1) Reliability & Resilience
 - [ ] Define SLOs and error budgets (API availability, job completion time)
 - [ ] Add idempotency for job creation + worker processing
-- [ ] Configure SQS DLQ and redrive policy
+- [x] Configure SQS DLQ and redrive policy
 - [ ] Set worker retry limits and visibility timeout aligned to max job duration
 - [ ] Add dashboard retry UX and clear failure states
 
@@ -18,14 +18,14 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [ ] API Gateway throttling and basic abuse protection (cost‑conscious; no WAF unless needed)
 
 ## 3) Observability & Alerting
-- [ ] Structured logs with correlation IDs across API + worker
+- [x] Structured logs with correlation IDs across API + worker
 - [ ] Metrics: API latency, 5xx, worker throughput, queue depth, job failure %
-- [ ] Alerts: DLQ > 0, queue backlog, error rate spikes, auth failures
+- [x] Alerts: DLQ > 0, queue backlog, error rate spikes, auth failures
 - [ ] /health endpoint is minimal (no dependency details) or protected
 
 ## 4) Data Integrity & Backups
 - [ ] DynamoDB PITR enabled
-- [ ] Restore procedure documented and tested (table restore validation)
+- [x] Restore procedure documented and tested (table restore validation)
 - [ ] Schema validation on all endpoints
 - [ ] Immutable cost ledger verified (no missing events)
 - [ ] Data retention policy for generated content + logs
