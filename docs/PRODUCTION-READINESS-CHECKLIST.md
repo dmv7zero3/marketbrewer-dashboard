@@ -41,7 +41,7 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [ ] Lambda memory + timeout tuned (API + worker)
 - [ ] Concurrency limits aligned to Claude API quotas
 - [ ] Queue visibility timeout aligned to max job duration
-- [ ] Dashboard bundle size optimization (code splitting, lazy routes)
+- [x] Dashboard bundle size optimization (code splitting, lazy routes)
 
 ## 7) Testing
 - [ ] Increase API/worker coverage to minimum threshold
