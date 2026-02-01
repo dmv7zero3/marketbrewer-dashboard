@@ -5,6 +5,12 @@
 import apiClient from "./client";
 import type { Location, LocationStats } from "@marketbrewer/shared";
 
+/**
+ * List locations for a business.
+ * @param businessId - Business identifier.
+ * @param filters - Optional filtering for status/state/country.
+ * @param options - Optional request options (abort signal).
+ */
 export async function getLocations(
   businessId: string,
   filters?: { status?: string; state?: string; country?: string },
@@ -20,6 +26,11 @@ export async function getLocations(
   return data;
 }
 
+/**
+ * Fetch location stats for a business.
+ * @param businessId - Business identifier.
+ * @param options - Optional request options (abort signal).
+ */
 export async function getLocationStats(
   businessId: string,
   options?: { signal?: AbortSignal }
@@ -33,6 +44,11 @@ export async function getLocationStats(
   return data;
 }
 
+/**
+ * Fetch a single location.
+ * @param businessId - Business identifier.
+ * @param locationId - Location identifier.
+ */
 export async function getLocation(
   businessId: string,
   locationId: string
@@ -43,6 +59,11 @@ export async function getLocation(
   return data;
 }
 
+/**
+ * Create a new location.
+ * @param businessId - Business identifier.
+ * @param location - New location payload.
+ */
 export async function createLocation(
   businessId: string,
   location: Omit<Location, "id" | "business_id" | "created_at" | "updated_at">
@@ -54,6 +75,12 @@ export async function createLocation(
   return data;
 }
 
+/**
+ * Update an existing location.
+ * @param businessId - Business identifier.
+ * @param locationId - Location identifier.
+ * @param updates - Partial location updates.
+ */
 export async function updateLocation(
   businessId: string,
   locationId: string,
@@ -68,6 +95,11 @@ export async function updateLocation(
   return data;
 }
 
+/**
+ * Delete a location.
+ * @param businessId - Business identifier.
+ * @param locationId - Location identifier.
+ */
 export async function deleteLocation(
   businessId: string,
   locationId: string
@@ -77,6 +109,11 @@ export async function deleteLocation(
   );
 }
 
+/**
+ * Bulk import locations (optionally creating service areas).
+ * @param businessId - Business identifier.
+ * @param payload - Bulk import payload.
+ */
 export async function bulkImportLocations(
   businessId: string,
   payload: {

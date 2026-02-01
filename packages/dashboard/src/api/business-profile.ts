@@ -12,22 +12,30 @@ import type {
   SocialPlatform,
 } from "@marketbrewer/shared";
 
+/** Response wrapper for business profile locations. */
 export interface BusinessProfileLocationsResponse {
   locations: BusinessLocation[];
 }
 
+/** Response wrapper for a single business profile location. */
 export interface BusinessProfileLocationResponse {
   location: BusinessLocation;
 }
 
+/** Response wrapper for business hours. */
 export interface BusinessProfileHoursResponse {
   hours: BusinessHours[];
 }
 
+/** Response wrapper for business social links. */
 export interface BusinessProfileSocialResponse {
   links: BusinessSocialLink[];
 }
 
+/**
+ * List profile locations for a business.
+ * @param businessId - Business identifier.
+ */
 export async function getProfileLocations(
   businessId: string
 ): Promise<BusinessProfileLocationsResponse> {
@@ -37,6 +45,11 @@ export async function getProfileLocations(
   return response.data;
 }
 
+/**
+ * Create a new profile location for a business.
+ * @param businessId - Business identifier.
+ * @param data - New location payload.
+ */
 export async function createProfileLocation(
   businessId: string,
   data: {
@@ -56,6 +69,12 @@ export async function createProfileLocation(
   return response.data;
 }
 
+/**
+ * Update a profile location.
+ * @param businessId - Business identifier.
+ * @param locationId - Location identifier.
+ * @param updates - Partial location updates.
+ */
 export async function updateProfileLocation(
   businessId: string,
   locationId: string,
@@ -76,6 +95,11 @@ export async function updateProfileLocation(
   return response.data;
 }
 
+/**
+ * Delete a profile location.
+ * @param businessId - Business identifier.
+ * @param locationId - Location identifier.
+ */
 export async function deleteProfileLocation(
   businessId: string,
   locationId: string
@@ -85,6 +109,10 @@ export async function deleteProfileLocation(
   );
 }
 
+/**
+ * Fetch business hours for a business.
+ * @param businessId - Business identifier.
+ */
 export async function getBusinessHours(
   businessId: string
 ): Promise<BusinessProfileHoursResponse> {
@@ -94,6 +122,11 @@ export async function getBusinessHours(
   return response.data;
 }
 
+/**
+ * Update business hours for a business.
+ * @param businessId - Business identifier.
+ * @param hours - Full list of day-of-week hours.
+ */
 export async function updateBusinessHours(
   businessId: string,
   hours: Array<{
@@ -110,6 +143,10 @@ export async function updateBusinessHours(
   return response.data;
 }
 
+/**
+ * Fetch business social links for a business.
+ * @param businessId - Business identifier.
+ */
 export async function getBusinessSocialLinks(
   businessId: string
 ): Promise<BusinessProfileSocialResponse> {

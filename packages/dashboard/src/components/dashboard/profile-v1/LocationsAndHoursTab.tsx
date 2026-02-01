@@ -36,6 +36,7 @@ export const LocationsAndHoursTab: React.FC<BusinessHoursTabProps> = ({
   const [originalHours, setOriginalHours] = useState<BusinessHoursInput[]>([]);
   const [loadingHours, setLoadingHours] = useState(false);
   const [savingHours, setSavingHours] = useState(false);
+  const isFormDisabled = isLoading || isSaving || savingHours;
 
   // Load hours from API
   const loadHours = useCallback(async () => {
@@ -111,21 +112,21 @@ export const LocationsAndHoursTab: React.FC<BusinessHoursTabProps> = ({
           <>
             <BusinessHoursForm
               value={hours}
-              disabled={isSaving || savingHours}
+              disabled={isFormDisabled}
               onChange={setHours}
             />
             {hoursChanged && (
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={handleSaveHours}
-                  disabled={savingHours}
+                  disabled={isFormDisabled}
                   className="px-4 py-2 bg-metro-orange text-white rounded-md hover:bg-metro-orange-600 disabled:opacity-50"
                 >
                   {savingHours ? "Saving..." : "Save Hours"}
                 </button>
                 <button
                   onClick={() => setHours(originalHours)}
-                  disabled={savingHours}
+                  disabled={isFormDisabled}
                   className="px-4 py-2 bg-dark-700 text-dark-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
                 >
                   Cancel

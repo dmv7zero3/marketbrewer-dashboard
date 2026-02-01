@@ -3,17 +3,38 @@
  */
 
 import axios from "axios";
+import { GOOGLE_TOKEN_STORAGE_KEY } from "../../constants/auth";
+
+type RequestHandler = (config: any) => any;
+type ResponseHandler = (response: any) => any;
+type ResponseErrorHandler = (error: any) => any;
 
 // Mock axios.get for health checks (before importing client)
 jest.mock("axios", () => {
   const actualAxios = jest.requireActual("axios");
-  const mockInstance = {
-    interceptors: {
-      request: { use: jest.fn() },
-      response: { use: jest.fn() },
+  const mockInstance: any = (config: any) => Promise.resolve({ config });
+  mockInstance.request = jest.fn();
+  mockInstance.get = jest.fn();
+  mockInstance.post = jest.fn();
+  mockInstance.put = jest.fn();
+  mockInstance.delete = jest.fn();
+  mockInstance.__requestHandler = null;
+  mockInstance.__responseHandler = null;
+  mockInstance.__responseErrorHandler = null;
+  mockInstance.interceptors = {
+    request: {
+      use: jest.fn((onFulfilled: RequestHandler) => {
+        mockInstance.__requestHandler = onFulfilled;
+        return 0;
+      }),
     },
-    get: jest.fn(),
-    post: jest.fn(),
+    response: {
+      use: jest.fn((onFulfilled: ResponseHandler, onRejected: ResponseErrorHandler) => {
+        mockInstance.__responseHandler = onFulfilled;
+        mockInstance.__responseErrorHandler = onRejected;
+        return 0;
+      }),
+    },
   };
   return {
     ...actualAxios,
@@ -30,6 +51,7 @@ import {
 } from "../client";
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const apiInstance = (mockedAxios.create as jest.Mock).mock.results[0]?.value;
 
 describe("API Client", () => {
   beforeEach(() => {
@@ -39,6 +61,8 @@ describe("API Client", () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    localStorage.removeItem(GOOGLE_TOKEN_STORAGE_KEY);
+    process.env.NODE_ENV = "test";
   });
 
   describe("checkServerHealth", () => {
@@ -144,5 +168,55 @@ describe("API Client Configuration", () => {
     expect(typeof checkServerHealth).toBe("function");
     expect(typeof isServerHealthy).toBe("function");
     expect(typeof waitForServer).toBe("function");
+  });
+
+  it("adds Authorization header from localStorage in request interceptor", () => {
+    process.env.NODE_ENV = "development";
+    localStorage.setItem(GOOGLE_TOKEN_STORAGE_KEY, "token-123");
+
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const config = { headers: {} } as any;
+
+    expect(apiInstance?.__requestHandler).not.toBeNull();
+    const nextConfig = apiInstance.__requestHandler(config);
+
+    expect(nextConfig.headers.Authorization).toBe("Bearer token-123");
+    consoleSpy.mockRestore();
+  });
+
+  it("marks server healthy on successful response", () => {
+    expect(apiInstance?.__responseHandler).not.toBeNull();
+    const response = { status: 200, config: { url: "/api" } };
+    const result = apiInstance.__responseHandler(response);
+    expect(result).toBe(response);
+  });
+
+  it("logs and rejects on HTTP error response", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    expect(apiInstance?.__responseErrorHandler).not.toBeNull();
+
+    await expect(
+      apiInstance.__responseErrorHandler({
+        config: {},
+        response: { status: 400, data: { details: [{ field: "name" }] } },
+      })
+    ).rejects.toBeTruthy();
+
+    consoleSpy.mockRestore();
+  });
+
+  it("logs and rejects on network error without response", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    expect(apiInstance?.__responseErrorHandler).not.toBeNull();
+
+    await expect(
+      apiInstance.__responseErrorHandler({
+        config: { _retryCount: 3 },
+        code: "ECONNREFUSED",
+        message: "Connection refused",
+      })
+    ).rejects.toBeTruthy();
+
+    consoleSpy.mockRestore();
   });
 });

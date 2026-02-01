@@ -18,7 +18,7 @@ export const SocialLinksTab: React.FC<SocialLinksTabProps> = ({
   const socialLinks: SocialLinkInput[] = useMemo(() => {
     if (!socialProfiles) return [];
     return Object.entries(socialProfiles)
-      .filter(([_, url]) => url && url.trim() !== "")
+      .filter(([, url]) => url && url.trim() !== "")
       .map(([platform, url]) => ({
         platform: platform as SocialPlatform,
         url: url as string,

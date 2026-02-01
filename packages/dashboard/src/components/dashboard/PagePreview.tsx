@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useBusiness } from '../../contexts/BusinessContext';
-import { previewPages, PreviewPage, PreviewPagesResponse } from '../../api/jobs';
+import { previewPages, PreviewPagesResponse } from '../../api/jobs';
 import type { PageType } from '@marketbrewer/shared';
 
 interface PagePreviewProps {
@@ -116,7 +116,7 @@ export function PagePreview({ pageType, onConfirm, onCancel }: PagePreviewProps)
       }
 
       // Check for unusual characters
-      if (/[^\w\s\-\'\"áéíóúñüÁÉÍÓÚÑÜ]/i.test(keyword)) {
+      if (/[^\w\s-'"áéíóúñüÁÉÍÓÚÑÜ]/i.test(keyword)) {
         issues.push('Unusual characters');
       }
 

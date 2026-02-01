@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { QuestionnaireDataStructure, BrandVoiceTone } from "@marketbrewer/shared";
+import { QuestionnaireDataStructure } from "@marketbrewer/shared";
 
 interface QuestionnaireFormProps {
   data: QuestionnaireDataStructure;
@@ -20,8 +20,6 @@ const TABS: { name: TabName; label: string }[] = [
   { name: "audience", label: "Audience" },
   { name: "brand", label: "Brand" },
 ];
-
-const BRAND_VOICE_OPTIONS = Object.values(BrandVoiceTone);
 
 /**
  * QuestionnaireForm V1 - Content Profile form (Identity, Audience, Brand)

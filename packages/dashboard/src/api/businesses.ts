@@ -9,21 +9,22 @@ import type {
   QuestionnaireDataStructure,
 } from "@marketbrewer/shared";
 
+/** List response for businesses. */
 export interface BusinessesListResponse {
   businesses: Business[];
 }
 
+/** Single business response wrapper. */
 export interface BusinessResponse {
   business: Business;
 }
 
+/** Questionnaire response wrapper. */
 export interface QuestionnaireResponse {
   questionnaire: Questionnaire & { data: Record<string, unknown> };
 }
 
-/**
- * List all businesses
- */
+/** List all businesses visible to the dashboard. */
 export async function getBusinesses(): Promise<BusinessesListResponse> {
   const response = await apiClient.get<BusinessesListResponse>(
     "/api/businesses"
@@ -32,7 +33,8 @@ export async function getBusinesses(): Promise<BusinessesListResponse> {
 }
 
 /**
- * Get single business by ID
+ * Fetch a single business by id.
+ * @param businessId - Business identifier.
  */
 export async function getBusiness(
   businessId: string
@@ -44,7 +46,8 @@ export async function getBusiness(
 }
 
 /**
- * Create a new business
+ * Create a new business.
+ * @param data - Business attributes to create.
  */
 export async function createBusiness(data: {
   name: string;
@@ -63,7 +66,8 @@ export async function createBusiness(data: {
 }
 
 /**
- * Get questionnaire for a business
+ * Fetch questionnaire data for a business.
+ * @param businessId - Business identifier.
  */
 export async function getQuestionnaire(
   businessId: string
@@ -75,7 +79,9 @@ export async function getQuestionnaire(
 }
 
 /**
- * Update an existing business
+ * Update an existing business.
+ * @param businessId - Business identifier.
+ * @param data - Partial business fields to update.
  */
 export async function updateBusiness(
   businessId: string,
@@ -102,7 +108,10 @@ export async function updateBusiness(
 }
 
 /**
- * Update questionnaire data (server calculates completeness score)
+ * Update questionnaire data for a business.
+ * The server recalculates completeness.
+ * @param businessId - Business identifier.
+ * @param data - Questionnaire payload.
  */
 export async function updateQuestionnaire(
   businessId: string,

@@ -32,6 +32,7 @@ const BusinessContext = createContext<BusinessContextValue | undefined>(
   undefined
 );
 
+/** Provides business data, selection state, and UI labels. */
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -147,6 +148,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+/**
+ * Access the business context.
+ * Must be used within {@link BusinessProvider}.
+ */
 export const useBusiness = (): BusinessContextValue => {
   const ctx = useContext(BusinessContext);
   if (!ctx) throw new Error("useBusiness must be used within BusinessProvider");

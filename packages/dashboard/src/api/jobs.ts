@@ -5,19 +5,23 @@
 import apiClient from './client';
 import type { GenerationJob, JobWithCounts, PageType, JobPage } from '@marketbrewer/shared';
 
+/** Response payload for creating a generation job. */
 export interface CreateJobResponse {
   job: GenerationJob;
   total_pages_created: number;
 }
 
+/** Response payload for job status lookup. */
 export interface JobStatusResponse {
   job: JobWithCounts;
 }
 
+/** Response payload for listing jobs. */
 export interface JobsListResponse {
   jobs: GenerationJob[];
 }
 
+/** Preview metadata for a single page before generation. */
 export interface PreviewPage {
   keyword_slug?: string | null;
   keyword_text?: string | null;
@@ -31,6 +35,7 @@ export interface PreviewPage {
   url_path: string;
 }
 
+/** Response payload for previewing pages. */
 export interface PreviewPagesResponse {
   pages: PreviewPage[];
   pagination: {
@@ -57,6 +62,7 @@ export interface PreviewPagesResponse {
   page_type: PageType;
 }
 
+/** Response payload for listing pages for a job. */
 export interface JobPagesResponse {
   pages: JobPage[];
   pagination: {
@@ -73,6 +79,7 @@ export interface JobPagesResponse {
   };
 }
 
+/** Query filters for job pages. */
 export interface JobPagesFilters {
   status?: 'queued' | 'processing' | 'completed' | 'failed';
   language?: 'en' | 'es';
@@ -84,7 +91,9 @@ export interface JobPagesFilters {
 }
 
 /**
- * Create a new generation job
+ * Create a new generation job for a business.
+ * @param businessId - Business identifier.
+ * @param pageType - Page type to generate.
  */
 export async function createJob(
   businessId: string,
@@ -98,7 +107,9 @@ export async function createJob(
 }
 
 /**
- * Get job status with page counts
+ * Fetch job status with page counts.
+ * @param businessId - Business identifier.
+ * @param jobId - Job identifier.
  */
 export async function getJobStatus(
   businessId: string,
@@ -111,7 +122,8 @@ export async function getJobStatus(
 }
 
 /**
- * List all jobs for a business
+ * List all jobs for a business.
+ * @param businessId - Business identifier.
  */
 export async function getJobs(businessId: string): Promise<JobsListResponse> {
   const response = await apiClient.get<JobsListResponse>(
@@ -121,7 +133,11 @@ export async function getJobs(businessId: string): Promise<JobsListResponse> {
 }
 
 /**
- * Preview pages that would be created (dry run)
+ * Preview pages that would be created (dry run).
+ * @param businessId - Business identifier.
+ * @param pageType - Page type to preview.
+ * @param filters - Optional filters and pagination.
+ * @param signal - Abort signal for cancellation.
  */
 export async function previewPages(
   businessId: string,
@@ -147,7 +163,10 @@ export async function previewPages(
 }
 
 /**
- * Get pages for a job with filtering and pagination
+ * Get pages for a job with filtering and pagination.
+ * @param jobId - Job identifier.
+ * @param filters - Optional filters and sorting options.
+ * @param signal - Abort signal for cancellation.
  */
 export async function getJobPages(
   jobId: string,

@@ -5,14 +5,21 @@
 import apiClient from "./client";
 import type { ServiceArea } from "@marketbrewer/shared";
 
+/** Response payload for listing service areas. */
 export interface ServiceAreasListResponse {
   service_areas: ServiceArea[];
 }
 
+/** Response payload for a single service area. */
 export interface ServiceAreaResponse {
   service_area: ServiceArea;
 }
 
+/**
+ * List service areas for a business.
+ * @param businessId - Business identifier.
+ * @param options - Optional request options (abort signal).
+ */
 export async function listServiceAreas(
   businessId: string,
   options?: { signal?: AbortSignal }
@@ -24,6 +31,12 @@ export async function listServiceAreas(
   return res.data;
 }
 
+/**
+ * Create a new service area.
+ * @param businessId - Business identifier.
+ * @param data - Service area payload.
+ * @param options - Optional request options (abort signal).
+ */
 export async function createServiceArea(
   businessId: string,
   data: {
@@ -41,6 +54,13 @@ export async function createServiceArea(
   return res.data;
 }
 
+/**
+ * Update a service area.
+ * @param businessId - Business identifier.
+ * @param areaId - Service area identifier.
+ * @param data - Partial service area updates.
+ * @param options - Optional request options (abort signal).
+ */
 export async function updateServiceArea(
   businessId: string,
   areaId: string,
@@ -59,6 +79,12 @@ export async function updateServiceArea(
   return res.data;
 }
 
+/**
+ * Delete a service area.
+ * @param businessId - Business identifier.
+ * @param areaId - Service area identifier.
+ * @param options - Optional request options (abort signal).
+ */
 export async function deleteServiceArea(
   businessId: string,
   areaId: string,

@@ -52,6 +52,7 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
+/** Provides locale state and translation helper for the dashboard. */
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window === "undefined") {
@@ -80,6 +81,10 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 };
 
+/**
+ * Access the i18n context.
+ * Must be used within {@link I18nProvider}.
+ */
 export const useI18n = (): I18nContextValue => {
   const ctx = useContext(I18nContext);
   if (!ctx) {

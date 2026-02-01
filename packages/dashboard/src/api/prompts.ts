@@ -5,16 +5,20 @@
 import apiClient from "./client";
 import type { PromptTemplate } from "@marketbrewer/shared";
 
+/** Response payload for listing prompt templates. */
 export interface PromptTemplatesListResponse {
   prompt_templates: PromptTemplate[];
 }
 
+/** Response payload for a single prompt template. */
 export interface PromptTemplateResponse {
   prompt_template: PromptTemplate;
 }
 
 /**
- * List all prompt templates for a business
+ * List all prompt templates for a business.
+ * @param businessId - Business identifier.
+ * @param options - Optional request options (abort signal).
  */
 export async function listPromptTemplates(
   businessId: string,
@@ -28,7 +32,10 @@ export async function listPromptTemplates(
 }
 
 /**
- * Get a single prompt template
+ * Fetch a single prompt template.
+ * @param businessId - Business identifier.
+ * @param templateId - Prompt template identifier.
+ * @param options - Optional request options (abort signal).
  */
 export async function getPromptTemplate(
   businessId: string,
@@ -43,7 +50,10 @@ export async function getPromptTemplate(
 }
 
 /**
- * Create a new prompt template
+ * Create a new prompt template.
+ * @param businessId - Business identifier.
+ * @param data - Prompt template payload.
+ * @param options - Optional request options (abort signal).
  */
 export async function createPromptTemplate(
   businessId: string,
@@ -75,7 +85,11 @@ export async function createPromptTemplate(
 }
 
 /**
- * Update an existing prompt template
+ * Update an existing prompt template.
+ * @param businessId - Business identifier.
+ * @param templateId - Prompt template identifier.
+ * @param data - Partial template updates.
+ * @param options - Optional request options (abort signal).
  */
 export async function updatePromptTemplate(
   businessId: string,
@@ -98,7 +112,10 @@ export async function updatePromptTemplate(
 }
 
 /**
- * Delete a prompt template
+ * Delete a prompt template.
+ * @param businessId - Business identifier.
+ * @param templateId - Prompt template identifier.
+ * @param options - Optional request options (abort signal).
  */
 export async function deletePromptTemplate(
   businessId: string,

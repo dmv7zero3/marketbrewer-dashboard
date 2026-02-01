@@ -74,7 +74,7 @@ export const BusinessProfile: React.FC = () => {
   const [savingQ, setSavingQ] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completenessScore, setCompletenessScore] = useState<number>(0);
-  const [bulkAreasLoading, setBulkAreasLoading] = useState(false);
+  const [bulkAreasLoading] = useState(false);
 
   // Refs for DOM manipulation
   const validationSummaryRef = useRef<HTMLDivElement>(null);

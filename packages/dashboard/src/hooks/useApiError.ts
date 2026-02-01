@@ -74,7 +74,7 @@ export function useApiError() {
       if (showToast) {
         // When toast context is available:
         // addToast(errorMessage, "error", duration);
-        console.error("API Error:", errorMessage);
+        console.error("API Error:", errorMessage, { duration });
       }
 
       return errorMessage;

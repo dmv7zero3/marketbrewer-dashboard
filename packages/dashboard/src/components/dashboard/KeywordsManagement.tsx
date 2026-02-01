@@ -2,12 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { DashboardLayout } from "./DashboardLayout";
 import { useBusiness } from "../../contexts/BusinessContext";
 import { useToast } from "../../contexts/ToastContext";
-import {
-  listKeywords,
-  createKeyword,
-  deleteKeyword,
-  updateKeyword,
-} from "../../api/keywords";
+import { listKeywords, createKeyword, deleteKeyword } from "../../api/keywords";
 import { getQuestionnaire, updateQuestionnaire } from "../../api/businesses";
 import { validateKeyword } from "../../lib/validation";
 import { toSlug, normalizeQuestionnaireData } from "@marketbrewer/shared";
@@ -77,9 +72,6 @@ export const KeywordsManagement: React.FC = () => {
 
     keywords.forEach((kw) => {
       if (processed.has(kw.id)) return;
-
-      const enKeyword = kw.language === "en" ? kw : null;
-      const esKeyword = kw.language === "es" ? kw : null;
 
       // Find matching translation
       const translation = keywords.find(
@@ -445,27 +437,6 @@ export const KeywordsManagement: React.FC = () => {
       const msg = e instanceof Error ? e.message : "Failed to add translation";
       addToast(msg, "error", 5000);
     }
-  };
-
-  // Helper to find if a keyword has a translation pair
-  const findTranslation = (keyword: Keyword): Keyword | undefined => {
-    const targetLanguage = keyword.language === "en" ? "es" : "en";
-    // Look for same base keyword in other language (simplified matching by keyword text root)
-    return keywords.find(
-      (k) =>
-        k.language === targetLanguage &&
-        k.keyword.toLowerCase().replace(/[áéíóúñ]/g, (m) => {
-          const map: Record<string, string> = {
-            á: "a",
-            é: "e",
-            í: "i",
-            ó: "o",
-            ú: "u",
-            ñ: "n",
-          };
-          return map[m] || m;
-        }) === keyword.keyword.toLowerCase()
-    );
   };
 
   // Helper to parse CSV for bulk add

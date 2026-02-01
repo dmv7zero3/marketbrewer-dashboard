@@ -5,14 +5,20 @@
 import apiClient from "./client";
 import type { Keyword } from "@marketbrewer/shared";
 
+/** Response payload for listing keywords. */
 export interface KeywordsListResponse {
   keywords: Keyword[];
 }
 
+/** Response payload for a single keyword. */
 export interface KeywordResponse {
   keyword: Keyword;
 }
 
+/**
+ * List keywords for a business.
+ * @param businessId - Business identifier.
+ */
 export async function listKeywords(
   businessId: string
 ): Promise<KeywordsListResponse> {
@@ -22,6 +28,11 @@ export async function listKeywords(
   return res.data;
 }
 
+/**
+ * Create a new keyword for a business.
+ * @param businessId - Business identifier.
+ * @param data - Keyword payload.
+ */
 export async function createKeyword(
   businessId: string,
   data: {
@@ -37,6 +48,12 @@ export async function createKeyword(
   return res.data;
 }
 
+/**
+ * Update a keyword.
+ * @param businessId - Business identifier.
+ * @param keywordId - Keyword identifier.
+ * @param data - Partial keyword updates.
+ */
 export async function updateKeyword(
   businessId: string,
   keywordId: string,
@@ -53,6 +70,11 @@ export async function updateKeyword(
   return res.data;
 }
 
+/**
+ * Delete a keyword.
+ * @param businessId - Business identifier.
+ * @param keywordId - Keyword identifier.
+ */
 export async function deleteKeyword(
   businessId: string,
   keywordId: string

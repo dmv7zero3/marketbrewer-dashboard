@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  GOOGLE_TOKEN_STORAGE_KEY,
-  GOOGLE_USER_STORAGE_KEY,
-} from "../../constants/auth";
+import { GOOGLE_TOKEN_STORAGE_KEY } from "../../constants/auth";
 
+/** Google Identity Services credential response. */
 type GoogleCredentialResponse = {
   credential: string;
 };
 
+/** Minimal JWT payload fields used for Google ID tokens. */
 type JwtPayload = {
   email?: string;
   email_verified?: boolean;
@@ -19,6 +18,10 @@ type JwtPayload = {
 
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 
+/**
+ * Parse a JWT payload without validating signature.
+ * Used for extracting UI-friendly fields from Google ID tokens.
+ */
 function parseJwt(token: string): JwtPayload | null {
   try {
     const payload = token.split(".")[1];
@@ -34,6 +37,9 @@ function parseJwt(token: string): JwtPayload | null {
   }
 }
 
+/**
+ * Check token expiration with a small clock skew buffer.
+ */
 function isTokenValid(token: string): boolean {
   const payload = parseJwt(token);
   if (!payload?.exp) {
@@ -42,6 +48,9 @@ function isTokenValid(token: string): boolean {
   return Date.now() / 1000 < payload.exp - 60;
 }
 
+/**
+ * Gate rendering of dashboard content behind Google auth when configured.
+ */
 export const GoogleAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token, setAuth, signOut } = useAuth();
   const [ready, setReady] = useState(false);
@@ -70,8 +79,6 @@ export const GoogleAuthGate: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     const storedToken = localStorage.getItem(GOOGLE_TOKEN_STORAGE_KEY);
-    const storedUser = localStorage.getItem(GOOGLE_USER_STORAGE_KEY);
-
     if (storedToken && isTokenValid(storedToken)) {
       const payload = parseJwt(storedToken);
       if (payload?.email) {

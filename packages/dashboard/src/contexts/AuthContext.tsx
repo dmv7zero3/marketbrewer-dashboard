@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { GOOGLE_TOKEN_STORAGE_KEY, GOOGLE_USER_STORAGE_KEY } from "../constants/auth";
 
+/** Authenticated user metadata stored client-side. */
 export type AuthUser = {
   email: string;
   name?: string;
@@ -16,6 +17,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+/** Provides auth state and persistence for Google login. */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -71,6 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+/**
+ * Access the auth context.
+ * Must be used within {@link AuthProvider}.
+ */
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {

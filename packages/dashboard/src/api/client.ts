@@ -23,6 +23,7 @@ let serverHealthy = true;
 let lastHealthCheck = 0;
 const HEALTH_CHECK_INTERVAL_MS = 30000;
 
+/** Axios instance configured for the dashboard API. */
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
@@ -31,6 +32,10 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
+/**
+ * Resolve the auth token for API calls.
+ * Prefers a stored Google ID token, falls back to REACT_APP_API_TOKEN.
+ */
 export function getAuthToken(): string {
   if (typeof window !== "undefined") {
     const storedToken = localStorage.getItem(GOOGLE_TOKEN_STORAGE_KEY);
@@ -41,13 +46,12 @@ export function getAuthToken(): string {
   return API_TOKEN;
 }
 
+/** Return the configured base URL for API calls. */
 export function getApiBaseUrl(): string {
   return API_URL;
 }
 
-/**
- * Check if the server is reachable
- */
+/** Check if the API server is reachable via the health endpoint. */
 export async function checkServerHealth(): Promise<boolean> {
   try {
     const response = await axios.get(`${API_URL}/health`, { timeout: 5000 });
@@ -61,9 +65,7 @@ export async function checkServerHealth(): Promise<boolean> {
   }
 }
 
-/**
- * Get current server health status
- */
+/** Read the cached server health status. */
 export function isServerHealthy(): boolean {
   // If we haven't checked recently, assume healthy and let the request determine
   if (Date.now() - lastHealthCheck > HEALTH_CHECK_INTERVAL_MS) {
@@ -73,7 +75,7 @@ export function isServerHealthy(): boolean {
 }
 
 /**
- * Wait for server to become available
+ * Poll the health endpoint until the server responds or timeout expires.
  */
 export async function waitForServer(maxWaitMs = 30000): Promise<boolean> {
   const startTime = Date.now();

@@ -26,6 +26,7 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
+/** Provides toast notification state and rendering. */
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -95,6 +96,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+/**
+ * Access the toast API (addToast only).
+ * Must be used within {@link ToastProvider}.
+ */
 export const useToast = (): Pick<ToastContextValue, "addToast"> => {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within ToastProvider");
