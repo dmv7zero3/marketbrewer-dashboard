@@ -24,12 +24,12 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [x] /health endpoint is minimal (no dependency details) or protected
 
 ## 4) Data Integrity & Backups
-- [ ] DynamoDB PITR enabled
+- [x] DynamoDB PITR enabled
 - [x] Restore procedure documented and tested (table restore validation)
 - [ ] Schema validation on all endpoints
 - [ ] Immutable cost ledger verified (no missing events)
 - [ ] Data retention policy for generated content + logs
-- [ ] Log/PII redaction guidance for audit logs and request payloads
+- [x] Log/PII redaction guidance for audit logs and request payloads
 
 ## 5) CI/CD & Environments
 - [ ] Staging environment with production‑like config
