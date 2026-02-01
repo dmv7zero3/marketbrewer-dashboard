@@ -43,6 +43,9 @@ Single reference for MarketBrewer dashboard + serverless API configuration.
 Bearer token used by the dashboard and worker when calling the API. Keep it secret and rotate quarterly.
 This is NOT a ChatGPT/OpenAI key. It is a private MarketBrewer API token.
 
+Optional (deployment helper):
+- `API_TOKEN_SSM_PARAM` to fetch `API_TOKEN` from AWS SSM Parameter Store.
+
 ### `GOOGLE_CLIENT_ID` (Optional)
 Google OAuth client ID used to validate ID tokens from the dashboard.
 
@@ -89,6 +92,9 @@ Per-identity request limit per minute enforced by DynamoDB counters. Set to `0` 
 
 ### `CLAUDE_API_KEY` (Required)
 Claude API key for content generation jobs.
+
+Optional (deployment helper):
+- `CLAUDE_API_KEY_SSM_PARAM` to fetch `CLAUDE_API_KEY` from AWS SSM Parameter Store.
 
 ### `CLAUDE_MODEL` (Optional)
 Claude model name used by the worker.

@@ -10,18 +10,18 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [ ] Add dashboard retry UX and clear failure states
 
 ## 2) Security & Access
-- [ ] Store secrets in AWS SSM Parameter Store (no prod .env)
+- [x] Store secrets in AWS SSM Parameter Store (no prod .env)
 - [ ] Enforce least-privilege IAM for Lambda/SQS/DynamoDB/CloudWatch
 - [ ] Validate Google ID token issuer/audience + email allow-list
-- [ ] Restrict CORS to production domains only
+- [x] Restrict CORS to production domains only
 - [ ] Add audit logging for admin actions (prompts, billing, deletions)
-- [ ] API Gateway throttling and basic abuse protection (cost‑conscious; no WAF unless needed)
+- [x] API Gateway throttling and basic abuse protection (cost‑conscious; no WAF unless needed)
 
 ## 3) Observability & Alerting
 - [x] Structured logs with correlation IDs across API + worker
 - [ ] Metrics: API latency, 5xx, worker throughput, queue depth, job failure %
 - [x] Alerts: DLQ > 0, queue backlog, error rate spikes, auth failures
-- [ ] /health endpoint is minimal (no dependency details) or protected
+- [x] /health endpoint is minimal (no dependency details) or protected
 
 ## 4) Data Integrity & Backups
 - [ ] DynamoDB PITR enabled

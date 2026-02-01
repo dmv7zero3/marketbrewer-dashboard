@@ -5,13 +5,24 @@ STACK_NAME=${STACK_NAME:-marketbrewer-dashboard-serverless}
 PROJECT_PREFIX=${PROJECT_PREFIX:-marketbrewer}
 REGION=${AWS_REGION:-us-east-1}
 
-if [[ -z "${CLAUDE_API_KEY:-}" ]]; then
-  echo "CLAUDE_API_KEY is required" >&2
+CLAUDE_API_KEY=${CLAUDE_API_KEY:-""}
+API_TOKEN=${API_TOKEN:-""}
+
+if [[ -n "${CLAUDE_API_KEY_SSM_PARAM:-}" ]]; then
+  CLAUDE_API_KEY=$(aws ssm get-parameter --with-decryption --name "$CLAUDE_API_KEY_SSM_PARAM" --query "Parameter.Value" --output text --region "$REGION")
+fi
+
+if [[ -n "${API_TOKEN_SSM_PARAM:-}" ]]; then
+  API_TOKEN=$(aws ssm get-parameter --with-decryption --name "$API_TOKEN_SSM_PARAM" --query "Parameter.Value" --output text --region "$REGION")
+fi
+
+if [[ -z "$CLAUDE_API_KEY" ]]; then
+  echo "CLAUDE_API_KEY is required (or set CLAUDE_API_KEY_SSM_PARAM)" >&2
   exit 1
 fi
 
-if [[ -z "${API_TOKEN:-}" ]]; then
-  echo "API_TOKEN is required" >&2
+if [[ -z "$API_TOKEN" ]]; then
+  echo "API_TOKEN is required (or set API_TOKEN_SSM_PARAM)" >&2
   exit 1
 fi
 
@@ -25,6 +36,8 @@ EXISTING_QUEUE_URL=${EXISTING_QUEUE_URL:-""}
 EXISTING_TABLE_NAME=${EXISTING_TABLE_NAME:-""}
 CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-"https://admin.marketbrewer.com"}
 RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-120}
+API_THROTTLE_RATE_LIMIT=${API_THROTTLE_RATE_LIMIT:-25}
+API_THROTTLE_BURST_LIMIT=${API_THROTTLE_BURST_LIMIT:-50}
 
 PATH="/usr/local/opt/node@20/bin:$PATH"
 
@@ -54,7 +67,9 @@ aws cloudformation deploy \
     ExistingQueueUrl="$EXISTING_QUEUE_URL" \
     ExistingTableName="$EXISTING_TABLE_NAME" \
     CorsAllowOrigins="$CORS_ALLOW_ORIGINS" \
-    RateLimitPerMinute="$RATE_LIMIT_PER_MIN"
+    RateLimitPerMinute="$RATE_LIMIT_PER_MIN" \
+    ApiThrottleRateLimit="$API_THROTTLE_RATE_LIMIT" \
+    ApiThrottleBurstLimit="$API_THROTTLE_BURST_LIMIT"
 
 API_FUNCTION_NAME="$PROJECT_PREFIX-dashboard-api"
 WORKER_FUNCTION_NAME="$PROJECT_PREFIX-dashboard-worker"

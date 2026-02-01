@@ -65,8 +65,18 @@ Parameters:
     Default: "j@marketbrewer.com"
 
   CorsAllowOrigins:
-    Type: String
+    Type: CommaDelimitedList
     Default: "https://admin.marketbrewer.com,https://portal.marketbrewer.com"
+
+  ApiThrottleRateLimit:
+    Type: Number
+    Default: 25
+    Description: Steady-state requests per second for API Gateway
+
+  ApiThrottleBurstLimit:
+    Type: Number
+    Default: 50
+    Description: Burst limit for API Gateway
 
   RateLimitPerMinute:
     Type: Number
@@ -185,7 +195,7 @@ Resources:
           API_TOKEN: !Ref ApiToken
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
           GOOGLE_ALLOWED_EMAILS: !Ref GoogleAllowedEmails
-          CORS_ALLOW_ORIGINS: !Ref CorsAllowOrigins
+          CORS_ALLOW_ORIGINS: !Join [",", !Ref CorsAllowOrigins]
           RATE_LIMIT_PER_MIN: !Ref RateLimitPerMinute
       Code: 
         ZipFile: |
@@ -263,8 +273,7 @@ Resources:
       Name: !Sub "${ProjectPrefix}-dashboard-api"
       ProtocolType: HTTP
       CorsConfiguration:
-        AllowOrigins:
-          - "*"
+        AllowOrigins: !Ref CorsAllowOrigins
         AllowHeaders:
           - "Content-Type"
           - "Authorization"
@@ -296,6 +305,9 @@ Resources:
       ApiId: !Ref HttpApi
       StageName: "$default"
       AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingRateLimit: !Ref ApiThrottleRateLimit
+        ThrottlingBurstLimit: !Ref ApiThrottleBurstLimit
       AccessLogSettings:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: >-
