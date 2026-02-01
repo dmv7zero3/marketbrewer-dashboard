@@ -50,7 +50,7 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [ ] Load tests for worker throughput
 
 ## 8) Operations & Runbooks
-- [ ] Runbooks: deployment, rollback, DLQ handling, backlog recovery
+- [x] Runbooks: deployment, rollback, DLQ handling, backlog recovery
 - [ ] Incident response + on‑call ownership
 - [ ] Cost monitoring & alarms (Claude usage, Lambda, DynamoDB)
 
