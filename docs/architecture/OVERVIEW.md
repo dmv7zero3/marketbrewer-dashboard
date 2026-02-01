@@ -1,6 +1,6 @@
 # Architecture Overview
 
-High-level system design for MarketBrewer SEO Platform V1 (EC2-first).
+MarketBrewer Dashboard is a serverless platform built to manage client SEO and generation jobs without EC2 costs.
 
 ---
 
@@ -8,32 +8,45 @@ High-level system design for MarketBrewer SEO Platform V1 (EC2-first).
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                           DASHBOARD                                  │
-│                React 18 + TypeScript + Tailwind                      │
-│                         localhost:3002                               │
+│                          ADMIN DASHBOARD                             │
+│                React + TypeScript + Google Login                     │
+│                  admin.marketbrewer.com (CloudFront)                 │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
-                                ▼ HTTP (+Bearer)
+                                ▼ HTTPS (+Bearer)
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         API SERVER (EC2)                             │
-│                 Express + TypeScript + SQLite                        │
-│                     http://{ec2-hostname}:3001                       │
-│                                                                      │
-│  Routes: /businesses, /keywords, /service-areas, /prompts, /jobs    │
+│                          CLIENT PORTAL                               │
+│                   React + TypeScript (Client UI)                     │
+│                 portal.marketbrewer.com (CloudFront)                 │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
-                                ▼
+                                ▼ HTTPS (+Bearer)
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         WORKER (same EC2)                            │
-│                   Local Ollama + Job Processor                       │
-│                 Polls claims, generates, completes pages             │
+│                       API GATEWAY (HTTP API)                         │
+│                      https://api.marketbrewer.com                    │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         OUTPUT STORAGE                               │
-│                JSON files for Webpack ingestion                      │
-│                         ./output/{business}/                         │
+│                         LAMBDA API (TypeScript)                      │
+│              Business, questionnaire, jobs, prompts, etc.            │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                 DYNAMODB SINGLE TABLE (no GSIs)                      │
+│            Businesses, jobs, pages, costs, profile data              │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      SQS QUEUE (page-generation)                     │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      LAMBDA WORKER (TypeScript)                      │
+│            Claude API generation + immutable cost ledger             │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -42,48 +55,29 @@ High-level system design for MarketBrewer SEO Platform V1 (EC2-first).
 ## Components
 
 ### Dashboard (`packages/dashboard/`)
+React SPA for managing MarketBrewer clients, jobs, and prompts. Uses Google Identity Services for internal-only access.
 
-React 18 single-page application.
+### Client Portal (`packages/client-portal/`)
+Client-facing portal for billing, SEO status, and account management.
 
-| Responsibility      | Details                                      |
-| ------------------- | -------------------------------------------- |
-| Business management | CRUD for businesses, keywords, service areas |
-| Prompt editing      | Create/edit prompt templates                 |
-| Job control         | Start generation, monitor progress           |
-| Worker status       | View active workers, pages/hour              |
+### Lambda API (`packages/lambda-api/`)
+TypeScript API for all CRUD operations, job creation, preview, and pagination. Auth accepts either:
+- API token (server-to-server)
+- Google ID token (dashboard)
 
-### API Server (`packages/server/`)
+### DynamoDB Single Table
+All entities stored in one table with partition keys by business and job. No GSIs.
 
-Express REST API with SQLite database.
+### SQS Queue
+Each page generation task is enqueued and processed asynchronously by the Lambda worker.
 
-| Responsibility   | Details                                   |
-| ---------------- | ----------------------------------------- |
-| Data persistence | SQLite for all entities                   |
-| Job queue        | Atomic claim/release for workers          |
-| Authentication   | Bearer token validation                   |
-| CORS             | Configured for dashboard origin           |
-| Export           | Writes JSON under `output/{business_id}/` |
+### Lambda Worker (`packages/lambda-worker/`)
+Consumes SQS messages, generates content via Claude API, updates job/page status, and records immutable cost entries.
 
-### Worker (`packages/worker/`)
-
-Background processor for content generation.
-
-| Responsibility     | Details                  |
-| ------------------ | ------------------------ |
-| Job claiming       | Atomic claim via API     |
-| Content generation | Call local Ollama        |
-| Output writing     | JSON files to local disk |
-| Heartbeat          | Report status to API     |
-
-### Shared (`packages/shared/`)
-
-Common TypeScript types and utilities.
-
-| Responsibility   | Details                     |
-| ---------------- | --------------------------- |
-| Type definitions | Business, Job, Prompt, etc. |
-| Validation       | Zod schemas                 |
-| Logger           | Structured logging utility  |
+### CloudFront + S3
+Admin dashboard is hosted on S3 with a CloudFront distribution at `admin.marketbrewer.com`.
+Client portal is hosted on S3 with a CloudFront distribution at `portal.marketbrewer.com`.
+Shared assets are hosted on S3 with a CloudFront distribution at `assets.marketbrewer.com`.
 
 ---
 
@@ -92,115 +86,46 @@ Common TypeScript types and utilities.
 ### 1. Job Creation
 
 ```
-Dashboard → POST /businesses/:id/generate → Server
-                                              │
-                                              ▼
-                                    Create job + pages in SQLite
-                                              │
-                                              ▼
-                                    Return job ID to Dashboard
+Dashboard → POST /api/businesses/:id/generate → Lambda API
+                                            │
+                                            ▼
+                           Create job + pages in DynamoDB
+                                            │
+                                            ▼
+                                      Enqueue SQS tasks
 ```
 
 ### 2. Job Processing
 
 ```
-Worker → POST /jobs/:id/claim → Server
-                                   │
-                                   ▼
-                         Atomic UPDATE...RETURNING
-                                   │
-                                   ▼
-                         Return page or 409 (no pages)
-                                   │
-                                   ▼
-Worker ← page data ←───────────────┘
-   │
-   ▼
-Call Ollama → Generate content
-   │
-   ▼
-PUT /jobs/:id/pages/:pageId/complete → Server
+SQS → Lambda Worker → Claude API → DynamoDB
+  └── updates page content + job counts
+  └── writes immutable cost item per run
 ```
 
-### 3. Output Export
+### 3. Dashboard Monitoring
 
 ```
-Server → Query completed pages → Build manifest
-                        │
-                        ▼
-               Write to ./output/{business_id}/
-                  ├─ manifest.json
-                  └─ pages/{url_path}.json
+Dashboard → GET /api/jobs/:jobId/pages
+Dashboard → GET /api/businesses/:id/jobs
 ```
 
 ---
 
-## EC2 Deployment (Cost-Safe)
+## Security Model
 
-Single EC2 instance runs both the API and worker to avoid multi-machine complexity and prevent unexpected cloud costs.
-
-### Instance Profile
-
-- Instance type: t3.small (CPU) or g4dn.xlarge (GPU only if needed)
-- OS: Ubuntu 22.04 LTS
-- Security group: allow inbound `3002` (dashboard if hosted), `3001` (API), and SSH from trusted IPs only
-- Storage: 30GB gp3
-
-### Cost Guardrails
-
-- Use CPU-only Ollama model by default (e.g., `llama3.1:8b-instruct`), avoid GPU unless explicitly approved
-- Auto-shutdown script: stop instance nightly to prevent idle costs
-- CloudWatch alarm on monthly estimated charges and instance idle CPU < 3% for > 2h
-- Tagging: `CostCenter=SEOPlatform`, `Env=Dev`
-
-### Basic Setup
-
-```bash
-# On EC2
-sudo apt update && sudo apt install -y nodejs npm sqlite3
-curl -fsSL https://ollama.com/install.sh | sh  # optional; confirm before GPU use
-
-# Environment
-export API_HOST=0.0.0.0
-export API_PORT=3001
-export API_TOKEN=<secure-token>
-
-# Start server and worker (PM2 or systemd)
-```
+| Layer              | Mechanism                                   |
+| ------------------ | ------------------------------------------- |
+| API Authentication | Bearer token or Google ID token             |
+| Dashboard Access   | Allowed Google Workspace emails only        |
+| Storage            | Private S3 bucket with CloudFront OAC        |
+| DynamoDB           | IAM-scoped Lambda access only               |
 
 ---
 
-## Security Model (V1)
+## Cost Guardrails
 
-| Layer              | Mechanism                                  |
-| ------------------ | ------------------------------------------ |
-| API Authentication | Bearer token in header                     |
-| Network            | EC2 security groups + SSH from trusted IPs |
-| CORS               | Restrict to dashboard origin               |
-| Secrets            | `.env` files (gitignored)                  |
-
-See [api/AUTH.md](../api/AUTH.md) and [api/CORS.md](../api/CORS.md) for details.
-
----
-
-## Performance Targets
-
-| Metric                   | Target  |
-| ------------------------ | ------- |
-| API response (list)      | < 200ms |
-| API response (single)    | < 100ms |
-| Page generation (Ollama) | 1-2 min |
-| Pages/hour (2 workers)   | 60-120  |
-
----
-
-## Phase 2 (Future)
-
-When scaling beyond local:
-
-- Replace SQLite with DynamoDB
-- Replace local queue with SQS
-- Add Lambda functions for API
-- Add cloud LLM fallback (Claude Haiku)
-
-See [decisions/002-sqlite-v1.md](../decisions/002-sqlite-v1.md) for rationale.
+- No EC2 usage
+- Pay-per-request DynamoDB
+- SQS-based async processing
+- Immutable cost ledger stored in DynamoDB (never deleted)

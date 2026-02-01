@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useBusiness } from "../../contexts/BusinessContext";
+import { useI18n } from "../../contexts/I18nContext";
 import { AddBusinessModal } from "./AddBusinessModal";
 
 type MenuItem = {
@@ -9,32 +10,41 @@ type MenuItem = {
   children?: Array<{ title: string; path: string }>;
 };
 
-export const Sidebar: React.FC = () => {
+type SidebarProps = {
+  onNavigate?: () => void;
+};
+
+export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
   const { businesses, selectedBusiness, setSelectedBusiness, loading, uiLabels } =
     useBusiness();
+  const { t } = useI18n();
 
   // Build menu items with dynamic labels based on industry
   const menuItems: MenuItem[] = useMemo(() => [
-    { title: "Business Profile", path: "/dashboard/business-profile" },
-    { title: "Store Locations", path: "/dashboard/locations" },
+    { title: t("nav.businessProfile"), path: "/dashboard/business-profile" },
+    { title: t("nav.storeLocations"), path: "/dashboard/locations" },
     { title: uiLabels.keywordsLabel, path: "/dashboard/keywords" },
     { title: uiLabels.servicesLabel, path: "/dashboard/services" },
-    { title: "Service Areas", path: "/dashboard/service-areas" },
-    { title: "Prompts", path: "/dashboard/prompts" },
-    { title: "Generate Content", path: "/dashboard/page-content-generation" },
-    { title: "Jobs", path: "/jobs" },
-  ], [uiLabels]);
+    { title: t("nav.serviceAreas"), path: "/dashboard/service-areas" },
+    { title: t("nav.prompts"), path: "/dashboard/prompts" },
+    { title: t("nav.generateContent"), path: "/dashboard/page-content-generation" },
+    { title: t("nav.jobs"), path: "/jobs" },
+    { title: t("nav.webhooks"), path: "/dashboard/webhooks" },
+    { title: t("nav.dataStorage"), path: "/dashboard/data-storage" },
+    { title: t("nav.roadmap"), path: "/dashboard/roadmap" },
+    { title: t("nav.aws"), path: "/dashboard/aws-infrastructure" },
+  ], [t, uiLabels]);
   const { pathname } = useLocation();
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <aside className="w-64 border-r border-dark-700 bg-dark-900 h-[calc(100vh-68px)] sticky top-[68px]">
+    <aside className="w-64 border-r border-dark-700 bg-dark-900 h-full md:h-[calc(100vh-68px)] md:sticky md:top-[68px]">
       <div className="p-4 space-y-3 border-b border-dark-700">
         <label
           htmlFor="business-selector"
           className="block text-sm font-semibold text-dark-300"
         >
-          Business
+          {t("nav.businessLabel")}
         </label>
         <select
           id="business-selector"
@@ -49,16 +59,17 @@ export const Sidebar: React.FC = () => {
               return;
             }
             setSelectedBusiness(e.target.value || null);
+            onNavigate?.();
           }}
           disabled={loading}
         >
-          <option value="">Select a business</option>
+          <option value="">{t("nav.selectBusiness")}</option>
           {businesses.map((b) => (
             <option key={b.id} value={b.id}>
               {b.name}
             </option>
           ))}
-          <option value="__ADD__">+ Add Business</option>
+          <option value="__ADD__">{t("nav.addBusiness")}</option>
         </select>
       </div>
 
@@ -70,6 +81,7 @@ export const Sidebar: React.FC = () => {
             <div key={item.path}>
               <Link
                 to={item.path}
+                onClick={() => onNavigate?.()}
                 className={`block px-3 py-2 rounded-lg transition-all duration-200 ${
                   active
                     ? "bg-metro-orange/10 text-metro-orange border-l-2 border-metro-orange"
@@ -91,6 +103,7 @@ export const Sidebar: React.FC = () => {
                       <Link
                         key={child.path}
                         to={child.path}
+                        onClick={() => onNavigate?.()}
                         className={`block px-3 py-2 rounded-lg transition-all duration-200 ${
                           childActive
                             ? "bg-metro-orange/5 text-metro-orange"

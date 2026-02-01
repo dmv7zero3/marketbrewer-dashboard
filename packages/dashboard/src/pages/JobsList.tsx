@@ -2,11 +2,12 @@
  * Jobs List Page - Uses sidebar-selected business
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { useBusiness } from "../contexts/BusinessContext";
 import { getJobs } from "../api/jobs";
+import { getApiBaseUrl, getAuthToken } from "../api/client";
 import { GeneratedPageViewer } from "../components/dashboard";
 import type { GenerationJob } from "@marketbrewer/shared";
 
@@ -16,7 +17,10 @@ export const JobsList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState<boolean>(true);
+  const [liveMode, setLiveMode] = useState<"sse" | "poll">("poll");
+  const [sseDisabled, setSseDisabled] = useState(false);
   const [viewerJobId, setViewerJobId] = useState<string | null>(null);
+  const sourceRef = useRef<EventSource | null>(null);
   const POLL_INTERVAL_MS = 5000;
 
   // Load jobs for selected business
@@ -42,9 +46,54 @@ export const JobsList: React.FC = () => {
     load();
   }, [selectedBusiness]);
 
+  // Live updates via SSE (local server)
+  useEffect(() => {
+    if (!selectedBusiness || sseDisabled) return;
+    if (typeof window === "undefined" || !("EventSource" in window)) return;
+    const token = getAuthToken();
+    if (!token) return;
+
+    const url = `${getApiBaseUrl()}/api/stream/businesses/${selectedBusiness}/jobs?token=${encodeURIComponent(
+      token
+    )}`;
+    const source = new EventSource(url);
+    sourceRef.current = source;
+
+    const handleUpdate = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data) as { jobs?: GenerationJob[] };
+        if (payload.jobs) {
+          setJobs(payload.jobs);
+          setError(null);
+          setLoading(false);
+          setLiveMode("sse");
+          setPolling(false);
+        }
+      } catch (err) {
+        console.error("Failed to parse live jobs update", err);
+      }
+    };
+
+    const handleError = () => {
+      setLiveMode("poll");
+      setPolling(true);
+      setSseDisabled(true);
+      source.close();
+    };
+
+    source.addEventListener("jobs.update", handleUpdate as EventListener);
+    source.addEventListener("error", handleError as EventListener);
+
+    return () => {
+      source.removeEventListener("jobs.update", handleUpdate as EventListener);
+      source.removeEventListener("error", handleError as EventListener);
+      source.close();
+    };
+  }, [selectedBusiness, sseDisabled]);
+
   // Auto-refresh polling
   useEffect(() => {
-    if (!polling || !selectedBusiness) return;
+    if (!polling || !selectedBusiness || liveMode === "sse") return;
     const interval = setInterval(async () => {
       try {
         const jobsResp = await getJobs(selectedBusiness);
@@ -77,6 +126,8 @@ export const JobsList: React.FC = () => {
       "keyword-location": "Keywords × Locations",
       "service-service-area": "Services × Service Areas",
       "service-location": "Services × Locations",
+      "blog-service-area": "Blog Topics × Service Areas",
+      "blog-location": "Blog Topics × Locations",
       "location-keyword": "Keywords × Locations (legacy)",
       "service-area": "Keywords × Service Areas (legacy)",
     };
@@ -112,19 +163,45 @@ export const JobsList: React.FC = () => {
       {/* Polling status */}
       <div className="flex items-center justify-between mb-4 text-sm text-dark-400">
         <span>
-          {polling ? (
+          {liveMode === "sse" ? (
+            <>Live updates connected</>
+          ) : polling ? (
             <>Auto-refreshing every {POLL_INTERVAL_MS / 1000}s</>
           ) : (
             <>Auto-refresh paused</>
           )}
         </span>
-        <button
-          type="button"
-          onClick={() => setPolling((p) => !p)}
-          className="px-3 py-1 border border-dark-600 rounded-lg text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition-colors"
-        >
-          {polling ? "Pause" : "Resume"}
-        </button>
+        <div className="flex items-center gap-2">
+          {sseDisabled && (
+            <button
+              type="button"
+              onClick={() => {
+                setSseDisabled(false);
+                setLiveMode("poll");
+                setPolling(false);
+              }}
+              className="px-3 py-1 border border-metro-orange/60 rounded-lg text-metro-orange hover:bg-metro-orange/10 transition-colors"
+            >
+              Enable Live
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (liveMode === "sse") {
+                sourceRef.current?.close();
+                setLiveMode("poll");
+                setPolling(true);
+                setSseDisabled(true);
+                return;
+              }
+              setPolling((p) => !p);
+            }}
+            className="px-3 py-1 border border-dark-600 rounded-lg text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition-colors"
+          >
+            {liveMode === "sse" ? "Switch to polling" : polling ? "Pause" : "Resume"}
+          </button>
+        </div>
       </div>
 
       {loading ? (

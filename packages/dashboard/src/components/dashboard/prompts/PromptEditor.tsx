@@ -10,6 +10,8 @@ type PageType =
   | "keyword-location"
   | "service-service-area"
   | "service-location"
+  | "blog-service-area"
+  | "blog-location"
   | "location-keyword"
   | "service-area";
 
@@ -103,8 +105,14 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             }
             disabled={saving || mode === "edit"}
           >
-            <option value="location-keyword">location-keyword</option>
-            <option value="service-area">service-area</option>
+            <option value="keyword-service-area">keyword-service-area</option>
+            <option value="keyword-location">keyword-location</option>
+            <option value="service-service-area">service-service-area</option>
+            <option value="service-location">service-location</option>
+            <option value="blog-service-area">blog-service-area</option>
+            <option value="blog-location">blog-location</option>
+            <option value="location-keyword">location-keyword (legacy)</option>
+            <option value="service-area">service-area (legacy)</option>
           </select>
           {mode === "edit" && (
             <p className="text-xs text-dark-400 mt-1">

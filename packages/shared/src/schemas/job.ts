@@ -9,6 +9,8 @@ export const PageTypeSchema = z.enum([
   "keyword-location",
   "service-service-area",
   "service-location",
+  "blog-service-area",
+  "blog-location",
   // Legacy aliases (backwards compatible)
   "location-keyword",
   "service-area",

@@ -72,7 +72,7 @@ echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
 echo "Date: $(date)"
 echo ""
 
-PROMPT="Generate SEO content for DUI Lawyer in Montgomery County, MD. Business: Street Lawyer Magic. Return JSON with title, meta_description, h1, and 3 sections of 100+ words each."
+PROMPT="Generate SEO content for DUI Lawyer in Montgomery County, MD. Business: MarketBrewer Client. Return JSON with title, meta_description, h1, and 3 sections of 100+ words each."
 
 echo "Running 5 generations..."
 for i in 1 2 3 4 5; do
@@ -96,7 +96,7 @@ chmod +x benchmark.sh && ./benchmark.sh
 
 ## Cost Analysis
 
-### Street Lawyer Magic Job (1,734 pages)
+### MarketBrewer Client Job (1,734 pages)
 
 **Actual costs (2025-12-23):**
 - First run (g5.xlarge): 807 pages in ~1.5 hours = $0.63

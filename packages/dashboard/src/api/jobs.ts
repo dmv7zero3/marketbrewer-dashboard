@@ -19,9 +19,12 @@ export interface JobsListResponse {
 }
 
 export interface PreviewPage {
-  keyword_slug: string | null;
-  keyword_text: string | null;
-  keyword_language: 'en' | 'es';
+  keyword_slug?: string | null;
+  keyword_text?: string | null;
+  keyword_language?: 'en' | 'es';
+  service_name?: string | null;
+  service_slug?: string | null;
+  service_name_es?: string | null;
   service_area_slug: string;
   service_area_city: string;
   service_area_state: string;
@@ -40,6 +43,8 @@ export interface PreviewPagesResponse {
     total_pages: number;
     unique_keywords: number;
     unique_service_areas: number;
+    unique_locations?: number;
+    unique_services?: number;
     by_language: {
       en: number;
       es: number;

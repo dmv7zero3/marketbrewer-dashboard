@@ -22,6 +22,9 @@ const SAMPLE_VALUES: Record<string, string> = {
   industry: "Professional Services",
   primary_service: "Consulting",
   primary_keyword: "best consulting services",
+  primary_keyword_es: "mejores servicios de consultoria",
+  keyword_language: "en",
+  content_language: "English",
   years_experience: "15",
   differentiators: "Personalized attention, local expertise, competitive pricing",
   target_audience: "Small and medium businesses looking for growth",
@@ -41,6 +44,15 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
   primaryState,
 }) => {
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
+  const badgeClassForPageType = (pageType: string) => {
+    if (pageType.startsWith("blog-")) {
+      return "bg-metro-blue-950 text-metro-blue";
+    }
+    if (pageType.startsWith("service-")) {
+      return "bg-metro-green-950 text-metro-green";
+    }
+    return "bg-purple-900/50 text-purple-400";
+  };
 
   // Extract variables from template
   const extractedVariables = useMemo(() => {
@@ -109,11 +121,9 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({
       {/* Template info */}
       <div className="flex items-center gap-3">
         <span
-          className={`px-2 py-0.5 text-xs rounded font-medium ${
-            template.page_type === "location-keyword"
-              ? "bg-purple-900/50 text-purple-400"
-              : "bg-metro-green-950 text-metro-green"
-          }`}
+          className={`px-2 py-0.5 text-xs rounded font-medium ${badgeClassForPageType(
+            template.page_type
+          )}`}
         >
           {template.page_type}
         </span>

@@ -22,20 +22,20 @@ Every prompt should return:
 
 ### Required (all templates)
 
-| Variable            | Source           | Example        |
-| ------------------- | ---------------- | -------------- |
-| `{{business_name}}` | Business profile | Nash & Smashed |
-| `{{city}}`          | Service area     | Sterling       |
-| `{{state}}`         | Service area     | VA             |
-| `{{phone}}`         | Business profile | 703-555-1234   |
+| Variable            | Source           | Example                |
+| ------------------- | ---------------- | ---------------------- |
+| `{{business_name}}` | Business profile | MarketBrewer Client    |
+| `{{city}}`          | Service area     | Alexandria             |
+| `{{state}}`         | Service area     | VA                     |
+| `{{phone}}`         | Business profile | 703-555-1234           |
 
 ### Optional (enhance quality)
 
 | Variable               | Source              | Example                          |
 | ---------------------- | ------------------- | -------------------------------- |
 | `{{years_experience}}` | Questionnaire       | 15                               |
-| `{{differentiators}}`  | Questionnaire       | Halal-certified, family-owned    |
-| `{{target_audience}}`  | Questionnaire       | Families seeking halal options   |
+| `{{differentiators}}`  | Questionnaire       | Data-driven SEO, multi-location  |
+| `{{target_audience}}`  | Questionnaire       | Local customers seeking services |
 | `{{cta_text}}`         | Content preferences | Call now for a free consultation |
 
 ---
@@ -122,7 +122,7 @@ OUTPUT FORMAT (JSON only):
 
 ## Industry Templates
 
-### Restaurant (Nash & Smashed)
+### Restaurant (MarketBrewer Client)
 
 ```
 Write a local SEO page for {{business_name}}, a {{cuisine_type}} restaurant in {{city}}, {{state}}.
@@ -137,13 +137,13 @@ RESTAURANT DETAILS:
 TARGET KEYWORD: {{primary_keyword}}
 
 FOCUS:
-1. Highlight {{dietary_options}} (especially Halal)
+1. Highlight {{dietary_options}}
 2. Mention signature dishes
 3. Appeal to locals in {{city}}
 4. Include phone for orders
 ```
 
-### Legal (Street Lawyer Magic)
+### Legal (MarketBrewer Client)
 
 ```
 Write a local SEO page for {{attorney_name}}, a {{practice_area}} attorney serving {{city}}, {{state}}.

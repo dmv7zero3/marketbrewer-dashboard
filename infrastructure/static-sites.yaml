@@ -1,0 +1,330 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "MarketBrewer Static Sites (CloudFront + S3 + Route53)"
+
+Parameters:
+  ProjectPrefix:
+    Type: String
+    Default: marketbrewer
+    Description: Prefix for all resources in this stack
+
+  EnvSuffix:
+    Type: String
+    Default: prod
+    Description: Environment suffix for bucket naming (e.g., prod, staging)
+
+  HostedZoneId:
+    Type: String
+    Description: Route53 hosted zone ID for marketbrewer.com
+
+  AdminDomain:
+    Type: String
+    Default: admin.marketbrewer.com
+
+  PortalDomain:
+    Type: String
+    Default: portal.marketbrewer.com
+
+  AssetsDomain:
+    Type: String
+    Default: assets.marketbrewer.com
+
+  AcmCertificateArn:
+    Type: String
+    Description: ACM certificate ARN (must be in us-east-1 for CloudFront)
+
+  CreateAssets:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+
+Conditions:
+  CreateAssetsBucket: !Equals [!Ref CreateAssets, "true"]
+
+Resources:
+  AdminBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-admin-dashboard-${EnvSuffix}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  PortalBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-client-portal-${EnvSuffix}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  AssetsBucket:
+    Type: AWS::S3::Bucket
+    Condition: CreateAssetsBucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-assets-${EnvSuffix}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  AdminOac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectPrefix}-admin-oac-${EnvSuffix}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  PortalOac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectPrefix}-portal-oac-${EnvSuffix}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  AssetsOac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Condition: CreateAssetsBucket
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectPrefix}-assets-oac-${EnvSuffix}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  AdminDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Comment: !Sub "${ProjectPrefix} admin dashboard"
+        DefaultRootObject: index.html
+        Aliases:
+          - !Ref AdminDomain
+        Origins:
+          - Id: admin-origin
+            DomainName: !GetAtt AdminBucket.RegionalDomainName
+            S3OriginConfig: {}
+            OriginAccessControlId: !Ref AdminOac
+        DefaultCacheBehavior:
+          TargetOriginId: admin-origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+
+  PortalDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Comment: !Sub "${ProjectPrefix} client portal"
+        DefaultRootObject: index.html
+        Aliases:
+          - !Ref PortalDomain
+        Origins:
+          - Id: portal-origin
+            DomainName: !GetAtt PortalBucket.RegionalDomainName
+            S3OriginConfig: {}
+            OriginAccessControlId: !Ref PortalOac
+        DefaultCacheBehavior:
+          TargetOriginId: portal-origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+
+  AssetsDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: CreateAssetsBucket
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Comment: !Sub "${ProjectPrefix} shared assets"
+        DefaultRootObject: index.html
+        Aliases:
+          - !Ref AssetsDomain
+        Origins:
+          - Id: assets-origin
+            DomainName: !GetAtt AssetsBucket.RegionalDomainName
+            S3OriginConfig: {}
+            OriginAccessControlId: !Ref AssetsOac
+        DefaultCacheBehavior:
+          TargetOriginId: assets-origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+
+  AdminBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AdminBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${AdminBucket}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${AdminDistribution}"
+
+  PortalBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PortalBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${PortalBucket}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${PortalDistribution}"
+
+  AssetsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: CreateAssetsBucket
+    Properties:
+      Bucket: !Ref AssetsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${AssetsBucket}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${AssetsDistribution}"
+
+  AdminDnsRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref AdminDomain
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt AdminDistribution.DomainName
+        - Name: !Ref AdminDomain
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt AdminDistribution.DomainName
+        - Name: !Ref PortalDomain
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt PortalDistribution.DomainName
+        - Name: !Ref PortalDomain
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt PortalDistribution.DomainName
+
+  AssetsDnsRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: CreateAssetsBucket
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref AssetsDomain
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt AssetsDistribution.DomainName
+        - Name: !Ref AssetsDomain
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt AssetsDistribution.DomainName
+
+Outputs:
+  AdminBucketName:
+    Value: !Ref AdminBucket
+  PortalBucketName:
+    Value: !Ref PortalBucket
+  AssetsBucketName:
+    Condition: CreateAssetsBucket
+    Value: !Ref AssetsBucket
+  AdminDistributionId:
+    Value: !Ref AdminDistribution
+  PortalDistributionId:
+    Value: !Ref PortalDistribution
+  AssetsDistributionId:
+    Condition: CreateAssetsBucket
+    Value: !Ref AssetsDistribution
+  AdminDistributionDomain:
+    Value: !GetAtt AdminDistribution.DomainName
+  PortalDistributionDomain:
+    Value: !GetAtt PortalDistribution.DomainName
+  AssetsDistributionDomain:
+    Condition: CreateAssetsBucket
+    Value: !GetAtt AssetsDistribution.DomainName

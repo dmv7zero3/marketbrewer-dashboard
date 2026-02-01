@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node", "@types/aws-lambda", "jest"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"]
+}

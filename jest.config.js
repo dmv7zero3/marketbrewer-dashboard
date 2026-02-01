@@ -9,9 +9,9 @@
 module.exports = {
   projects: [
     "<rootDir>/packages/shared",
-    "<rootDir>/packages/server",
-    "<rootDir>/packages/worker",
     "<rootDir>/packages/dashboard",
+    "<rootDir>/packages/lambda-api",
+    "<rootDir>/packages/lambda-worker",
   ],
   collectCoverage: true,
   collectCoverageFrom: [

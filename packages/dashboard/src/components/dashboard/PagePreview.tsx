@@ -35,6 +35,20 @@ export function PagePreview({ pageType, onConfirm, onCancel }: PagePreviewProps)
   const [language, setLanguage] = useState<'all' | 'en' | 'es'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
+  const pageTypeLabel = useMemo(() => {
+    const labels: Record<string, string> = {
+      "keyword-service-area": "Keywords × Service Areas",
+      "keyword-location": "Keywords × Locations",
+      "service-service-area": "Services × Service Areas",
+      "service-location": "Services × Locations",
+      "blog-service-area": "Blog Topics × Service Areas",
+      "blog-location": "Blog Topics × Locations",
+      "location-keyword": "Keywords × Locations (legacy)",
+      "service-area": "Keywords × Service Areas (legacy)",
+    };
+    return labels[pageType] || pageType;
+  }, [pageType]);
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -137,7 +151,7 @@ export function PagePreview({ pageType, onConfirm, onCancel }: PagePreviewProps)
             </p>
           </div>
           <span className="px-3 py-1 text-sm font-medium bg-metro-blue-950 text-metro-blue border border-metro-blue-700 rounded-full">
-            {pageType === 'service-area' ? 'Service Area' : 'Location Keyword'}
+            {pageTypeLabel}
           </span>
         </div>
       </div>
@@ -281,15 +295,20 @@ export function PagePreview({ pageType, onConfirm, onCancel }: PagePreviewProps)
                       {page.url_path}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          page.keyword_language === 'es'
-                            ? 'bg-purple-900/50 text-purple-400'
-                            : 'bg-dark-800 text-dark-100'
-                        }`}
-                      >
-                        {page.keyword_language.toUpperCase()}
-                      </span>
+                      {(() => {
+                        const language = page.keyword_language || 'en';
+                        return (
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              language === 'es'
+                                ? 'bg-purple-900/50 text-purple-400'
+                                : 'bg-dark-800 text-dark-100'
+                            }`}
+                          >
+                            {language.toUpperCase()}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3">
                       {page.issues.length > 0 ? (

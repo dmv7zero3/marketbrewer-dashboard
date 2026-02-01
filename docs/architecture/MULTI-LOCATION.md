@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the multi-location system designed for franchise and multi-location businesses like Nash & Smashed, based on their real-world 28+ location operation across VA, MD, DC, SC, and NY.
+This document outlines the multi-location system designed for franchise and multi-location businesses like MarketBrewer clients, based on real-world 28+ location operations across VA, MD, DC, SC, and NY.
 
 ## Location Status Model (V1.1)
 
@@ -31,7 +31,7 @@ This document outlines the multi-location system designed for franchise and mult
 
 **Optional Fields:**
 
-- `display_name` - Auto-generated: "Nash and Smashed (Manassas)"
+- `display_name` - Auto-generated: "MarketBrewer Client (Manassas)"
 - `address` - Street address
 - `zip_code` - Postal code
 - `full_address` - Auto-generated from components
@@ -173,7 +173,7 @@ import {
 getLocationDisplayValue(location); // "Manassas, VA" or "Alexandria, VA (Coming Soon)"
 
 // For dropdowns
-getLocationOptionText(location); // "Nash and Smashed (Manassas)" or with "(Coming Soon)"
+getLocationOptionText(location); // "MarketBrewer Client (Manassas)" or with "(Coming Soon)"
 
 // Filter by status
 const active = getActiveLocations(locations);
@@ -235,23 +235,17 @@ const prompt = buildPrompt({
 
 ## Migration from V1.0
 
-If you have existing data with old status values:
+Legacy SQL migrations are no longer used. For DynamoDB:
 
-```sql
--- Run migration
--- packages/server/migrations/004_simplify_location_status.sql
-
--- This will:
--- 1. Archive closed/temporarily-closed locations
--- 2. Convert coming-soon → upcoming
--- 3. Update table constraint
-```
+- Backfill `status` values with a one-time script or console update
+- Normalize to `active`, `upcoming`, or `archived`
+- Keep historical records for audit and reporting
 
 ## Example Usage
 
 ```typescript
 // Add new upcoming location
-await createLocation("nash-and-smashed", {
+await createLocation("marketbrewer-client", {
   name: "Tysons Corner",
   city: "McLean",
   state: "VA",
@@ -261,7 +255,7 @@ await createLocation("nash-and-smashed", {
 });
 
 // Update to active with full details
-await updateLocation("nash-and-smashed", locationId, {
+await updateLocation("marketbrewer-client", locationId, {
   status: "active",
   address: "7850 Tysons Corner Center",
   zip_code: "22102",
@@ -272,7 +266,7 @@ await updateLocation("nash-and-smashed", locationId, {
 });
 
 // Bulk import 10 new franchises
-await bulkImportLocations("nash-and-smashed", {
+await bulkImportLocations("marketbrewer-client", {
   locations: [...],
   auto_create_service_areas: true
 });

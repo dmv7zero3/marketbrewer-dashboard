@@ -152,7 +152,7 @@ Time:        8.xxx s
 
 The test utilities provide realistic mock data:
 
-- **3 businesses**: Nash & Smashed, Street Lawyer Magic, MarketBrewer
+- **1 business**: MarketBrewer
 - **3 locations** (small set for quick tests)
 - **32 locations** (realistic production dataset)
 - **Location stats**: total, active, upcoming, byState
@@ -207,11 +207,11 @@ test("single provider prevents isolation", async () => {
   );
 
   // Select in Sidebar
-  await user.selectOptions(dropdown, "nash-and-smashed");
+  await user.selectOptions(dropdown, "marketbrewer");
 
   // Locations immediately receives update
   expect(screen.getByTestId("selected-display")).toHaveTextContent(
-    "nash-and-smashed"
+    "marketbrewer"
   );
 });
 ```

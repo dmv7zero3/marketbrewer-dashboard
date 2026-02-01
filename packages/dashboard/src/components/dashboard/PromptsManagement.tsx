@@ -38,8 +38,19 @@ type PageType =
   | "keyword-location"
   | "service-service-area"
   | "service-location"
+  | "blog-service-area"
+  | "blog-location"
   | "location-keyword"
   | "service-area";
+
+type PromptPreset = {
+  page_type: PageType;
+  version: number;
+  template: string;
+  required_variables: string[];
+  optional_variables: string[];
+  word_count_target: number;
+};
 
 const EMPTY_FORM: PromptEditorFormData = {
   page_type: "location-keyword",
@@ -67,6 +78,7 @@ export const PromptsManagement: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState<PromptEditorFormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [bulkCreating, setBulkCreating] = useState(false);
 
   // Preview state
   const [selectedPreviewId, setSelectedPreviewId] = useState<string | null>(null);
@@ -88,7 +100,7 @@ export const PromptsManagement: React.FC = () => {
           selectedBusiness,
           { signal: controller.signal }
         );
-        setTemplates(prompt_templates);
+        setTemplates(prompt_templates || []);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         const msg =
@@ -234,6 +246,142 @@ export const PromptsManagement: React.FC = () => {
     }
   };
 
+  const buildBlogPresets = (existing: PromptTemplate[]): PromptPreset[] => {
+    const nextVersion = (pageType: PageType) => {
+      const versions = existing
+        .filter((t) => t.page_type === pageType)
+        .map((t) => t.version);
+      return versions.length > 0 ? Math.max(...versions) + 1 : 1;
+    };
+
+    return [
+      {
+        page_type: "blog-service-area",
+        version: nextVersion("blog-service-area"),
+        template: `You are an SEO content writer for {{business_name}}, a {{industry}} business.
+
+Write a localized blog post about "{{primary_keyword}}" for {{city}}, {{state}} in {{content_language}}.
+
+REQUIREMENTS:
+1. Title (max 70 chars) with keyword and city
+2. Meta description (max 160 chars) with location
+3. H1 with keyword and city
+4. Body (600-800 words):
+   - Introduce the topic with local relevance to {{city}}
+   - Explain the topic in a helpful, educational tone
+   - Mention {{business_name}} as a trusted local option
+   - Include a call-to-action with {{phone}}
+
+OUTPUT FORMAT (JSON only):
+{
+  "title": "...",
+  "meta_description": "...",
+  "h1": "...",
+  "body": "...",
+  "sections": [
+    { "heading": "...", "content": "..." }
+  ],
+  "cta": "..."
+}`,
+        required_variables: [
+          "business_name",
+          "city",
+          "state",
+          "phone",
+          "primary_keyword",
+          "content_language",
+        ],
+        optional_variables: [
+          "industry",
+          "years_experience",
+          "differentiators",
+          "target_audience",
+          "cta_text",
+          "keyword_language",
+        ],
+        word_count_target: 700,
+      },
+      {
+        page_type: "blog-location",
+        version: nextVersion("blog-location"),
+        template: `You are an SEO content writer for {{business_name}}, a {{industry}} business.
+
+Write a blog post about "{{primary_keyword}}" focused on customers near {{city}}, {{state}} in {{content_language}}.
+
+REQUIREMENTS:
+1. Title (max 70 chars) with keyword and city
+2. Meta description (max 160 chars) with location
+3. H1 with keyword and city
+4. Body (600-800 words):
+   - Start with a local angle tied to {{city}}
+   - Provide actionable tips and guidance
+   - Reference the nearby location and {{business_name}}
+   - Close with a CTA and {{phone}}
+
+OUTPUT FORMAT (JSON only):
+{
+  "title": "...",
+  "meta_description": "...",
+  "h1": "...",
+  "body": "...",
+  "sections": [
+    { "heading": "...", "content": "..." }
+  ],
+  "cta": "..."
+}`,
+        required_variables: [
+          "business_name",
+          "city",
+          "state",
+          "phone",
+          "primary_keyword",
+          "content_language",
+        ],
+        optional_variables: [
+          "industry",
+          "years_experience",
+          "differentiators",
+          "target_audience",
+          "cta_text",
+          "keyword_language",
+        ],
+        word_count_target: 700,
+      },
+    ];
+  };
+
+  const handleCreateBlogTemplates = async () => {
+    if (!selectedBusiness) return;
+    if (bulkCreating) return;
+
+    try {
+      setBulkCreating(true);
+      const presets = buildBlogPresets(templates);
+      const created: PromptTemplate[] = [];
+
+      for (const preset of presets) {
+        const { prompt_template } = await createPromptTemplate(selectedBusiness, {
+          page_type: preset.page_type,
+          version: preset.version,
+          template: preset.template,
+          required_variables: preset.required_variables,
+          optional_variables: preset.optional_variables,
+          word_count_target: preset.word_count_target,
+          is_active: true,
+        });
+        created.push(prompt_template);
+      }
+
+      setTemplates((prev) => [...created, ...prev]);
+      addToast("Blog templates created", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to create blog templates";
+      addToast(msg, "error", 5000);
+    } finally {
+      setBulkCreating(false);
+    }
+  };
+
   const handleDelete = useCallback(
     async (id: string, pageType: string, version: number) => {
       if (!selectedBusiness || deletingIds.has(id)) return;
@@ -281,14 +429,31 @@ export const PromptsManagement: React.FC = () => {
   };
 
   // Stats
-  const totalTemplates = templates.length;
-  const activeTemplates = templates.filter((t) => t.is_active).length;
-  const locationKeywordTemplates = templates.filter(
-    (t) => t.page_type === "location-keyword"
+  const safeTemplates = templates || [];
+  const totalTemplates = safeTemplates.length;
+  const activeTemplates = safeTemplates.filter((t) => t.is_active).length;
+  const keywordTemplates = safeTemplates.filter((t) =>
+    ["keyword-service-area", "keyword-location", "location-keyword", "service-area"].includes(
+      t.page_type
+    )
   ).length;
-  const serviceAreaTemplates = templates.filter(
-    (t) => t.page_type === "service-area"
+  const serviceTemplates = safeTemplates.filter((t) =>
+    t.page_type.startsWith("service-")
   ).length;
+  const blogTemplates = safeTemplates.filter((t) =>
+    t.page_type.startsWith("blog-")
+  ).length;
+  const hasBlogTemplates = blogTemplates > 0;
+
+  const badgeClassForPageType = (pageType: string) => {
+    if (pageType.startsWith("blog-")) {
+      return "bg-metro-blue-950 text-metro-blue";
+    }
+    if (pageType.startsWith("service-")) {
+      return "bg-metro-green-950 text-metro-green";
+    }
+    return "bg-purple-900/50 text-purple-400";
+  };
 
   const renderStatsCards = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -302,15 +467,21 @@ export const PromptsManagement: React.FC = () => {
       </div>
       <div className="bg-dark-800 border rounded-lg p-4">
         <div className="text-2xl font-bold text-purple-600">
-          {locationKeywordTemplates}
+          {keywordTemplates}
         </div>
-        <div className="text-sm text-dark-400">Location-Keyword</div>
+        <div className="text-sm text-dark-400">Keyword Pages</div>
       </div>
       <div className="bg-dark-800 border rounded-lg p-4">
         <div className="text-2xl font-bold text-metro-green">
-          {serviceAreaTemplates}
+          {serviceTemplates}
         </div>
-        <div className="text-sm text-dark-400">Service-Area</div>
+        <div className="text-sm text-dark-400">Service Pages</div>
+      </div>
+      <div className="bg-dark-800 border rounded-lg p-4">
+        <div className="text-2xl font-bold text-metro-blue">
+          {blogTemplates}
+        </div>
+        <div className="text-sm text-dark-400">Blog Pages</div>
       </div>
     </div>
   );
@@ -319,18 +490,27 @@ export const PromptsManagement: React.FC = () => {
     <div className="space-y-4">
       {renderStatsCards()}
 
-      <button
-        className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600"
-        onClick={handleStartCreate}
-      >
-        + Add New Template
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button
+          className="bg-metro-orange text-white px-4 py-2 rounded hover:bg-metro-orange-600"
+          onClick={handleStartCreate}
+        >
+          + Add New Template
+        </button>
+        <button
+          className="bg-metro-blue-950 text-metro-blue border border-metro-blue-700 px-4 py-2 rounded hover:bg-metro-blue-900 disabled:opacity-50"
+          onClick={handleCreateBlogTemplates}
+          disabled={bulkCreating || !selectedBusiness || hasBlogTemplates}
+        >
+          {bulkCreating ? "Creating Blog Templates..." : "Create Blog Templates"}
+        </button>
+      </div>
 
       {error && <p className="text-metro-red">{error}</p>}
 
       {loading ? (
         <p className="text-dark-400">Loading templates...</p>
-      ) : templates.length === 0 ? (
+      ) : safeTemplates.length === 0 ? (
         <EmptyState
           icon={EmptyStateIcons.prompts}
           title="No prompt templates"
@@ -342,7 +522,7 @@ export const PromptsManagement: React.FC = () => {
         />
       ) : (
         <ul className="space-y-3">
-          {templates.map((t) => (
+          {safeTemplates.map((t) => (
             <li
               key={t.id}
               className="border rounded p-4 bg-dark-800 hover:shadow-sm transition-shadow"
@@ -351,11 +531,9 @@ export const PromptsManagement: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className={`px-2 py-0.5 text-xs rounded font-medium ${
-                        t.page_type === "location-keyword"
-                          ? "bg-purple-900/50 text-purple-400"
-                          : "bg-metro-green-950 text-metro-green"
-                      }`}
+                      className={`px-2 py-0.5 text-xs rounded font-medium ${badgeClassForPageType(
+                        t.page_type
+                      )}`}
                     >
                       {t.page_type}
                     </span>
@@ -451,19 +629,19 @@ export const PromptsManagement: React.FC = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         saving={saving}
-        existingTemplates={templates}
+        existingTemplates={safeTemplates}
       />
     );
   };
 
   const renderPreviewTab = () => {
     const selectedTemplate = selectedPreviewId
-      ? templates.find((t) => t.id === selectedPreviewId)
+      ? safeTemplates.find((t) => t.id === selectedPreviewId)
       : null;
 
     return (
       <div className="space-y-4">
-        {templates.length > 0 && (
+        {safeTemplates.length > 0 && (
           <div className="flex items-center gap-3">
             <label className="text-sm font-medium text-dark-200">
               Select Template:
@@ -474,7 +652,7 @@ export const PromptsManagement: React.FC = () => {
               onChange={(e) => setSelectedPreviewId(e.target.value || null)}
             >
               <option value="">-- Select a template --</option>
-              {templates.map((t) => (
+              {safeTemplates.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.page_type} v{t.version}
                   {t.is_active ? " (Active)" : ""}

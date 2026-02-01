@@ -37,6 +37,16 @@ export const JobCreate: React.FC = () => {
         description: `Keywords × physical store locations (active + coming soon)`,
       },
       {
+        value: "blog-service-area",
+        title: "Blog Topics × Service Areas",
+        description: `Blog topics (keywords) × nearby cities for localized posts`,
+      },
+      {
+        value: "blog-location",
+        title: "Blog Topics × Store Locations",
+        description: `Blog topics (keywords) × physical store locations`,
+      },
+      {
         value: "service-service-area",
         title: `${uiLabels.servicesLabel} × Service Areas`,
         description: `${uiLabels.servicesLabel} (e.g., "Smash Burger") × nearby cities`,

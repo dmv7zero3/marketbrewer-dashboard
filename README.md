@@ -1,48 +1,112 @@
-# MarketBrewer SEO Platform
+# MarketBrewer Dashboard
 
-Local-first SEO content generation platform for producing thousands of location-targeted landing pages.
+Internal admin dashboard for MarketBrewer LLC to manage client local SEO, generation jobs, and billing.
+
+GitHub: https://github.com/dmv7zero3/marketbrewer-dashboard
 
 ---
 
-## Quick Start
+## Quick Start (Dashboard)
 
 ```bash
 # Install dependencies
 npm install
 
-# Configure environment files
-cp packages/server/.env.example packages/server/.env
+# Start local infra (DynamoDB Local + LocalStack SQS)
+docker compose -f docker-compose.local.yml up -d
+
+# Bootstrap local table + queue
+export DDB_ENDPOINT=http://localhost:8000
+export SQS_ENDPOINT=http://localhost:4566
+npm run local:bootstrap
+
+# Configure API env (local server)
+export API_TOKEN=your-secure-token
+export CORS_ALLOW_ORIGINS=http://localhost:3002
+# Optional local endpoints
+# export DDB_ENDPOINT=http://localhost:8000
+# export SQS_ENDPOINT=http://localhost:4566
+
+# Start local API (localhost:3001)
+npm run dev:server
+
+# Start local worker (relays SQS -> Lambda worker)
+npm run dev:worker
+
+# Seed initial clients
+npm run seed:clients
+
+# Configure dashboard env
 cp packages/dashboard/.env.example packages/dashboard/.env
-cp packages/worker/.env.example packages/worker/.env
+# Set REACT_APP_API_URL + REACT_APP_API_TOKEN + Google auth vars in packages/dashboard/.env
 
 # Start dashboard (localhost:3002)
 npm run dev:dashboard
-
-# Start API server (localhost:3001)
-npm run dev:server
-
-# Start worker (requires API_URL and API_TOKEN in packages/worker/.env)
-npm run dev:worker
-
-# Run smoke tests (requires server running)
-./scripts/smoke-tests.sh local
 ```
+
+## One-Command Local Dev
+
+```bash
+npm run dev:local
+```
+
+This spins up DynamoDB Local + LocalStack, bootstraps the table/queue, seeds the clients,
+and starts API/worker/dashboard. Logs are written to `output/local-dev`.
+
+To stop everything:
+
+```bash
+npm run dev:local:down
+```
+
+## No-Docker Local Dev (Use AWS)
+
+If you do not want to run Docker locally, point the API/worker at AWS:
+
+```bash
+export AWS_REGION=us-east-1
+export PROJECT_PREFIX=marketbrewer
+export API_TOKEN=local-dev-token
+# Ensure your AWS credentials are configured (AWS_PROFILE or env keys)
+npm run dev:local:aws
+```
+
+## Quick Start (Client Portal)
+
+```bash
+# Configure client portal env
+cp packages/client-portal/.env.example packages/client-portal/.env
+# Set REACT_APP_API_URL + REACT_APP_API_TOKEN in packages/client-portal/.env
+
+# Start client portal (localhost:3003)
+npm run dev:client-portal
+```
+
+For serverless deployment (API Gateway + Lambda + DynamoDB), see:
+`docs/SERVERLESS-DEPLOYMENT.md`
 
 ---
 
-## Node Version
+## Google Workspace Login
 
-Use Node.js 20.x for local development (Homebrew `node@20` works). Example:
+The dashboard can enforce Google Workspace login. Configure both API + dashboard env vars:
 
 ```bash
-export PATH="/usr/local/opt/node@20/bin:$PATH"
-node -v
+# Lambda API env
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+GOOGLE_ALLOWED_EMAILS=j@marketbrewer.com
+
+# Dashboard env
+REACT_APP_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+REACT_APP_GOOGLE_ALLOWED_EMAILS=j@marketbrewer.com
 ```
 
-Project-only setup options:
-- `direnv allow` (uses `.envrc` to set PATH for this repo only)
-- `nvm use` (reads `.nvmrc`)
-Optional: Volta/asdf users can pin `20.19.6` locally (no repo changes required).
+Current IAM OAuth client (gcloud):
+`a455cf980-6701-4910-a8b2-52915f160806`
+
+Configured redirect URIs:
+- `https://admin.marketbrewer.com`
+- `http://localhost:3002`
 
 ---
 
@@ -50,13 +114,35 @@ Optional: Volta/asdf users can pin `20.19.6` locally (no repo changes required).
 
 ```
 packages/
-├── dashboard/    # React 18 + Webpack 5 + Tailwind
-├── server/       # Express + SQLite (14 migrations)
-├── worker/       # Ollama job processor with template substitution
-└── shared/       # Shared TypeScript types
+├── dashboard/      # React + Webpack + Tailwind
+├── lambda-api/     # API Gateway Lambda (TypeScript)
+├── lambda-worker/  # SQS Worker Lambda (Claude API)
+└── shared/         # Shared types + schemas
 ```
 
-See [docs/STRUCTURE.md](./docs/STRUCTURE.md) for full layout.
+---
+
+## Tech Stack
+
+| Component | Technology                                      |
+| --------- | ----------------------------------------------- |
+| Frontend  | React, TypeScript, Tailwind, Webpack            |
+| API       | API Gateway + Lambda (TypeScript)               |
+| Data      | DynamoDB single-table (no GSIs)                 |
+| Queue     | SQS                                              |
+| LLM       | Claude API                                      |
+| Auth      | API token + Google Identity Services            |
+| Hosting   | S3 + CloudFront (`admin.marketbrewer.com`)      |
+| Payments  | Stripe Billing (subscriptions, invoices, portal) |
+
+---
+
+## Status
+
+- ✅ Serverless API + worker
+- ✅ Dashboard with Google Workspace login
+- ✅ DynamoDB single-table + immutable cost ledger
+- ✅ EN/ES keyword support
 
 ---
 
@@ -64,71 +150,15 @@ See [docs/STRUCTURE.md](./docs/STRUCTURE.md) for full layout.
 
 All documentation lives in `docs/`:
 
-| Document                                     | Purpose             |
-| -------------------------------------------- | ------------------- |
-| [docs/README.md](./docs/README.md)           | Documentation index |
-| [docs/STRUCTURE.md](./docs/STRUCTURE.md)     | File layout         |
-| [docs/CONVENTIONS.md](./docs/CONVENTIONS.md) | Code style          |
-| [docs/api/ENDPOINTS.md](./docs/api/ENDPOINTS.md) | REST API reference |
-
----
-
-## Tech Stack
-
-| Component | Technology                                |
-| --------- | ----------------------------------------- |
-| Frontend  | React 18, TypeScript, Tailwind, Webpack 5 |
-| Backend   | Express, TypeScript, SQLite               |
-| LLM       | Ollama (local)                            |
-| Build     | npm workspaces                            |
-
----
-
-## Current Status (Dec 20, 2024)
-
-**✅ Working:**
-
-- ✅ API Server (Express + SQLite on :3001)
-- ✅ Dashboard (React 18, all management UIs)
-- ✅ Worker (Ollama + template-based content generation)
-- ✅ Bilingual support (EN/ES with shared slugs)
-- ✅ Prompt template system with 25+ variables
-- ✅ Integration tests passing (37/37 locations, 6/6 smoke tests)
-
-**Test Data:**
-
-- Business: Nash & Smashed (26 locations, 50+ bilingual keywords)
-- Business: Street Lawyer Magic (17 bilingual services)
-
-## V1 Scope
-
-**Included:**
-
-- Page types: `location-keyword`, `service-area`
-- Ollama only (no cloud LLM)
-- Bilingual support (EN/ES)
-- SQLite database with 14 migrations
-- JSON output for Webpack
-
-**Deferred to Phase 2:**
-
-- AWS Lambda/DynamoDB/SQS
-- Cloud LLM fallback
-- Additional languages
-
----
-
-## Launch Clients
-
-| Client              | Locations | Keywords | Status      |
-| ------------------- | --------- | -------- | ----------- |
-| Nash & Smashed      | 26        | 50+      | ✅ Ready    |
-| Street Lawyer Magic | TBD       | 17       | ✅ Seeded   |
-| MarketBrewer        | TBD       | TBD      | Pending     |
+- `docs/README.md` (index)
+- `docs/ENVIRONMENT.md`
+- `docs/SERVERLESS-DEPLOYMENT.md`
+- `docs/api/ENDPOINTS.md`
+- `docs/architecture/OVERVIEW.md`
 
 ---
 
 ## Contact
 
-Jorge Giraldez, CEO
+Jorge Giraldez, CEO  
 j@marketbrewer.com | 703-463-6323

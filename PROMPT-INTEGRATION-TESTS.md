@@ -41,7 +41,7 @@ describe("Business Selection Flow", () => {
     // 2. Mock API responses for locations and stats
     // 3. Render the dashboard with BusinessProvider
     // 4. Wait for business dropdown to appear
-    // 5. Select "nash-and-smashed" from dropdown
+    // 5. Select "marketbrewer" from dropdown
     // 6. Verify API calls were made to correct endpoints
     // 7. Verify locations appear in the UI (32 locations)
     // 8. Verify stats are displayed correctly
@@ -109,14 +109,14 @@ describe("BusinessContext Integration", () => {
 
   test("updates selectedBusiness when setSelectedBusiness is called", async () => {
     // 1. Render provider with consumer component
-    // 2. Call setSelectedBusiness('nash-and-smashed')
+    // 2. Call setSelectedBusiness('marketbrewer')
     // 3. Verify context value updates
     // 4. Verify localStorage is updated
     // 5. Verify all consumers receive new value
   });
 
   test("restores selection from localStorage on mount", async () => {
-    // 1. Set localStorage.setItem('selectedBusiness', 'nash-and-smashed')
+    // 1. Set localStorage.setItem('selectedBusiness', 'marketbrewer')
     // 2. Render provider
     // 3. Verify context initializes with correct business
     // 4. Verify API is called to validate business still exists
@@ -277,9 +277,9 @@ export const mockApiClient = {
 // Mock business data
 export const mockBusinesses = [
   {
-    business_id: "nash-and-smashed",
-    name: "Nash & Smashed",
-    website: "https://nashandsmashed.com",
+    business_id: "marketbrewer",
+    name: "MarketBrewer",
+    website: "https://marketbrewer.com",
   },
   {
     business_id: "other-business",
@@ -292,7 +292,7 @@ export const mockBusinesses = [
 export const mockLocations = [
   {
     location_id: "loc-1",
-    business_id: "nash-and-smashed",
+    business_id: "marketbrewer",
     name: "Arlington Location",
     address: "123 Main St",
     city: "Arlington",
@@ -404,7 +404,7 @@ test("user selects business", async () => {
   const { getByRole } = renderWithProviders(<LocationsManagement />);
 
   const dropdown = getByRole("combobox", { name: /business/i });
-  await user.selectOptions(dropdown, "nash-and-smashed");
+  await user.selectOptions(dropdown, "marketbrewer");
 
   // Assertions...
 });
@@ -578,17 +578,17 @@ describe("Business Selection Flow", () => {
     const dropdown = screen.getByRole("combobox");
 
     // Select business
-    await user.selectOptions(dropdown, "nash-and-smashed");
+    await user.selectOptions(dropdown, "marketbrewer");
 
     // Verify API calls
     await waitFor(() => {
       expect(locationsApi.getLocations).toHaveBeenCalledWith(
-        "nash-and-smashed",
+        "marketbrewer",
         undefined,
         expect.any(Object)
       );
       expect(locationsApi.getLocationStats).toHaveBeenCalledWith(
-        "nash-and-smashed",
+        "marketbrewer",
         expect.any(Object)
       );
     });
@@ -639,7 +639,7 @@ describe("Business Selection Flow", () => {
     await user.selectOptions(dropdown, "business-a");
 
     // Immediately select Business B
-    await user.selectOptions(dropdown, "nash-and-smashed");
+    await user.selectOptions(dropdown, "marketbrewer");
 
     // Resolve Business B first
     businessBResolve();
@@ -666,7 +666,7 @@ describe("Business Selection Flow", () => {
 
 ## Notes for Implementation
 
-1. **Use realistic data:** Mock 32 locations for nash-and-smashed to match production
+1. **Use realistic data:** Mock 32 locations for marketbrewer to match production
 2. **Test error scenarios:** Don't just test happy path
 3. **Test cleanup:** Verify AbortController abort() is called on unmount
 4. **Test localStorage sync:** Verify selection persists across remounts

@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getJobStatus } from '../api';
+import { getApiBaseUrl, getAuthToken } from '../api/client';
 import { GeneratedPageViewer } from '../components/dashboard';
 import type { JobWithCounts } from '@marketbrewer/shared';
 
@@ -16,6 +17,7 @@ export const JobStatus: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showViewer, setShowViewer] = useState(false);
+  const [liveMode, setLiveMode] = useState<'poll' | 'sse'>('poll');
 
   const fetchStatus = useCallback(async (): Promise<void> => {
     if (!businessId || !jobId) return;
@@ -37,13 +39,59 @@ export const JobStatus: React.FC = () => {
   }, [fetchStatus]);
 
   useEffect(() => {
+    if (!businessId || !jobId) {
+      return;
+    }
+    if (typeof window === 'undefined' || !('EventSource' in window)) {
+      return;
+    }
+    const token = getAuthToken();
+    if (!token) {
+      return;
+    }
+    const url = `${getApiBaseUrl()}/api/stream/jobs/${businessId}/${jobId}?token=${encodeURIComponent(token)}`;
+    const source = new EventSource(url);
+
+    const handleUpdate = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data) as { job?: JobWithCounts };
+        if (payload.job) {
+          setJob(payload.job);
+          setError(null);
+          setLoading(false);
+        }
+        setLiveMode('sse');
+      } catch (err) {
+        console.error('Failed to parse live update', err);
+      }
+    };
+
+    const handleError = () => {
+      setLiveMode('poll');
+      source.close();
+    };
+
+    source.addEventListener('job.update', handleUpdate as EventListener);
+    source.addEventListener('error', handleError as EventListener);
+
+    return () => {
+      source.removeEventListener('job.update', handleUpdate as EventListener);
+      source.removeEventListener('error', handleError as EventListener);
+      source.close();
+    };
+  }, [businessId, jobId]);
+
+  useEffect(() => {
     if (!job || job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') {
+      return;
+    }
+    if (liveMode === 'sse') {
       return;
     }
 
     const interval = setInterval(fetchStatus, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [job, fetchStatus]);
+  }, [job, fetchStatus, liveMode]);
 
   if (loading) {
     return (
@@ -151,7 +199,9 @@ export const JobStatus: React.FC = () => {
       {(job.status === 'pending' || job.status === 'processing') && (
         <div className="text-center text-sm text-dark-500">
           <span className="inline-block animate-pulse mr-2 text-metro-orange">●</span>
-          Auto-refreshing every {POLL_INTERVAL_MS / 1000} seconds
+          {liveMode === 'sse'
+            ? 'Live updates connected'
+            : `Auto-refreshing every ${POLL_INTERVAL_MS / 1000} seconds`}
         </div>
       )}
 

@@ -16,7 +16,8 @@ export type PageLocationStatus = "active" | "coming-soon";
  *
  * Content Types:
  * - keyword: SEO keywords (e.g., "best fried chicken", "halal burgers")
- * - service: Services/Menu items (e.g., "Smash Burger", "Nashville Hot Chicken")
+ * - service: Services/Menu items (e.g., "SEO Audit", "Local SEO Strategy")
+ * - blog: Blog topics derived from keywords (localized posts for SEO)
  *
  * Location Types:
  * - location: Physical store locations (where business exists)
@@ -27,6 +28,8 @@ export type PageLocationStatus = "active" | "coming-soon";
  * - keyword-location: Keywords × Store Locations
  * - service-service-area: Services/Menu Items × Service Areas
  * - service-location: Services/Menu Items × Store Locations
+ * - blog-service-area: Blog topics × Service Areas
+ * - blog-location: Blog topics × Store Locations
  *
  * Legacy (backwards compatible):
  * - location-keyword: Alias for keyword-location
@@ -37,6 +40,8 @@ export type PageType =
   | "keyword-location"
   | "service-service-area"
   | "service-location"
+  | "blog-service-area"
+  | "blog-location"
   // Legacy aliases (backwards compatible)
   | "location-keyword"
   | "service-area";

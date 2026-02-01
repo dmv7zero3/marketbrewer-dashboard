@@ -19,3 +19,7 @@ export { PagePreview } from "./PagePreview";
 export { GeneratedPageViewer } from "./GeneratedPageViewer";
 export { LocalSEOPhotos } from "./LocalSEOPhotos";
 export { Billing } from "./Billing";
+export { Roadmap } from "./Roadmap";
+export { AwsInfrastructure } from "./AwsInfrastructure";
+export { WebhooksManagement } from "./WebhooksManagement";
+export { DataStorageOverview } from "./DataStorageOverview";

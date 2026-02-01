@@ -7,3 +7,4 @@ export * from "./businesses";
 export * from "./jobs";
 export * from "./keywords";
 export * from "./service-areas";
+export * from "./webhooks";

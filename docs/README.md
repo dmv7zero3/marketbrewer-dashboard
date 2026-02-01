@@ -1,6 +1,13 @@
-# MarketBrewer SEO Platform — Documentation
+# MarketBrewer Dashboard — Documentation
 
-Local SEO content generation platform for producing thousands of location-targeted landing pages.
+Repository: https://github.com/dmv7zero3/marketbrewer-dashboard
+
+Admin dashboard for managing MarketBrewer client SEO, content generation jobs, and billing.
+
+Direction moving forward:
+- Stripe billing suite (subscriptions, invoices, usage add-ons, customer portal)
+- Expanded job analytics and cost reporting
+- Internal-only operations for MarketBrewer staff
 
 ---
 
@@ -10,15 +17,18 @@ Local SEO content generation platform for producing thousands of location-target
 | -------------------------------------- | ---------------------- |
 | [STRUCTURE.md](./STRUCTURE.md)         | File and folder layout |
 | [CONVENTIONS.md](./CONVENTIONS.md)     | Code style and naming  |
-| [BILINGUAL-SUPPORT.md](./BILINGUAL-SUPPORT.md) | EN/ES keyword handling |
+| [ENVIRONMENT.md](./ENVIRONMENT.md)     | Environment variables  |
+| [DOMAINS.md](./DOMAINS.md)             | Subdomains and buckets |
+| [SUBDOMAIN-GAMEPLAN.md](./SUBDOMAIN-GAMEPLAN.md) | Subdomain infrastructure plan |
+| [SERVERLESS-DEPLOYMENT.md](./SERVERLESS-DEPLOYMENT.md) | Deploy guide |
 
 ### Architecture
 
 | Document                                                       | Purpose            |
 | -------------------------------------------------------------- | ------------------ |
 | [architecture/OVERVIEW.md](./architecture/OVERVIEW.md)         | System design      |
-| [architecture/DATABASE.md](./architecture/DATABASE.md)         | SQLite schema      |
-| [architecture/WORKER-QUEUE.md](./architecture/WORKER-QUEUE.md) | Job queue strategy |
+| [architecture/DATABASE.md](./architecture/DATABASE.md)         | DynamoDB single-table |
+| [architecture/WORKER-QUEUE.md](./architecture/WORKER-QUEUE.md) | SQS + Lambda worker |
 
 ### API
 
@@ -39,42 +49,31 @@ Local SEO content generation platform for producing thousands of location-target
 
 Architecture Decision Records (ADRs) in `decisions/`:
 
-- [001-monorepo.md](./decisions/001-monorepo.md)
-- [002-sqlite-v1.md](./decisions/002-sqlite-v1.md)
-- [003-ollama-only.md](./decisions/003-ollama-only.md)
-- [004-ec2-first.md](./decisions/004-ec2-first.md)
+- [005-serverless-platform.md](./decisions/005-serverless-platform.md)
 
 ### Changelog
 
-- [CHANGES-2025-12-20.md](./CHANGES-2025-12-20.md) — Schema + API reliability fixes
+- [CHANGELOG.md](../CHANGELOG.md) — Dashboard and serverless history
 
 ---
 
-## V1 Scope
+## Platform Scope
 
 **Included:**
 
-- Page types: `location-keyword` (store cities × keywords), `service-area` (nearby cities × keywords)
-- LLM: Ollama only (local)
-- Bilingual: EN/ES with shared slugs
-- Database: SQLite (14 migrations)
-- Output: JSON for Webpack
-
-**Deferred to Phase 2:**
-
-- AWS Lambda/DynamoDB/SQS
-- Cloud LLM fallback (Claude, OpenAI)
-- Additional languages beyond EN/ES
+- API Gateway + Lambda + DynamoDB single-table
+- SQS worker for page generation
+- Claude API generation with immutable cost ledger
+- Google Workspace login gate
+- EN/ES keyword support
 
 ---
 
-## Launch Clients
+## Launch Client
 
-| Client              | Status      |
-| ------------------- | ----------- |
-| Nash & Smashed      | ✅ Ready    |
-| Street Lawyer Magic | ✅ Seeded   |
-| MarketBrewer        | Pending     |
+| Client                   | Status   |
+| ------------------------ | -------- |
+| MarketBrewer (Admin Hub) | ✅ Active |
 
 ---
 

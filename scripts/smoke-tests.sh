@@ -16,6 +16,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 ENVIRONMENT="${1:-local}"
+API_URL_OVERRIDE="${API_URL_OVERRIDE:-}"
+SMOKE_WRITE="${SMOKE_WRITE:-false}"
 case "$ENVIRONMENT" in
   local)
     API_URL="http://localhost:3001"
@@ -35,6 +37,10 @@ case "$ENVIRONMENT" in
     exit 1
     ;;
 esac
+
+if [ -n "$API_URL_OVERRIDE" ]; then
+  API_URL="$API_URL_OVERRIDE"
+fi
 
 # Tracking
 TESTS_PASSED=0
@@ -66,23 +72,25 @@ test_endpoint() {
 
   echo -n "Testing: $name ... "
 
+  local token="${API_TOKEN:-}"
+
   if [ -z "$data" ]; then
     response=$(curl -s -w "\n%{http_code}" \
       -X "$method" \
       -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${API_TOKEN:-local-dev-token-12345}" \
+      -H "Authorization: Bearer ${token}" \
       "$API_URL$endpoint")
   else
     response=$(curl -s -w "\n%{http_code}" \
       -X "$method" \
       -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${API_TOKEN:-local-dev-token-12345}" \
+      -H "Authorization: Bearer ${token}" \
       -d "$data" \
       "$API_URL$endpoint")
   fi
 
   http_code=$(echo "$response" | tail -n1)
-  body=$(echo "$response" | head -n-1)
+  body=$(echo "$response" | sed '$d')
 
   if [ "$http_code" == "$expected_status" ]; then
     log_info "$name (HTTP $http_code)"
@@ -142,6 +150,9 @@ test_endpoint \
   "200"
 
 # Create business (test data)
+if [ "$SMOKE_WRITE" != "true" ]; then
+  log_warning "Skipping write tests (SMOKE_WRITE=false)"
+else
 business_data=$(cat <<EOF
 {
   "name": "Smoke Test Business $(date +%s)",
@@ -163,7 +174,7 @@ test_endpoint \
 # Extract business_id from response for subsequent tests
 response=$(curl -s -X POST \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${API_TOKEN:-local-dev-token}" \
+  -H "Authorization: Bearer ${API_TOKEN:-}" \
   -d "$business_data" \
   "$API_URL$API_BASE_PATH/businesses")
 
@@ -209,6 +220,7 @@ EOF
     "$API_BASE_PATH/businesses/$business_id/questionnaire" \
     "$questionnaire_data" \
     "200"
+fi
 fi
 
 echo ""

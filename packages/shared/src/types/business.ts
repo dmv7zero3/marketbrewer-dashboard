@@ -411,6 +411,8 @@ export interface PromptTemplate {
     | "keyword-location"
     | "service-service-area"
     | "service-location"
+    | "blog-service-area"
+    | "blog-location"
     // Legacy aliases
     | "location-keyword"
     | "service-area";

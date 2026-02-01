@@ -346,7 +346,7 @@ export const LocationsManagement: React.FC = () => {
             <div className="bg-dark-800 border border-dark-700 rounded-lg p-4">
               <div className="text-sm text-dark-400">States/Regions</div>
               <div className="text-2xl font-bold text-dark-100">
-                {Object.keys(stats.byState).length}
+                {Object.keys(stats.byState || {}).length}
               </div>
             </div>
           </div>

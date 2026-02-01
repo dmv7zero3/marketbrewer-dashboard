@@ -1,0 +1,288 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "MarketBrewer Dashboard Serverless API (API Gateway + Lambda + DynamoDB + SQS)"
+
+Parameters:
+  ProjectPrefix:
+    Type: String
+    Default: marketbrewer
+    Description: Prefix for all resources in this stack
+
+  ClaudeApiKey:
+    Type: String
+    NoEcho: true
+    Description: Anthropic Claude API key
+
+  ClaudeModel:
+    Type: String
+    Default: claude-3-5-sonnet-20240620
+
+  ClaudePriceInputPer1K:
+    Type: Number
+    Default: 0
+    Description: USD cost per 1K input tokens
+
+  ClaudePriceOutputPer1K:
+    Type: Number
+    Default: 0
+    Description: USD cost per 1K output tokens
+
+  ApiToken:
+    Type: String
+    NoEcho: true
+    Description: API token for worker authentication
+
+  ExistingQueueArn:
+    Type: String
+    Default: ""
+    Description: Optional existing SQS queue ARN for page generation
+
+  ExistingQueueUrl:
+    Type: String
+    Default: ""
+    Description: Optional existing SQS queue URL for page generation
+
+  ExistingTableName:
+    Type: String
+    Default: ""
+    Description: Optional existing DynamoDB table name
+
+  GoogleClientId:
+    Type: String
+    Default: ""
+
+  GoogleAllowedEmails:
+    Type: String
+    Default: "j@marketbrewer.com"
+
+  CorsAllowOrigins:
+    Type: String
+    Default: "https://admin.marketbrewer.com,https://portal.marketbrewer.com"
+
+  RateLimitPerMinute:
+    Type: Number
+    Default: 120
+
+Conditions:
+  CreateQueue: !Equals [!Ref ExistingQueueArn, ""]
+  CreateTable: !Equals [!Ref ExistingTableName, ""]
+
+Resources:
+  DashboardTable:
+    Type: AWS::DynamoDB::Table
+    Condition: CreateTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub "${ProjectPrefix}-dashboard"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: MarketBrewer
+        - Key: Component
+          Value: Dashboard
+
+  PageGenerationQueue:
+    Type: AWS::SQS::Queue
+    Condition: CreateQueue
+    Properties:
+      QueueName: !Sub "${ProjectPrefix}-page-generation"
+      VisibilityTimeout: 300
+      MessageRetentionPeriod: 604800
+      ReceiveMessageWaitTimeSeconds: 20
+      Tags:
+        - Key: Project
+          Value: MarketBrewer
+        - Key: Component
+          Value: Dashboard
+
+  ApiLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDbAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:BatchWriteItem
+                Resource: !If
+                  - CreateTable
+                  - !GetAtt DashboardTable.Arn
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTableName}"
+        - PolicyName: SqsAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessageBatch
+                Resource: !If [CreateQueue, !GetAtt PageGenerationQueue.Arn, !Ref ExistingQueueArn]
+
+  ApiLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectPrefix}-dashboard-api"
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt ApiLambdaRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          DDB_TABLE_NAME: !If [CreateTable, !Ref DashboardTable, !Ref ExistingTableName]
+          SQS_QUEUE_URL: !If [CreateQueue, !Ref PageGenerationQueue, !Ref ExistingQueueUrl]
+          API_TOKEN: !Ref ApiToken
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          GOOGLE_ALLOWED_EMAILS: !Ref GoogleAllowedEmails
+          CORS_ALLOW_ORIGINS: !Ref CorsAllowOrigins
+          RATE_LIMIT_PER_MIN: !Ref RateLimitPerMinute
+      Code: 
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 503, body: "Lambda not packaged" });
+
+  WorkerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDbAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource: !If
+                  - CreateTable
+                  - !GetAtt DashboardTable.Arn
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingTableName}"
+        - PolicyName: SqsAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !If [CreateQueue, !GetAtt PageGenerationQueue.Arn, !Ref ExistingQueueArn]
+
+  WorkerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectPrefix}-dashboard-worker"
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt WorkerLambdaRole.Arn
+      Timeout: 60
+      MemorySize: 1024
+      Environment:
+        Variables:
+          DDB_TABLE_NAME: !If [CreateTable, !Ref DashboardTable, !Ref ExistingTableName]
+          CLAUDE_API_KEY: !Ref ClaudeApiKey
+          CLAUDE_MODEL: !Ref ClaudeModel
+          CLAUDE_PRICE_INPUT_PER_1K: !Ref ClaudePriceInputPer1K
+          CLAUDE_PRICE_OUTPUT_PER_1K: !Ref ClaudePriceOutputPer1K
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 503, body: "Lambda not packaged" });
+
+  WorkerEventSource:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !GetAtt WorkerLambda.Arn
+      EventSourceArn: !If [CreateQueue, !GetAtt PageGenerationQueue.Arn, !Ref ExistingQueueArn]
+      BatchSize: 5
+      Enabled: true
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${ProjectPrefix}-dashboard-api"
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+
+  HttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ApiLambda.Arn
+      PayloadFormatVersion: "2.0"
+
+  HttpApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "$default"
+      Target: !Sub "integrations/${HttpApiIntegration}"
+
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: "$default"
+      AutoDeploy: true
+
+  ApiLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ApiLambda
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*"
+
+Outputs:
+  ApiUrl:
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  TableName:
+    Value: !If [CreateTable, !Ref DashboardTable, !Ref ExistingTableName]
+  QueueUrl:
+    Value: !If [CreateQueue, !Ref PageGenerationQueue, !Ref ExistingQueueUrl]

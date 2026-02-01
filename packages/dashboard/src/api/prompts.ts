@@ -53,6 +53,8 @@ export async function createPromptTemplate(
       | "keyword-location"
       | "service-service-area"
       | "service-location"
+      | "blog-service-area"
+      | "blog-location"
       | "location-keyword"
       | "service-area";
     version: number;

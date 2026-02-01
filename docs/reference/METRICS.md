@@ -8,7 +8,7 @@ Structured logging and metrics for monitoring.
 
 | Level | Use Case | Example |
 |-------|----------|---------|
-| ERROR | Failures requiring attention | Ollama connection failed |
+| ERROR | Failures requiring attention | Claude API request failed |
 | WARN | Potential issues | Page retry attempt 2/3 |
 | INFO | Normal operations | Page completed |
 | DEBUG | Detailed troubleshooting | Prompt variables injected |
@@ -41,21 +41,20 @@ Structured JSON logs:
 
 | Event | Level | Data |
 |-------|-------|------|
-| `worker_started` | INFO | workerId, apiUrl |
-| `page_claimed` | INFO | jobId, pageId |
-| `generation_started` | INFO | pageId, model |
-| `page_completed` | INFO | pageId, duration, wordCount |
-| `generation_failed` | ERROR | pageId, error |
-| `worker_stopped` | INFO | workerId, reason |
+| `worker_batch_received` | INFO | records |
+| `page_processing_started` | INFO | jobId, pageId, businessId |
+| `page_processing_completed` | INFO | jobId, pageId, durationMs, inputTokens |
+| `page_processing_failed` | ERROR | jobId, pageId, error |
+| `page_skipped` | WARN | jobId, pageId |
 
 ### API Events
 
 | Event | Level | Data |
 |-------|-------|------|
-| `job_created` | INFO | jobId, businessId, totalPages |
-| `page_claimed` | INFO | jobId, pageId, workerId |
-| `claim_conflict` | WARN | jobId, pageId, workerId |
-| `job_completed` | INFO | jobId, duration |
+| `request_received` | INFO | method, path, requestId |
+| `bad_request` | WARN | error |
+| `unauthorized` | WARN | error |
+| `not_found` | WARN | error |
 
 ---
 
@@ -141,7 +140,7 @@ logger.error('generation_failed', { pageId, error: err.message });
 | Metric | Type | Description |
 |--------|------|-------------|
 | workers_active | Gauge | Currently active workers |
-| ollama_request_seconds | Histogram | Ollama API latency |
+| claude_request_seconds | Histogram | Claude API latency |
 
 ---
 

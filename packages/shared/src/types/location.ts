@@ -9,7 +9,7 @@
  * - upcoming: Location is planned/coming soon
  *
  * Note: Changed from 4-status model (active, coming-soon, closed, temporarily-closed)
- * to 2-status model to match Nash & Smashed client requirements.
+ * to 2-status model to match MarketBrewer client requirements.
  */
 
 export type LocationStatus = "active" | "upcoming";

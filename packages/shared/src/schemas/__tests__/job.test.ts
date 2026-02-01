@@ -27,6 +27,14 @@ describe("PageTypeSchema", () => {
       expect(() => PageTypeSchema.parse("service-location")).not.toThrow();
     });
 
+    it("should accept blog-service-area", () => {
+      expect(() => PageTypeSchema.parse("blog-service-area")).not.toThrow();
+    });
+
+    it("should accept blog-location", () => {
+      expect(() => PageTypeSchema.parse("blog-location")).not.toThrow();
+    });
+
     it("should accept legacy location-keyword", () => {
       expect(() => PageTypeSchema.parse("location-keyword")).not.toThrow();
     });
@@ -79,6 +87,8 @@ describe("CreateGenerationJobSchema", () => {
         "keyword-location",
         "service-service-area",
         "service-location",
+        "blog-service-area",
+        "blog-location",
         "location-keyword",
         "service-area",
       ];

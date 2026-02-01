@@ -20,7 +20,7 @@ const VARIABLES: Variable[] = [
     name: "business_name",
     description: "Name of the business",
     source: "Business Profile",
-    example: "Nash Smashed Burgers",
+    example: "MarketBrewer Local SEO",
     category: "required",
   },
   {
@@ -160,6 +160,13 @@ const VARIABLES: Variable[] = [
     example: "onsite, mobile, both",
     category: "optional",
   },
+  {
+    name: "page_type",
+    description: "Generation page type (keyword/service/blog variants)",
+    source: "Generation Job",
+    example: "blog-service-area",
+    category: "optional",
+  },
 
   // Keyword-specific
   {
@@ -174,6 +181,20 @@ const VARIABLES: Variable[] = [
     description: "Target SEO keyword (Spanish)",
     source: "Keywords",
     example: "mejores hamburguesas cerca",
+    category: "keyword",
+  },
+  {
+    name: "keyword_language",
+    description: "Language code for the keyword (e.g., en, es)",
+    source: "Keywords",
+    example: "es",
+    category: "keyword",
+  },
+  {
+    name: "content_language",
+    description: "Readable language name for content generation",
+    source: "Keywords",
+    example: "Spanish",
     category: "keyword",
   },
   {

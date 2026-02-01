@@ -3,6 +3,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios";
+import { GOOGLE_TOKEN_STORAGE_KEY } from "../constants/auth";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 const API_TOKEN = process.env.REACT_APP_API_TOKEN || "";
@@ -25,11 +26,24 @@ const HEALTH_CHECK_INTERVAL_MS = 30000;
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
-    Authorization: `Bearer ${API_TOKEN}`,
     "Content-Type": "application/json",
   },
   timeout: 30000,
 });
+
+export function getAuthToken(): string {
+  if (typeof window !== "undefined") {
+    const storedToken = localStorage.getItem(GOOGLE_TOKEN_STORAGE_KEY);
+    if (storedToken) {
+      return storedToken;
+    }
+  }
+  return API_TOKEN;
+}
+
+export function getApiBaseUrl(): string {
+  return API_URL;
+}
 
 /**
  * Check if the server is reachable
@@ -89,13 +103,21 @@ function delay(ms: number): Promise<void> {
 // Request interceptor for logging (development only)
 apiClient.interceptors.request.use(
   (config) => {
+    const authToken = getAuthToken();
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
+    }
     if (process.env.NODE_ENV === "development") {
+      const safeHeaders = { ...config.headers } as Record<string, unknown>;
+      if (safeHeaders.Authorization) {
+        safeHeaders.Authorization = "Bearer ***";
+      }
       console.log(
         `[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${
           config.url
         }`
       );
-      console.log(`[API Request] Headers:`, config.headers);
+      console.log(`[API Request] Headers:`, safeHeaders);
     }
     return config;
   },

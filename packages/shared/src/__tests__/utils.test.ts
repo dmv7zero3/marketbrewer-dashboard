@@ -22,7 +22,7 @@ describe("toSlug", () => {
   });
 
   it("removes special characters", () => {
-    expect(toSlug("Nash & Smashed's BBQ!")).toBe("nash-smasheds-bbq");
+    expect(toSlug("MarketBrewer's Local SEO!")).toBe("marketbrewers-local-seo");
   });
 
   it("handles leading/trailing spaces", () => {

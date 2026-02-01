@@ -61,7 +61,7 @@ export const PrimaryLocationCard = memo<PrimaryLocationCardProps>(
                   ? "bg-dark-800 text-dark-400 cursor-not-allowed"
                   : ""
               }`}
-              placeholder="e.g., Nashville"
+              placeholder="e.g., Alexandria"
               aria-invalid={!!validationErrors.primary_city}
               aria-describedby={
                 validationErrors.primary_city

@@ -31,6 +31,16 @@ export const PageContentGeneration: React.FC = () => {
       description: `Keywords × physical store locations`,
     },
     {
+      value: "blog-service-area",
+      title: "Blog Topics × Service Areas",
+      description: `Blog topics (keywords) × nearby cities for localized posts`,
+    },
+    {
+      value: "blog-location",
+      title: "Blog Topics × Store Locations",
+      description: `Blog topics (keywords) × physical store locations`,
+    },
+    {
       value: "service-service-area",
       title: `${uiLabels.servicesLabel} × Service Areas`,
       description: `${uiLabels.servicesLabel} (e.g., "Smash Burger") × nearby cities`,
@@ -83,7 +93,7 @@ export const PageContentGeneration: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-dark-100">Page Content Generation</h1>
           <p className="mt-1 text-sm text-dark-400">
-            Generate SEO-optimized landing pages for your keywords and service areas
+            Generate SEO-optimized landing pages and localized blog posts for your keywords and service areas
           </p>
         </div>
 
