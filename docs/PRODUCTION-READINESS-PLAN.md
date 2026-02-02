@@ -44,7 +44,7 @@ Prioritized plan to take MarketBrewer Dashboard to production‑grade reliabilit
 
 ## Phase 4 — Testing & Coverage (High impact)
 1) **Raise API/worker coverage**
-   - Minimum 40% → 70% with focused integration tests
+   - Enforce minimums: 65% lines/statements, 45% branches, 55% functions
 2) **E2E staging smoke tests**
    - Create job, worker processes, page returns
 3) **Load tests**
@@ -72,4 +72,4 @@ Prioritized plan to take MarketBrewer Dashboard to production‑grade reliabilit
 2) Configure DLQ + backlog alarms
 3) Add integration tests for API/worker
 
-Last updated: 2026-02-01
+Last updated: 2026-02-02

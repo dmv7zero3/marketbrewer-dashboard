@@ -11,4 +11,16 @@ module.exports = {
     ],
   },
   testMatch: ["**/__tests__/**/*.test.ts"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.ts",
+    "!<rootDir>/src/local-worker.ts",
+  ],
+  coverageThreshold: {
+    global: {
+      statements: 65,
+      lines: 65,
+      branches: 45,
+      functions: 55,
+    },
+  },
 };

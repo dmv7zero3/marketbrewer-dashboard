@@ -44,7 +44,7 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 - [x] Dashboard bundle size optimization (code splitting, lazy routes)
 
 ## 7) Testing
-- [ ] Increase API/worker coverage to minimum threshold
+- [x] Coverage thresholds enforced (API/worker ≥ 65% lines/statements, ≥ 45% branches, ≥ 55% functions)
 - [ ] Integration tests for key flows (create job → worker → pages)
 - [ ] E2E smoke tests against staging
 - [ ] Load tests for worker throughput
@@ -59,4 +59,4 @@ Step-by-step checklist for hardening MarketBrewer Dashboard for production use.
 
 ---
 
-Last updated: 2026-02-01
+Last updated: 2026-02-02
